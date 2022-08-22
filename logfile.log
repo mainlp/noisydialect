@@ -1,0 +1,7 @@
+dir data/hamburg-dependency-treebank/
+parts part_A,part_B
+out data/hamburg-dependency-treebank/train_DHT_STTS.txt
+include_filename False
+tigerize True
+fix_typos True
+verbose True
