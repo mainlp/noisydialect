@@ -19,43 +19,22 @@ import torch
 DUMMY_POS = "<DUMMY>"
 
 
-def add_sent_data(x, toks, pos, input_mask, real_pos,
-                  cur_toks, cur_pos,
-                  max_len, i, tokenizer):
-    cur_toks = ["[CLS"] + cur_toks[:max_len - 2] + ["SEP"]
-    toks.append(cur_toks)
-    input_mask[i][:len(cur_toks)] = len(cur_toks) * [1]
-    x[i][:len(cur_toks)] = tokenizer.convert_tokens_to_ids(cur_toks)
-    cur_pos = ([DUMMY_POS]
-               + cur_pos[:max_len - 2]
-               + (max_len - len(cur_pos) - 2) * [DUMMY_POS]
-               + [DUMMY_POS])
-    pos.append(cur_pos)
-    real_pos[i][:len(cur_pos)] = [0 if p == DUMMY_POS else 1 for p in cur_pos]
-    return x, toks, pos, real_pos
-
-
-def read_input_data(filename, tokenizer, n_sents, max_len,
-                    tag2idx=None, encoding='utf8', verbose=True):
-    assert max_len >= 2
+def read_raw_input(filename, n_sents, encoding="utf8", verbose=True):
+    """
+    Reads the original (non-BERT) tokens and their labels
+    """
     if verbose:
         print("Reading data from " + filename)
+    toks, pos = [], []
     with open(filename, encoding=encoding) as f_in:
-        x = np.zeros((n_sents, max_len), dtype=np.float64)
-        toks, pos = [], []
-        input_mask = np.zeros((n_sents, max_len))
-        # real_pos = 1 if full token or beginning of a token,
-        # 0 if subword token from later on in the word with dummy tag
-        real_pos = np.zeros((n_sents, max_len))
         cur_toks, cur_pos = [], []
         i = 0
         for line in f_in:
             line = line.strip()
             if not line:
                 if cur_toks:
-                    x, toks, pos, real_pos = add_sent_data(
-                        x, toks, pos, input_mask, real_pos, cur_toks, cur_pos,
-                        max_len, i, tokenizer)
+                    toks.append(cur_toks)
+                    pos.append(cur_pos)
                     i += 1
                     cur_toks, cur_pos = [], []
                     if n_sents == i:
@@ -64,20 +43,55 @@ def read_input_data(filename, tokenizer, n_sents, max_len,
                         print(i)
                 continue
             *words, word_pos = line.split()
-            word_toks = []
-            for word in words:
-                word_toks += tokenizer.tokenize(word)
-            cur_toks += word_toks
+            cur_toks += [word for word in words]
             cur_pos.append(word_pos)
-            cur_pos += [DUMMY_POS for _ in range(1, len(word_toks))]
+            # Treat multi-word tokens (that will be split up anyway)
+            # like subtokens
+            cur_pos += [DUMMY_POS for _ in range(1, len(words))]
         if cur_toks:
-            add_sent_data(x, toks, pos, input_mask, real_pos, cur_toks,
-                          cur_pos, max_len, i, tokenizer)
+            toks.append(cur_toks)
+            pos.append(cur_pos)
+    assert len(toks) == len(pos), f"{len(toks)} == {len(pos)}"
+    return toks, pos
+
+
+def input2tensors(toks_orig, pos_orig, tokenizer, T,
+                  tag2idx=None, encoding='utf8', verbose=True):
+    assert T >= 2
+    N = len(toks_orig)
+    x = np.zeros((N, T), dtype=np.float64)
+    toks, pos = [], []
+    input_mask = np.zeros((N, T))
+    # real_pos = 1 if full token or beginning of a token,
+    # 0 if subword token from later on in the word with dummy tag
+    real_pos = np.zeros((N, T))
+    cur_toks, cur_pos = [], []
+    for i, (sent_toks, sent_pos) in enumerate(zip(toks_orig, pos_orig)):
+        if verbose and i % 500 == 0:
+            print(i)
+        cur_toks = ["[CLS]"]
+        cur_pos = [DUMMY_POS]
+        for token, pos_tag in zip(sent_toks, sent_pos):
+            subtoks = tokenizer.tokenize(token)
+            cur_toks += subtoks
+            cur_pos += [pos_tag]
+            cur_pos += [DUMMY_POS for _ in range(1, len(subtoks))]
+        cur_toks = cur_toks[:T - 1] + ["SEP"]
+        toks.append(cur_toks)
+        input_mask[i][:len(cur_toks)] = len(cur_toks) * [1]
+        x[i][:len(cur_toks)] = tokenizer.convert_tokens_to_ids(cur_toks)
+        cur_pos = (cur_pos[:T - 1]
+                   + [DUMMY_POS]  # SEP
+                   + (T - len(cur_pos) - 1) * [DUMMY_POS]  # padding
+                   )
+        pos.append(cur_pos)
+        real_pos[i][:len(cur_pos)] = [0 if p == DUMMY_POS
+                                      else 1 for p in cur_pos]
     if not tag2idx:
         # BERT doesn't want labels that are already onehot-encoded
         tag2idx = {tag: idx for idx, tag in enumerate(
             {tok_pos for sent_pos in pos for tok_pos in sent_pos})}
-    y = np.empty((n_sents, max_len))
+    y = np.empty((N, T))
     for i, sent_pos in enumerate(pos):
         y[i] = [tag2idx[tok_pos] for tok_pos in sent_pos]
     assert len(toks) == x.shape[0] == len(pos), \
@@ -91,32 +105,36 @@ def read_input_data(filename, tokenizer, n_sents, max_len,
         Tensor(input_mask).to(torch.int64), real_pos, tag2idx
 
 
+def subtok_ratio(toks_orig, toks_bert):
+    return (len(toks_bert) - len(toks_orig)) / len(toks_bert)
+
+
 def visualize(matrix, name):
     plt.clf()
     plt.pcolormesh(matrix)
     plt.savefig(f"figs/{name}.png")
 
 
-def train_and_validate(model, device, train_iter, dev_iter, test_iter,
+def train_and_validate(model, device, iter_train, iter_dev, iter_test,
                        optimizer, scheduler, n_epochs):
     for epoch in range(n_epochs):
         print("============")
         print(f"Epoch {epoch + 1}/{n_epochs} started at " + now())
-        train(model, device, train_iter, optimizer, scheduler)
-        eval(model, device, dev_iter)
-        eval(model, device, test_iter)
+        train(model, device, iter_train, optimizer, scheduler)
+        eval(model, device, iter_dev)
+        eval(model, device, iter_test)
 
 
 def now():
     return time.strftime("%Y/%m/%d %H:%M:%S", time.localtime())
 
 
-def train(model, device, train_iter, optimizer, scheduler):
+def train(model, device, iter_train, optimizer, scheduler):
     model.train()  # Switch to training mode
     train_loss = 0
 
-    n_batches = len(train_iter)
-    for i, batch in enumerate(train_iter):
+    n_batches = len(iter_train)
+    for i, batch in enumerate(iter_train):
         b_input_ids = batch[0].to(device)
         b_input_mask = batch[1].to(device)
         b_labels = batch[2].to(device)
@@ -156,10 +174,10 @@ def train(model, device, train_iter, optimizer, scheduler):
     print(f"Mean train loss for epoch: {train_loss / n_batches}")
 
 
-def eval(model, device, test_iter):
+def eval(model, device, iter_test):
     model.eval()
-    n_batches = len(test_iter)
-    for i, batch in enumerate(test_iter):
+    n_batches = len(iter_test)
+    for i, batch in enumerate(iter_test):
         b_input_ids = batch[0].to(device)
         b_input_mask = batch[1].to(device)
         b_labels = batch[2].to(device)
@@ -180,11 +198,11 @@ def eval(model, device, test_iter):
 
 if __name__ == "__main__":
     parser = ArgumentParser()
-    parser.add_argument("-r", dest="td_file",
+    parser.add_argument("-r", dest="file_td",
                         help="training/development data file",
                         default="data/hamburg-dependency-treebank/"
                                 "train_DHT_STTS.txt")
-    parser.add_argument("-e", dest="test_file",
+    parser.add_argument("-e", dest="file_test",
                         help="test data file",
                         default="data/NOAH-corpus/test_GSW_STTS.txt")
     parser.add_argument("-nr", dest="n_sents_td",
@@ -200,6 +218,8 @@ if __name__ == "__main__":
     parser.add_argument("-d", dest="dev_ratio",
                         help="dev:dev+train ratio",
                         default=0.1, type=float)
+    # parser.add_argument("-q", "--quiet", action="store_false", dest="verbose",
+    #                     default=True, help="no messages to stdout")
 
     args = parser.parse_args()
     sys.stdout = cust_logger.Logger("eda")
@@ -208,14 +228,21 @@ if __name__ == "__main__":
 
     tokenizer = AutoTokenizer.from_pretrained("dbmdz/bert-base-german-cased")
 
-    (toks_td, x_td, y_td,
-        input_mask_td, real_pos_td, tag2idx) = read_input_data(
-        args.td_file, tokenizer, args.n_sents_td, args.max_len)
-    (toks_train, toks_dev, x_train, x_dev,
-        y_train, y_dev, input_mask_train, input_mask_dev,
-        real_pos_train, real_pos_dev) = train_test_split(
-        toks_td, x_td, y_td, input_mask_td, real_pos_td,
-        test_size=args.dev_ratio)
+    # Prepare training/validation data: (modified) HRL tokens
+    toks_td, pos_td = read_raw_input(args.file_td, args.n_sents_td)
+    # TODO modify the tokens
+    toks_orig_train, toks_orig_dev, pos_train, pos_dev = train_test_split(
+        toks_td, pos_td, test_size=args.dev_ratio)
+    (toks_train, x_train, y_train,
+        input_mask_train, real_pos_train, tag2idx) = input2tensors(
+        toks_orig_train, pos_train, tokenizer, args.max_len)
+    print("Subtoken ratio (training)",
+          subtok_ratio(toks_orig_train, toks_train))
+    (toks_dev, x_dev, y_dev,
+        input_mask_dev, real_pos_dev, _) = input2tensors(
+        toks_orig_dev, pos_dev, tokenizer, args.max_len, tag2idx=tag2idx)
+    print("Subtoken ratio (development)",
+          subtok_ratio(toks_orig_dev, toks_dev))
     visualize(x_train, f"x_train_{x_train.shape[0]}")
     visualize(y_train, f"y_train_{x_train.shape[0]}")
     visualize(real_pos_train, f"real_pos_train_{x_train.shape[0]}")
@@ -224,10 +251,15 @@ if __name__ == "__main__":
     visualize(y_dev, f"y_dev_{x_dev.shape[0]}")
     visualize(real_pos_dev, f"real_pos_dev_{x_dev.shape[0]}")
     visualize(input_mask_dev, f"input_mask_dev_{x_dev.shape[0]}")
+
+    # Prepare test data: LRL tokens
+    toks_orig_test, pos_test = read_raw_input(args.file_test,
+                                              args.n_sents_test)
     (toks_test, x_test, y_test,
-        input_mask_test, real_pos_test, _) = read_input_data(
-        args.test_file, tokenizer, args.n_sents_test, args.max_len,
-        tag2idx=tag2idx)
+        input_mask_test, real_pos_test, _) = input2tensors(
+        toks_orig_test, pos_test, tokenizer, args.max_len, tag2idx=tag2idx)
+    print("Subtoken ratio (test)",
+          subtok_ratio(toks_orig_test, toks_orig_test))
     visualize(x_test, f"x_test_{args.n_sents_test}")
     visualize(y_test, f"y_test_{args.n_sents_test}")
     visualize(y_train, f"y_train_{args.n_sents_test}")
@@ -246,18 +278,18 @@ if __name__ == "__main__":
     n_epochs = 2  # TODO move various settings to the console args
     batch_size = 32
 
-    train_data = TensorDataset(x_train, input_mask_train, y_train)
-    train_iter = DataLoader(train_data, sampler=RandomSampler(train_data),
+    data_train = TensorDataset(x_train, input_mask_train, y_train)
+    iter_train = DataLoader(data_train, sampler=RandomSampler(data_train),
                             batch_size=batch_size)
-    dev_data = TensorDataset(x_dev, input_mask_dev, y_dev)
-    dev_iter = DataLoader(dev_data, sampler=RandomSampler(dev_data),
+    data_dev = TensorDataset(x_dev, input_mask_dev, y_dev)
+    iter_dev = DataLoader(data_dev, sampler=RandomSampler(data_dev),
                           batch_size=batch_size)
-    test_data = TensorDataset(x_test, input_mask_test, y_test)
-    test_iter = DataLoader(test_data, sampler=RandomSampler(test_data),
+    data_test = TensorDataset(x_test, input_mask_test, y_test)
+    iter_test = DataLoader(data_test, sampler=RandomSampler(data_test),
                            batch_size=batch_size)
     scheduler = get_linear_schedule_with_warmup(
         optimizer, num_warmup_steps=0,
-        num_training_steps=len(train_iter) * n_epochs)
+        num_training_steps=len(iter_train) * n_epochs)
 
-    train_and_validate(model, device, train_iter, dev_iter, test_iter,
+    train_and_validate(model, device, iter_train, iter_dev, iter_test,
                        optimizer, scheduler, n_epochs)
