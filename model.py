@@ -4,9 +4,14 @@ from argparse import ArgumentParser
 import sys
 import time
 
-from torch.utils.data import DataLoader, RandomSampler, SequentialSampler, TensorDataset
-from transformers import AdamW, AutoTokenizer, BertForTokenClassification, \
+from sklearn.model_selection import train_test_split
+from torch import Tensor
+from torch.optim import AdamW
+from torch.nn.utils import clip_grad_norm_
+from torch.utils.data import DataLoader, RandomSampler, TensorDataset
+from transformers import AutoTokenizer, BertForTokenClassification, \
     get_linear_schedule_with_warmup
+import matplotlib.pyplot as plt
 import numpy as np
 import torch
 
@@ -19,6 +24,7 @@ def add_sent_data(x, toks, pos, input_mask, real_pos,
                   max_len, i, tokenizer):
     cur_toks = ["[CLS"] + cur_toks[:max_len - 2] + ["SEP"]
     toks.append(cur_toks)
+    input_mask[i][:len(cur_toks)] = len(cur_toks) * [1]
     x[i][:len(cur_toks)] = tokenizer.convert_tokens_to_ids(cur_toks)
     cur_pos = ([DUMMY_POS]
                + cur_pos[:max_len - 2]
@@ -26,7 +32,6 @@ def add_sent_data(x, toks, pos, input_mask, real_pos,
                + [DUMMY_POS])
     pos.append(cur_pos)
     real_pos[i][:len(cur_pos)] = [0 if p == DUMMY_POS else 1 for p in cur_pos]
-    input_mask[i][:len(cur_pos)] = len(cur_pos) * [1]
     return x, toks, pos, real_pos
 
 
@@ -79,20 +84,31 @@ def read_input_data(filename, tokenizer, n_sents, max_len,
         f"{len(toks)} == {x.shape[0]} == {len(pos)}"
     if verbose:
         print(f"{len(toks)} sentences")
-        for i in zip(toks[0], pos[0], x[0]):
+        for i in zip(toks[0], x[0], pos[0], y[0], input_mask[0], real_pos[0]):
             print(i)
         print("\n")
-    return toks, x, y, input_mask, real_pos, tag2idx
+    return toks, Tensor(x).to(torch.int64), Tensor(y).to(torch.int64), \
+        Tensor(input_mask).to(torch.int64), real_pos, tag2idx
 
 
-def train_and_validate(model, device, train_iter, test_iter, optimizer,
-                       scheduler, n_epochs):
+def visualize(matrix, name):
+    plt.clf()
+    plt.pcolormesh(matrix)
+    plt.savefig(f"figs/{name}.png")
+
+
+def train_and_validate(model, device, train_iter, dev_iter, test_iter,
+                       optimizer, scheduler, n_epochs):
     for epoch in range(n_epochs):
         print("============")
-        print(f"Epoch {epoch + 1} / {n_epochs} started at "
-              + time.strftime("%Y%M%d-%H%M%S", time.localtime()))
+        print(f"Epoch {epoch + 1}/{n_epochs} started at " + now())
         train(model, device, train_iter, optimizer, scheduler)
+        eval(model, device, dev_iter)
         eval(model, device, test_iter)
+
+
+def now():
+    return time.strftime("%Y/%m/%d %H:%M:%S", time.localtime())
 
 
 def train(model, device, train_iter, optimizer, scheduler):
@@ -110,12 +126,13 @@ def train(model, device, train_iter, optimizer, scheduler):
         # Forward pass
         # TODO: override! custom loss function taking into account the
         # subword tokens!!!
-        loss, logits, _, _ = model(b_input_ids, b_input_mask,
-                                   labels=b_labels)
-        train_loss += loss.item()
+#         loss, logits, _, _ = model(b_input_ids, b_input_mask,
+#                                    labels=b_labels)
+        out = model(b_input_ids, b_input_mask, labels=b_labels)
+        train_loss += out.loss.item()
 
-        loss.backward()  # Calculate gradients
-        torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+        out.loss.backward()  # Calculate gradients
+        clip_grad_norm_(model.parameters(), 1.0)
 
         optimizer.step()  # Update model parameters
         scheduler.step()  # Update learning rate
@@ -135,7 +152,7 @@ def train(model, device, train_iter, optimizer, scheduler):
         # optimizer.step()
 
         if i % 10 == 0:
-            print(f"Batch {i:>2} / {n_batches}, loss: {loss.item()}")
+            print(f"Batch {i:>2}/{n_batches} {now()} loss: {out.loss.item()}")
     print(f"Mean train loss for epoch: {train_loss / n_batches}")
 
 
@@ -151,12 +168,11 @@ def eval(model, device, test_iter):
         with torch.no_grad():
             # TODO: override! custom loss function taking into account the
             # subword tokens!!!
-            loss, logits, _, _ = model(b_input_ids, b_input_mask,
-                                       labels=b_labels)
-            eval_loss += loss.item()
+            out = model(b_input_ids, b_input_mask, labels=b_labels)
+            eval_loss += out.loss.item()
 
             # TODO additional metrics
-            logits = logits.detach().cpu().numpy()
+            logits = out.logits.detach().cpu().numpy()
             label_ids = b_labels.to('cpu').numpy()
             # metrics here!
     print(f"Mean validation loss for epoch: {eval_loss / n_batches}")
@@ -164,15 +180,15 @@ def eval(model, device, test_iter):
 
 if __name__ == "__main__":
     parser = ArgumentParser()
-    parser.add_argument("-r", dest="train_file",
-                        help="training data file",
+    parser.add_argument("-r", dest="td_file",
+                        help="training/development data file",
                         default="data/hamburg-dependency-treebank/"
                                 "train_DHT_STTS.txt")
     parser.add_argument("-e", dest="test_file",
                         help="test data file",
                         default="data/NOAH-corpus/test_GSW_STTS.txt")
-    parser.add_argument("-nr", dest="n_sents_train",
-                        help="no. of sentences in the training data",
+    parser.add_argument("-nr", dest="n_sents_td",
+                        help="no. of sentences in the training/dev data",
                         default=206794, type=int)
     parser.add_argument("-ne", dest="n_sents_test",
                         help="no. of sentences in the test data",
@@ -181,6 +197,9 @@ if __name__ == "__main__":
                         help="max. number of tokens per sentence "
                         "(incl. CLS and SEP)",
                         default=54, type=int)
+    parser.add_argument("-d", dest="dev_ratio",
+                        help="dev:dev+train ratio",
+                        default=0.1, type=float)
 
     args = parser.parse_args()
     sys.stdout = cust_logger.Logger("eda")
@@ -189,16 +208,35 @@ if __name__ == "__main__":
 
     tokenizer = AutoTokenizer.from_pretrained("dbmdz/bert-base-german-cased")
 
-    (toks_train, x_train, y_train,
-        input_mask_train, real_pos_train, tag2idx) = read_input_data(
-        args.train_file, tokenizer, args.n_sents_train, args.max_len)
+    (toks_td, x_td, y_td,
+        input_mask_td, real_pos_td, tag2idx) = read_input_data(
+        args.td_file, tokenizer, args.n_sents_td, args.max_len)
+    (toks_train, toks_dev, x_train, x_dev,
+        y_train, y_dev, input_mask_train, input_mask_dev,
+        real_pos_train, real_pos_dev) = train_test_split(
+        toks_td, x_td, y_td, input_mask_td, real_pos_td,
+        test_size=args.dev_ratio)
+    visualize(x_train, f"x_train_{x_train.shape[0]}")
+    visualize(y_train, f"y_train_{x_train.shape[0]}")
+    visualize(real_pos_train, f"real_pos_train_{x_train.shape[0]}")
+    visualize(input_mask_train, f"input_mask_train_{x_train.shape[0]}")
+    visualize(x_dev, f"x_dev_{x_dev.shape[0]}")
+    visualize(y_dev, f"y_dev_{x_dev.shape[0]}")
+    visualize(real_pos_dev, f"real_pos_dev_{x_dev.shape[0]}")
+    visualize(input_mask_dev, f"input_mask_dev_{x_dev.shape[0]}")
     (toks_test, x_test, y_test,
         input_mask_test, real_pos_test, _) = read_input_data(
         args.test_file, tokenizer, args.n_sents_test, args.max_len,
         tag2idx=tag2idx)
+    visualize(x_test, f"x_test_{args.n_sents_test}")
+    visualize(y_test, f"y_test_{args.n_sents_test}")
+    visualize(y_train, f"y_train_{args.n_sents_test}")
+    visualize(real_pos_test, f"real_pos_test_{args.n_sents_test}")
+    visualize(input_mask_test, f"input_mask_test_{args.n_sents_test}")
 
     model = BertForTokenClassification.from_pretrained(
         "dbmdz/bert-base-german-cased", num_labels=len(tag2idx))
+    print(model)
     if torch.cuda.is_available():
         model.cuda()  # TODO
         device = 'cuda'
@@ -211,6 +249,9 @@ if __name__ == "__main__":
     train_data = TensorDataset(x_train, input_mask_train, y_train)
     train_iter = DataLoader(train_data, sampler=RandomSampler(train_data),
                             batch_size=batch_size)
+    dev_data = TensorDataset(x_dev, input_mask_dev, y_dev)
+    dev_iter = DataLoader(dev_data, sampler=RandomSampler(dev_data),
+                          batch_size=batch_size)
     test_data = TensorDataset(x_test, input_mask_test, y_test)
     test_iter = DataLoader(test_data, sampler=RandomSampler(test_data),
                            batch_size=batch_size)
@@ -218,5 +259,5 @@ if __name__ == "__main__":
         optimizer, num_warmup_steps=0,
         num_training_steps=len(train_iter) * n_epochs)
 
-    train_and_validate(model, device, train_iter, test_iter, optimizer,
-                       scheduler, n_epochs)
+    train_and_validate(model, device, train_iter, dev_iter, test_iter,
+                       optimizer, scheduler, n_epochs)

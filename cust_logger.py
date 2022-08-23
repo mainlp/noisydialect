@@ -9,7 +9,7 @@ class Logger(object):
         self.console = sys.stdout
         if not os.path.exists(log_dir):
             os.mkdir(log_dir)
-        timestamp = time.strftime("%Y%M%d-%H%M%S", time.localtime())
+        timestamp = time.strftime("%Y%m%d-%H%M%S", time.localtime())
         self.log_file = open(os.path.join(
             log_dir,
             log_name + "-" + timestamp + ".log"
