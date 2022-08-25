@@ -1,5 +1,6 @@
-__pycache__/
-env/
+*__pycache__/
+*.ipynb*
+code/env/
 figs/
 logs/
-*.ipynb*
+data/

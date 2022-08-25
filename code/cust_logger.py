@@ -4,7 +4,7 @@ import time
 
 
 class Logger(object):
-    def __init__(self, log_name, include_timestamp=False, log_dir="logs",
+    def __init__(self, log_name, include_timestamp=False, log_dir="../logs",
                  log_file_mode="w+"):
         self.console = sys.stdout
         if not os.path.exists(log_dir):

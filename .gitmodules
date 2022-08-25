@@ -1,3 +1,3 @@
 [submodule "NOAH-Corpus"]
-	path = data/NOAH-corpus
+	path = datasets/NOAH-corpus
 	url = git@github.com:noe-eva/NOAH-Corpus.git

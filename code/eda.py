@@ -112,11 +112,11 @@ if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("-r", "--train", dest="train_file",
                         help="training data file",
-                        default="data/hamburg-dependency-treebank/"
+                        default="../data/hamburg-dependency-treebank/"
                                 "train_DHT_STTS.txt")
     parser.add_argument("-e", "--test", dest="test_file",
                         help="test data file",
-                        default="data/NOAH-corpus/test_GSW_STTS.txt")
+                        default="../data/NOAH-corpus/test_GSW_STTS.txt")
 
     args = parser.parse_args()
     sys.stdout = cust_logger.Logger("eda")
