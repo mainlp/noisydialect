@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 from torch.utils.data import TensorDataset
+import unicodedata
 
 # Used for CLS, SEP, and for word-medial/final subtokens
 DUMMY_POS = "<DUMMY>"
@@ -74,12 +75,22 @@ class Data:
             self.read_raw_input(raw_data_path, max_sents)
         print(self)
 
-    def subtok_ratio(self):
+    def subtok_ratio(self, return_all=False):
         try:
-            return (len(self.toks_bert) - len(self.toks_orig)) / \
-                len(self.toks_bert)
+            n_toks_bert = sum(len(sent_toks) for sent_toks in self.toks_bert)
         except TypeError:
-            return -1
+            n_toks_bert = None
+        try:
+            n_toks_orig = sum(len(sent_toks) for sent_toks in self.toks_orig)
+        except TypeError:
+            n_toks_orig = None
+        try:
+            ratio = (n_toks_bert - n_toks_orig) / n_toks_bert
+        except (TypeError, ZeroDivisionError):
+            ratio = -1
+        if return_all:
+            return ratio, n_toks_bert, n_toks_orig
+        return ratio
 
     @staticmethod
     def visualize(matrix, name):
@@ -103,17 +114,17 @@ class Data:
         self.toks_orig, self.pos_orig = read_raw_input(
             filename, max_sents, encoding, verbose)
 
-    def add_random_noise(self, noise_lvl_min, noise_lvl_max, alphabet,
+    def add_random_noise(self, noise_lvl_min, noise_lvl_max, target_alphabet,
                          noise_types=["add_char", "delete_char",
-                                        "replace_char"]):
+                                      "replace_char"]):
         """
-        Aepli & Sennrich 2022,
-        Wang, Ruder & Neubig 2021
+        Aepli & Sennrich 2022
         """
         toks_noisy = []
+        n_changed = 0
         for sent_toks in self.toks_orig:
-            percentage_noisy = random.randrange(
-                round(100 * noise_lvl_min), round(100 * noise_lvl_max)) / 100
+            percentage_noisy = self.percentage_noisy(noise_lvl_min,
+                                                     noise_lvl_max)
             idx_noisy = random.sample(
                 range(len(sent_toks)),
                 k=round(percentage_noisy * len(sent_toks)))
@@ -122,11 +133,13 @@ class Data:
                 if i in idx_noisy:
                     sent_toks_noisy.append(
                         getattr(self, random.sample(noise_types, 1)[0])(
-                            tok, alphabet))
+                            tok, target_alphabet))
+                    n_changed += 1
                 else:
                     sent_toks_noisy.append(tok)
             toks_noisy.append(sent_toks_noisy)
-        return toks_noisy
+        print(f"Modified {n_changed} tokens.")
+        self.toks_orig = toks_noisy
 
     @staticmethod
     def add_char(word, alphabet):
@@ -137,13 +150,151 @@ class Data:
 
     @staticmethod
     def delete_char(word, alphabet):
-        idx = random.randrange(0, len(word))
+        idx = random.randrange(len(word))
         return word[:idx] + word[idx + 1:]
 
     @staticmethod
-    def replace_char(word, alphabet):
-        idx = random.randrange(0, len(word))
+    def replace_char(word, alphabet, idx=-1):
+        if idx < 0:
+            idx = random.randrange(len(word))
         return word[:idx] + random.sample(alphabet, 1)[0] + word[idx + 1:]
+
+    @staticmethod
+    def percentage_noisy(noise_lvl_min, noise_lvl_max):
+        if noise_lvl_max - noise_lvl_min < 0.01:
+            return noise_lvl_min
+        return random.randrange(round(100 * noise_lvl_min),
+                                round(100 * noise_lvl_max)) / 100
+
+    def add_custom_noise_general(self, noise_lvl_min, noise_lvl_max,
+                                 target_alphabet):
+        """
+        Aepli & Sennrich 2022 / Aepli, personal correspondence
+        """
+        vowels, consonants = [], []
+        for c in target_alphabet:
+            if self.is_vowel(c):
+                vowels.append(c)
+            elif self.is_consonant(c):
+                consonants.append(c)
+            # ignore punctuation etc.
+        toks_noisy = []
+        vowel2umlaut = {"a": "ä", "o": "ö", "u": "ü",
+                        "A": "Ä", "O": "Ö", "U": "Ü"}
+        voiced2voiceless = {"b": "p", "d": "t", "g": "k",
+                            "B": "P", "D": "T", "G": "K"}
+        n_changed = 0
+        for sent_toks in self.toks_orig:
+            percentage_noisy = self.percentage_noisy(noise_lvl_min,
+                                                     noise_lvl_max)
+            idx_noisy = random.sample(
+                range(len(sent_toks)),
+                k=round(percentage_noisy * len(sent_toks)))
+            sent_toks_noisy = []
+            for i, tok in enumerate(sent_toks):
+                if i in idx_noisy:
+                    idx = random.randrange(len(tok))
+                    if self.is_vowel(tok[idx]):
+                        if tok[idx] in vowel2umlaut:
+                            if random.randrange(2) > 0:
+                                # V:Umlaut
+                                tok_noisy = tok[:idx] + \
+                                    vowel2umlaut[tok[idx]] + tok[idx + 1:]
+                            else:
+                                # V:V
+                                tok_noisy = self.replace_char(
+                                    tok, vowels, idx)
+                        else:
+                            tok_noisy = self.replace_char(tok, vowels, idx)
+                        n_changed += 1
+                    elif self.is_consonant(tok[idx]):
+                        if tok[idx] in voiced2voiceless:
+                            if random.randrange(2) > 0:
+                                # voiced:voiceless
+                                tok_noisy = tok[:idx] + \
+                                    voiced2voiceless[tok[idx]] + tok[idx + 1:]
+                            else:
+                                # C:C
+                                tok_noisy = self.replace_char(
+                                    tok, consonants, idx)
+                        else:
+                            tok_noisy = self.replace_char(tok, consonants, idx)
+                        n_changed += 1
+                    else:
+                        tok_noisy = tok
+                    sent_toks_noisy.append(tok_noisy)
+                else:
+                    sent_toks_noisy.append(tok)
+            toks_noisy.append(sent_toks_noisy)
+        print(f"Modified {n_changed} tokens.")
+        self.toks_orig = toks_noisy
+
+    def add_custom_noise_gsw(self, noise_lvl_min, noise_lvl_max,
+                             target_alphabet):
+        """
+        Aepli & Sennrich 2022 / Aepli, personal correspondence
+        """
+        # TODO: k -> ch vs. (c)k -> gg (currenly: ck->gg, k->ch)
+        deu2gsw_1 = {"ß": "ss", "gs": "x", "chen": "li", "lein": "li",
+                          "ung": "ig"}
+        deu2gsw_2 = {"ck": "gg"}
+        deu2gsw_3 = {"ah": "aa", "eh": "ee", "ih": "ii", "oh": "oo",
+                     "uh": "uu", "äh": "ää", "öh": "öö", "üh": "üü",
+                     "ie": "ii", "ei": "ai", "k": "ch"}
+        toks_noisy = []
+        n_changed = 0
+        for sent_toks in self.toks_orig:
+            percentage_noisy = self.percentage_noisy(noise_lvl_min,
+                                                     noise_lvl_max)
+            idx_noisy = random.sample(
+                range(len(sent_toks)),
+                k=round(percentage_noisy * len(sent_toks)))
+            sent_toks_noisy = []
+            for i, tok in enumerate(sent_toks):
+                if i in idx_noisy:
+                    tok_noisy = tok.lower()
+                    for deu in deu2gsw_1:
+                        tok_noisy = toks_noisy.replace(deu2gsw_1[deu])
+                    for deu in deu2gsw_2:
+                        tok_noisy = toks_noisy.replace(deu2gsw_2[deu])
+                    for deu in deu2gsw_3:
+                        tok_noisy = toks_noisy.replace(deu2gsw_3[deu])
+                    # swap ä and e:
+                    tok_noisy = [c if c not in "eä"
+                                 else "ä" if c == "e"
+                                 else "e" for c in tok_noisy]
+                    # non-circular o:u / eu:oi
+                    tok_noisy.replace("eu", "OI")
+                    tok_noisy.replace("o", "u")
+                    tok_noisy.replace("OI", "oi")
+                    if tok[0] == tok[0].upper():
+                        if tok == tok.upper():
+                            tok_noisy = tok_noisy.upper()
+                        else:
+                            tok_noisy = toks_noisy[0].upper() + tok_noisy[1:]
+                    n_changed += 1
+                else:
+                    sent_toks_noisy.append(tok)
+            toks_noisy.append(sent_toks_noisy)
+        print(f"Modified {n_changed} tokens.")
+        self.toks_orig = toks_noisy
+
+    @staticmethod
+    def is_vowel(c):
+        # remove accents
+        return Data.is_vowel_clean(unicodedata.normalize("NFKD", c)[0])
+
+    @staticmethod
+    def is_vowel_clean(c):
+        return c.lower() in "aeiou"
+
+    @staticmethod
+    def is_consonant(c):
+        # remove accents
+        return unicodedata.normalize("NFKD", c)[0].lower() in \
+            "qwrtypsdfghjklzxcvbnm"
+        # Note that this selection of consonants is still language-specific
+        # (Latin alphabet, "y")
 
     def prepare_xy(self, tokenizer, T, verbose=True):
         assert T >= 2
@@ -157,8 +308,6 @@ class Data:
         cur_toks, cur_pos = [], []
         for i, (sent_toks, sent_pos) in enumerate(
                 zip(self.toks_orig, self.pos_orig)):
-            if verbose and i % 1000 == 0:
-                print(i)
             cur_toks = ["[CLS]"]
             cur_pos = [DUMMY_POS]
             for token, pos_tag in zip(sent_toks, sent_pos):
@@ -189,6 +338,8 @@ class Data:
             f"{len(self.toks_bert)} == {self.x.shape[0]} == {len(pos)}"
         if verbose:
             print(f"{len(self.toks_bert)} sentences")
+            print(f"{' '.join(self.toks_orig[0])}")
+            print(f"{' '.join(self.toks_bert[0])}")
             for i in zip(self.toks_bert[0], self.x[0], pos[0], self.y[0],
                          self.input_mask[0], self.real_pos[0]):
                 print(i)
@@ -197,7 +348,7 @@ class Data:
     # ----------------------
     # --- Saving/loading ---
 
-    def save(self, parent_dir='../data/'):
+    def save(self, parent_dir='../data/', save_orig=True):
         if not os.path.exists(parent_dir):
             os.mkdir(parent_dir)
         directory = os.path.join(parent_dir, self.name)
@@ -207,9 +358,10 @@ class Data:
         np.savez(os.path.join(directory, "arrays.npz"),
                  x=self.x, y=self.y, input_mask=self.input_mask,
                  pos_mask=self.pos_mask)
-        self.save_tsv(self.toks_orig, directory, "toks_orig.tsv")
+        if save_orig:
+            self.save_tsv(self.toks_orig, directory, "toks_orig.tsv")
+            self.save_tsv(self.pos_orig, directory, "pos_orig.tsv")
         self.save_tsv(self.toks_bert, directory, "toks_bert.tsv")
-        self.save_tsv(self.pos_orig, directory, "pos_orig.tsv")
         if self.pos2idx:
             with open(os.path.join(directory, "pos2idx.tsv"), 'w',
                       encoding='utf8') as f:
@@ -303,6 +455,9 @@ class Data:
             f"pos_mask={self.list2str(self.pos_mask)}, " \
             f"pos2idx={'None' if self.pos2idx is None else len(self.pos2idx)})"
 
-    def original_data(self):
-        return copy.deepcopy(self.toks_orig), copy.deepcopy(self.pos_orig)
+    def copy_toks_orig(self):
+        return copy.deepcopy(self.toks_orig)
+
+    def copy_pos_orig(self):
+        return copy.deepcopy(self.pos_orig)
     # ------------------------
