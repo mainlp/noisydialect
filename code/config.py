@@ -11,7 +11,7 @@ class Config:
 
     ints = ['max_sents_traindev', 'max_sents_test', 'T', 'n_epochs',
             'batch_size']
-    floats = ['dev_ratio', 'noise_lvl_min' 'noise_lvl_max',
+    floats = ['dev_ratio', 'noise_lvl_min', 'noise_lvl_max',
               'classifier_dropout']
     bools = ['prepare_input_traindev']
 

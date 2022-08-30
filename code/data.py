@@ -321,6 +321,7 @@ class Data:
                         else:
                             tok_noisy = tok_noisy[0].upper() + tok_noisy[1:]
                     n_changed += 1
+                    sent_toks_noisy.append(tok_noisy)
                 else:
                     sent_toks_noisy.append(tok)
             toks_noisy.append(sent_toks_noisy)
