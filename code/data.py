@@ -12,7 +12,7 @@ import unicodedata
 DUMMY_POS = "<DUMMY>"
 
 
-def read_raw_input(filename, max_sents, encoding="utf8",
+def read_raw_input(filename, max_sents=-1, encoding="utf8",
                    verbose=True):
     """
     Reads the original (non-BERT) tokens and their labels
@@ -54,10 +54,13 @@ class Data:
                  name,
                  toks_orig=None, pos_orig=None,
                  toks_bert=None, x=None, y=None,
-                 input_mask=None, pos_mask=None,
+                 input_mask=None, tok_mask=None,
                  pos2idx=None,
-                 # If initializing from files:
+                 # If loading an existing dataset:
                  load_parent_dir=None,
+                 # If initializing from another dataset:
+                 other_dir=None,
+                 # If initializing from scratch:
                  raw_data_path=None, max_sents=-1,
                  ):
         self.name = name
@@ -67,30 +70,66 @@ class Data:
         self.x = x
         self.y = y
         self.input_mask = input_mask
-        self.pos_mask = pos_mask
+        self.tok_mask = tok_mask
         self.pos2idx = pos2idx
         if load_parent_dir:
+            print(f"Loading {name} from path ({load_parent_dir})")
             self.load(load_parent_dir)
+        elif other_dir:
+            print(f"Initializing {name} from other data ({other_dir})")
+            self.load_orig(other_dir)
         elif raw_data_path:
+            print(f"Initializing {name} from scratch ({raw_data_path})")
             self.read_raw_input(raw_data_path, max_sents)
+        else:
+            print(f"Initializing {name} from args only")
         print(self)
 
-    def subtok_ratio(self, return_all=False):
+    def subtok_ratio(self, return_all=False, cls_sep_per_sent=2):
+        """
+        Subtokens per token, *ignoring [SEP]/[CLS]*!
+        """
+        n_toks_bert = self.n_toks_bert(cls_sep_per_sent)
+        n_toks_orig = self.n_toks_orig()
         try:
-            n_toks_bert = sum(len(sent_toks) for sent_toks in self.toks_bert)
-        except TypeError:
-            n_toks_bert = None
-        try:
-            n_toks_orig = sum(len(sent_toks) for sent_toks in self.toks_orig)
-        except TypeError:
-            n_toks_orig = None
-        try:
-            ratio = (n_toks_bert - n_toks_orig) / n_toks_bert
+            ratio = n_toks_bert / n_toks_orig
         except (TypeError, ZeroDivisionError):
             ratio = -1
         if return_all:
             return ratio, n_toks_bert, n_toks_orig
         return ratio
+
+    def unk_ratio(self, return_all=False, cls_sep_per_sent=2):
+        n_unks_orig, n_unks_bert = 0, 0
+        for sent in self.toks_orig:
+            for tok in sent:
+                if tok == "UNK":
+                    n_unks_orig += 1
+        for sent in self.toks_bert:
+            for tok in sent:
+                if tok == "UNK":
+                    n_unks_bert += 1
+        n_toks_bert = self.n_toks_bert(cls_sep_per_sent)
+        try:
+            ratio = n_unks_bert / n_toks_bert
+        except (TypeError, ZeroDivisionError):
+            ratio = -1
+        if return_all:
+            return ratio, n_unks_bert, n_toks_bert, n_unks_orig
+        return ratio
+
+    def n_toks_orig(self):
+        try:
+            return sum(len(sent_toks) for sent_toks in self.toks_orig)
+        except TypeError:
+            return None
+
+    def n_toks_bert(self, cls_sep_per_sent=2):
+        try:
+            return sum(len(sent_toks) - cls_sep_per_sent
+                       for sent_toks in self.toks_bert)
+        except TypeError:
+            return None
 
     @staticmethod
     def visualize(matrix, name):
@@ -107,16 +146,26 @@ class Data:
         return {c for sent in self.toks_orig for tok in sent for c in tok
                 if c != ' '}
 
-    # ---- Initializing ----
+    # ---- Initializing & adding noise ----
 
     def read_raw_input(self, filename, max_sents, encoding="utf8",
                        verbose=True):
         self.toks_orig, self.pos_orig = read_raw_input(
             filename, max_sents, encoding, verbose)
 
+    def add_noise(self, noise_type, noise_lvl_min,
+                  noise_lvl_max, target_alphabet):
+        if noise_type == 'add_random_noise':
+            self.add_random_noise(noise_lvl_min, noise_lvl_max,
+                                  target_alphabet)
+        elif noise_type == 'add_custom_noise_general':
+            self.add_custom_noise_general(noise_lvl_min, noise_lvl_max,
+                                          target_alphabet)
+        elif noise_type == 'add_custom_noise_gsw':
+            self.add_custom_noise_gsw(noise_lvl_min, noise_lvl_max)
+
     def add_random_noise(self, noise_lvl_min, noise_lvl_max, target_alphabet,
-                         noise_types=["add_char", "delete_char",
-                                      "replace_char"]):
+                         noise=["add_char", "delete_char", "replace_char"]):
         """
         Aepli & Sennrich 2022
         """
@@ -132,7 +181,7 @@ class Data:
             for i, tok in enumerate(sent_toks):
                 if i in idx_noisy:
                     sent_toks_noisy.append(
-                        getattr(self, random.sample(noise_types, 1)[0])(
+                        getattr(self, random.sample(noise, 1)[0])(
                             tok, target_alphabet))
                     n_changed += 1
                 else:
@@ -229,14 +278,13 @@ class Data:
         print(f"Modified {n_changed} tokens.")
         self.toks_orig = toks_noisy
 
-    def add_custom_noise_gsw(self, noise_lvl_min, noise_lvl_max,
-                             target_alphabet):
+    def add_custom_noise_gsw(self, noise_lvl_min, noise_lvl_max):
         """
         Aepli & Sennrich 2022 / Aepli, personal correspondence
         """
         # TODO: k -> ch vs. (c)k -> gg (currenly: ck->gg, k->ch)
         deu2gsw_1 = {"ß": "ss", "gs": "x", "chen": "li", "lein": "li",
-                          "ung": "ig"}
+                     "ung": "ig"}
         deu2gsw_2 = {"ck": "gg"}
         deu2gsw_3 = {"ah": "aa", "eh": "ee", "ih": "ii", "oh": "oo",
                      "uh": "uu", "äh": "ää", "öh": "öö", "üh": "üü",
@@ -254,24 +302,24 @@ class Data:
                 if i in idx_noisy:
                     tok_noisy = tok.lower()
                     for deu in deu2gsw_1:
-                        tok_noisy = toks_noisy.replace(deu2gsw_1[deu])
+                        tok_noisy = tok_noisy.replace(deu, deu2gsw_1[deu])
                     for deu in deu2gsw_2:
-                        tok_noisy = toks_noisy.replace(deu2gsw_2[deu])
+                        tok_noisy = tok_noisy.replace(deu, deu2gsw_2[deu])
                     for deu in deu2gsw_3:
-                        tok_noisy = toks_noisy.replace(deu2gsw_3[deu])
+                        tok_noisy = tok_noisy.replace(deu, deu2gsw_3[deu])
                     # swap ä and e:
-                    tok_noisy = [c if c not in "eä"
-                                 else "ä" if c == "e"
-                                 else "e" for c in tok_noisy]
+                    tok_noisy = "".join([c if c not in "eä"
+                                         else "ä" if c == "e"
+                                         else "e" for c in tok_noisy])
                     # non-circular o:u / eu:oi
-                    tok_noisy.replace("eu", "OI")
-                    tok_noisy.replace("o", "u")
-                    tok_noisy.replace("OI", "oi")
+                    tok_noisy = tok_noisy.replace("eu", "OI")
+                    tok_noisy = tok_noisy.replace("o", "u")
+                    tok_noisy = tok_noisy.replace("OI", "oi")
                     if tok[0] == tok[0].upper():
                         if tok == tok.upper():
                             tok_noisy = tok_noisy.upper()
                         else:
-                            tok_noisy = toks_noisy[0].upper() + tok_noisy[1:]
+                            tok_noisy = tok_noisy[0].upper() + tok_noisy[1:]
                     n_changed += 1
                 else:
                     sent_toks_noisy.append(tok)
@@ -302,9 +350,9 @@ class Data:
         self.x = np.zeros((N, T), dtype=np.float64)
         self.toks_bert, pos = [], []
         self.input_mask = np.zeros((N, T))
-        # real_pos = 1 if full token or beginning of a token,
+        # tok_mask = 1 if full token or beginning of a token,
         # 0 if subword token from later on in the word with dummy tag
-        self.real_pos = np.zeros((N, T))
+        self.tok_mask = np.zeros((N, T))
         cur_toks, cur_pos = [], []
         for i, (sent_toks, sent_pos) in enumerate(
                 zip(self.toks_orig, self.pos_orig)):
@@ -315,7 +363,7 @@ class Data:
                 cur_toks += subtoks
                 cur_pos += [pos_tag]
                 cur_pos += [DUMMY_POS for _ in range(1, len(subtoks))]
-            cur_toks = cur_toks[:T - 1] + ["SEP"]
+            cur_toks = cur_toks[:T - 1] + ["[SEP]"]
             self.toks_bert.append(cur_toks)
             self.input_mask[i][:len(cur_toks)] = len(cur_toks) * [1]
             self.x[i][:len(cur_toks)] = tokenizer.convert_tokens_to_ids(
@@ -325,7 +373,7 @@ class Data:
                        + (T - len(cur_pos) - 1) * [DUMMY_POS]  # padding
                        )
             pos.append(cur_pos)
-            self.real_pos[i][:len(cur_pos)] = [0 if p == DUMMY_POS
+            self.tok_mask[i][:len(cur_pos)] = [0 if p == DUMMY_POS
                                                else 1 for p in cur_pos]
         if not self.pos2idx:
             # BERT doesn't want labels that are already onehot-encoded
@@ -340,10 +388,15 @@ class Data:
             print(f"{len(self.toks_bert)} sentences")
             print(f"{' '.join(self.toks_orig[0])}")
             print(f"{' '.join(self.toks_bert[0])}")
-            for i in zip(self.toks_bert[0], self.x[0], pos[0], self.y[0],
-                         self.input_mask[0], self.real_pos[0]):
-                print(i)
-            print("\n")
+            # for i in zip(self.toks_bert[0], self.x[0], pos[0], self.y[0],
+            #              self.input_mask[0], self.real_pos[0]):
+            #     print(i)
+            if N > 1:
+                print(f"{' '.join(self.toks_orig[1])}")
+                print(f"{' '.join(self.toks_bert[1])}")
+                if N > 2:
+                    print(f"{' '.join(self.toks_orig[2])}")
+                    print(f"{' '.join(self.toks_bert[2])}")
 
     # ----------------------
     # --- Saving/loading ---
@@ -354,10 +407,11 @@ class Data:
         directory = os.path.join(parent_dir, self.name)
         if not os.path.exists(directory):
             os.mkdir(directory)
+        print(f"Saving {self.name} to {directory}")
         # Also works with None args:
         np.savez(os.path.join(directory, "arrays.npz"),
                  x=self.x, y=self.y, input_mask=self.input_mask,
-                 pos_mask=self.pos_mask)
+                 tok_mask=self.tok_mask)
         if save_orig:
             self.save_tsv(self.toks_orig, directory, "toks_orig.tsv")
             self.save_tsv(self.pos_orig, directory, "pos_orig.tsv")
@@ -386,9 +440,9 @@ class Data:
             print("Couldn't load 'x'")
             pass
         try:
-            self.y = npzfile["z"]
+            self.y = npzfile["y"]
         except ValueError:
-            print("Couldn't load 'z'")
+            print("Couldn't load 'y'")
             pass
         try:
             self.input_mask = npzfile["input_mask"]
@@ -396,16 +450,21 @@ class Data:
             print("Couldn't load 'input_mask'")
             pass
         try:
-            self.pos_mask = npzfile["pos_mask"]
+            self.tok_mask = npzfile["tok_mask"]
         except ValueError:
-            print("Couldn't load 'pos_mask'")
+            print("Couldn't load 'tok_mask'")
             pass
-        self.toks_orig = self.tsv2list(directory, "toks_orig.tsv")
         self.toks_bert = self.tsv2list(directory, "toks_bert.tsv")
-        self.pos_orig = self.tsv2list(directory, "pos_orig.tsv")
+        self.load_orig(directory)
+
+    def load_orig(self, other_dir):
+        self.toks_orig = self.tsv2list(other_dir, "toks_orig.tsv")
+        self.pos_orig = self.tsv2list(other_dir, "pos_orig.tsv")
+        self.load_pos2idx(os.path.join(other_dir, "pos2idx.tsv"))
+
+    def load_pos2idx(self, path):
         try:
-            with open(os.path.join(directory, "pos2idx.tsv"), 'r',
-                      encoding='utf8') as f:
+            with open(path, encoding='utf8') as f:
                 self.pos2idx = {}
                 for line in f:
                     cells = line.strip().split("\t")
@@ -452,7 +511,7 @@ class Data:
             f"x={self.tensor2str(self.x)}, " \
             f"y={self.tensor2str(self.y)}, " \
             f"input_mask={self.tensor2str(self.input_mask)}, " \
-            f"pos_mask={self.list2str(self.pos_mask)}, " \
+            f"tok_mask={self.list2str(self.tok_mask)}, " \
             f"pos2idx={'None' if self.pos2idx is None else len(self.pos2idx)})"
 
     def copy_toks_orig(self):

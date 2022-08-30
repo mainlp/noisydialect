@@ -1,43 +1,50 @@
+import copy
 import time
 
 import torch
 from torch.nn import Dropout, Linear
 from torch.nn.utils import clip_grad_norm_
-from transformers import BertModel, BertPreTrainedModel, \
+from transformers import BertConfig, BertModel, BertPreTrainedModel, \
     BertForTokenClassification
 from transformers.models.bert.modeling_bert import BertForMaskedLM
 
 
 class Model:
-    """
-    Based on BertForMaskedLM* and BertForTokenClassification
-    https://github.com/huggingface/transformers/blob/v4.21.2/src/transformers/models/bert/modeling_bert.py#L1292
-    https://github.com/huggingface/transformers/blob/v4.21.2/src/transformers/models/bert/modeling_bert.py#L1709
-    (*According to the DBMDZ model configuration, their model is of type
-    BertForMaskedLM rather than BertForPretraining, which also
-    encompasses next sentence prediction
-    https://s3.amazonaws.com/models.huggingface.co/bert/bert-base-german-dbmdz-cased-config.json
-    )
-    """
 
     def __init__(self, pretrained_model_name_or_path,
-                 classifier_dropout, n_labels,
+                 pos2idx, classifier_dropout,
+                 print_model_structures=False
                  ):
         # self.mode = "PRETRAINING"  # ["PRETRAINING", "FINETUNING", "EVAL"]
-        if pretrained_model_name_or_path:
-            self.pretraining_model = BertForMaskedLM.from_pretrained(
-                pretrained_model_name_or_path)
-            self.finetuning_model = BertForTokenClassification.from_pretrained(
-                pretrained_model_name_or_path, n_labels)
-            # TODO do this more elegantly/low-level
+        """
+        According to the DBMDZ model configuration, their model is of type
+        BertForMaskedLM rather than BertForPretraining, which also
+        encompasses next sentence prediction
+        https://s3.amazonaws.com/models.huggingface.co/bert/bert-base-german-dbmdz-cased-config.json
+        )
+        """
+        self.pretraining_model = BertForMaskedLM.from_pretrained(
+            pretrained_model_name_or_path)
+        if print_model_structures:
+            print("Pretraining model")
+            print(self.pretraining_model)
+        config = copy.deepcopy(self.pretraining_model.config)
+        config.__setattr__("label2id", pos2idx)
+        config.__setattr__("id2label", {pos2idx[pos]: pos for pos in pos2idx})
+        config.__setattr__("architectures", ["BertForTokenClassification"])
+        self.finetuning_model = BertForTokenClassification(config)
+        self.finetuning_model.bert = self.pretraining_model.bert
+        print("Finetuning model")
+        print(config)
+        if print_model_structures:
+            print(self.finetuning_model)
+        # TODO do this more elegantly/low-level
 
     def continue_pretraining(self):
         pass  # TODO
 
     def finetune(self, device, iter_train, iter_dev, iter_test,
                  optimizer, scheduler, n_epochs):
-        if self.pretraining_model is not None:
-            self.finetuning_model.bert = self.pretraining_model.bert
         for epoch in range(n_epochs):
             print("============")
             print(f"Epoch {epoch + 1}/{n_epochs} started at " + self.now())
@@ -91,7 +98,7 @@ class Model:
             # optimizer.step()
 
             if i % 10 == 0:
-                print(f"Batch {i:>2}/{n_batches} {now()} loss: {out.loss.item()}")
+                print(f"Batch {i:>2}/{n_batches} {self.now()} loss: {out.loss.item()}")
         print(f"Mean train loss for epoch: {train_loss / n_batches}")
 
     def eval(self, device, iter_test):
