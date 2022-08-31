@@ -73,7 +73,7 @@ class Data:
         self.tok_mask = tok_mask
         self.pos2idx = pos2idx
         if load_parent_dir:
-            print(f"Loading {name} from path ({load_parent_dir})")
+            print(f"Loading {name} from path ({load_parent_dir}/{name})")
             self.load(load_parent_dir)
         elif other_dir:
             print(f"Initializing {name} from other data ({other_dir})")

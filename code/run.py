@@ -84,34 +84,35 @@ if __name__ == "__main__":
 
     # visualize(x_test, f"x_test_{args.n_sents_test}")
 
-    # model = Model(config.bert_name, pos2idx=train.pos2idx,
-    #               classifier_dropout=config.classifier_dropout)
+    model = Model(config.bert_name, pos2idx=train.pos2idx,
+                  classifier_dropout=config.classifier_dropout)
 
-    # # TODO continued pretraining
+    # TODO continued pretraining
 
-    # # Finetuning
-    # if torch.cuda.is_available():
-    #     model.finetuning_model.cuda()  # TODO
-    #     device = 'cuda'
-    # else:
-    #     device = 'cpu'
-    # optimizer = AdamW(model.finetuning_model.parameters())
+    # Finetuning
+    if torch.cuda.is_available():
+        model.finetuning_model.cuda()  # TODO
+        device = 'cuda'
+    else:
+        device = 'cpu'
+    print("Device", device)
+    optimizer = AdamW(model.finetuning_model.parameters())
 
-    # dataset_train = train.tensor_dataset()
-    # iter_train = DataLoader(dataset_train,
-    #                         sampler=RandomSampler(dataset_train),
-    #                         batch_size=config.batch_size)
-    # dataset_dev = dev.tensor_dataset()
-    # iter_dev = DataLoader(dataset_dev,
-    #                       sampler=RandomSampler(dataset_dev),
-    #                       batch_size=config.batch_size)
-    # dataset_test = test.tensor_dataset()
-    # iter_test = DataLoader(dataset_test,
-    #                        sampler=RandomSampler(dataset_test),
-    #                        batch_size=config.batch_size)
-    # scheduler = get_linear_schedule_with_warmup(
-    #     optimizer, num_warmup_steps=0,
-    #     num_training_steps=len(iter_train) * config.n_epochs)
+    dataset_train = train.tensor_dataset()
+    iter_train = DataLoader(dataset_train,
+                            sampler=RandomSampler(dataset_train),
+                            batch_size=config.batch_size)
+    dataset_dev = dev.tensor_dataset()
+    iter_dev = DataLoader(dataset_dev,
+                          sampler=RandomSampler(dataset_dev),
+                          batch_size=config.batch_size)
+    dataset_test = test.tensor_dataset()
+    iter_test = DataLoader(dataset_test,
+                           sampler=RandomSampler(dataset_test),
+                           batch_size=config.batch_size)
+    scheduler = get_linear_schedule_with_warmup(
+        optimizer, num_warmup_steps=0,
+        num_training_steps=len(iter_train) * config.n_epochs)
 
-    # model.finetune(device, iter_train, iter_dev, iter_test,
-    #                optimizer, scheduler, config.n_epochs)
+    model.finetune(device, iter_train, iter_dev, iter_test,
+                   optimizer, scheduler, config.n_epochs, tokenizer)
