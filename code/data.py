@@ -36,11 +36,6 @@ def read_raw_input(filename, max_sents=-1, encoding="utf8",
                     if verbose and i % 1000 == 0:
                         print(i)
                 continue
-            # *words, word_pos = line.split()
-            # cur_toks += [word for word in words]
-            # # Treat multi-word tokens (that will be split up anyway)
-            # # like subtokens
-            # cur_pos += [word_pos for _ in range(len(words))]
             word, _, word_pos = line.rpartition(" ")
         if cur_toks:
             toks.append(cur_toks)
@@ -138,15 +133,21 @@ class Data:
         plt.savefig(f"../figs/{name}.png")
 
     def tensor_dataset(self):
-        return TensorDataset(torch.Tensor(self.x).to(torch.int64),
-                             torch.Tensor(self.input_mask).to(torch.int64),
-                             torch.Tensor(self.y).to(torch.int64))
+        return TensorDataset(
+            torch.Tensor(self.x).to(torch.int64),
+            torch.Tensor(self.y).to(torch.int64),
+            torch.Tensor(self.input_mask).to(torch.int64))
 
     def alphabet(self):
         return {c for sent in self.toks_orig for tok in sent for c in tok
                 if c != ' '}
 
-    # ---- Initializing & adding noise ----
+    def dummy_idx(self):
+        if self.pos2idx:
+            return self.pos2idx[DUMMY_POS]
+        return None
+
+    # ---- Adding noise ----
 
     def read_raw_input(self, filename, max_sents, encoding="utf8",
                        verbose=True):
@@ -345,24 +346,36 @@ class Data:
         # Note that this selection of consonants is still language-specific
         # (Latin alphabet, "y")
 
-    def prepare_xy(self, tokenizer, T, verbose=True):
+    # ---------------------------
+    # --- Matrix preparations ---
+
+    def prepare_xy(self, tokenizer, T,
+                   # Which subtoken of a token should be used to represent
+                   # the token during the evaluation?
+                   # 'first', 'last' or 'all'
+                   subtoken_rep,
+                   verbose=True):
         assert T >= 2
         N = len(self.toks_orig)
         self.x = np.zeros((N, T), dtype=np.float64)
         self.toks_bert, pos = [], []
         self.input_mask = np.zeros((N, T))
-        # tok_mask = 1 if full token or beginning of a token,
-        # 0 if subword token from later on in the word with dummy tag
-        self.tok_mask = np.zeros((N, T))
         cur_toks, cur_pos = [], []
         for i, (sent_toks, sent_pos) in enumerate(
                 zip(self.toks_orig, self.pos_orig)):
             cur_toks = ["[CLS]"]
-            cur_pos = [DUMMY_POS]
+            cur_pos = [DUMMY_POS]  # CLS
             for token, pos_tag in zip(sent_toks, sent_pos):
                 subtoks = tokenizer.tokenize(token)
                 cur_toks += subtoks
-                cur_pos += [pos_tag for _ in range(len(subtoks))]
+                if subtoken_rep == 'first':
+                    cur_pos += [pos_tag]
+                    cur_pos += [DUMMY_POS for _ in range(1, len(subtoks))]
+                elif subtoken_rep == 'last':
+                    cur_pos += [DUMMY_POS for _ in range(1, len(subtoks))]
+                    cur_pos += [pos_tag]
+                else:
+                    cur_pos += [pos_tag for _ in range(len(subtoks))]
             cur_toks = cur_toks[:T - 1] + ["[SEP]"]
             self.toks_bert.append(cur_toks)
             self.input_mask[i][:len(cur_toks)] = len(cur_toks) * [1]
@@ -373,8 +386,6 @@ class Data:
                        + (T - len(cur_pos) - 1) * [DUMMY_POS]  # padding
                        )
             pos.append(cur_pos)
-            self.tok_mask[i][:len(cur_pos)] = [0 if p == DUMMY_POS
-                                               else 1 for p in cur_pos]
         if not self.pos2idx:
             # BERT doesn't want labels that are already onehot-encoded
             self.pos2idx = {tag: idx for idx, tag in enumerate(

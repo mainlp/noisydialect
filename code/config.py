@@ -4,7 +4,7 @@ class Config:
                 'orig_file_traindev', 'orig_file_test', 'max_sents_traindev', \
                 'max_sents_test', 'dev_ratio', \
                 'orig_dir_train', 'orig_dir_dev', \
-                'T', 'tokenizer_name', \
+                'T', 'subtoken_rep', 'tokenizer_name', \
                 'noise_type', 'noise_lvl_min', 'noise_lvl_max', \
                 'data_parent_dir', 'bert_name', \
                 'classifier_dropout', 'n_epochs', 'batch_size'
@@ -30,6 +30,7 @@ class Config:
                  # If the input matrices still need to be prepared:
                  prepare_input_traindev=False,
                  T=60,
+                 subtoken_rep='first',  # 'first', 'last', 'all'
                  tokenizer_name="dbmdz/bert-base-german-cased",
                  noise_type=None,  # None -> no noise
                  noise_lvl_min=0.1,
@@ -56,6 +57,7 @@ class Config:
         self.orig_dir_train = orig_dir_train
         self.orig_dir_dev = orig_dir_dev
         self.T = T
+        self.subtoken_rep = subtoken_rep
         self.tokenizer_name = tokenizer_name
         self.noise_type = noise_type
         self.noise_lvl_min = noise_lvl_min

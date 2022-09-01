@@ -62,7 +62,7 @@ if __name__ == "__main__":
         test = Data(config.name_test, raw_data_path=config.orig_file_test,
                     max_sents=config.max_sents_test,
                     pos2idx=train.pos2idx)
-        test.prepare_xy(tokenizer, config.T)
+        test.prepare_xy(tokenizer, config.T, config.subtoken_rep)
         test.save(config.data_parent_dir)
         print(f"Subtoken ratio ({config.name_test}): {test.subtok_ratio(return_all=True)}\n")
     else:
@@ -73,12 +73,12 @@ if __name__ == "__main__":
     if config.prepare_input_traindev:
         train.add_noise(config.noise_type, config.noise_lvl_min,
                         config.noise_lvl_max, alphabet_test)
-        train.prepare_xy(tokenizer, config.T)
+        train.prepare_xy(tokenizer, config.T, config.subtoken_rep)
         train.save(config.data_parent_dir)
         print(f"Subtoken ratio ({config.name_train}): {train.subtok_ratio(return_all=True)}\n")
         dev.add_noise(config.noise_type, config.noise_lvl_min,
                       config.noise_lvl_max, alphabet_test)
-        dev.prepare_xy(tokenizer, config.T)
+        dev.prepare_xy(tokenizer, config.T, config.subtoken_rep)
         dev.save(config.data_parent_dir)
         print(f"Subtoken ratio ({config.name_dev}): {dev.subtok_ratio(return_all=True)}\n")
 
@@ -115,4 +115,5 @@ if __name__ == "__main__":
         num_training_steps=len(iter_train) * config.n_epochs)
 
     model.finetune(device, iter_train, iter_dev, iter_test,
-                   optimizer, scheduler, config.n_epochs, tokenizer)
+                   optimizer, scheduler, config.n_epochs, tokenizer,
+                   train.dummy_idx())
