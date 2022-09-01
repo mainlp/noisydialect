@@ -37,6 +37,8 @@ def read_raw_input(filename, max_sents=-1, encoding="utf8",
                         print(i)
                 continue
             word, _, word_pos = line.rpartition(" ")
+            cur_toks.append(word)
+            cur_pos.append(word_pos)
         if cur_toks:
             toks.append(cur_toks)
             pos.append(cur_pos)
