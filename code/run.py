@@ -91,7 +91,7 @@ if __name__ == "__main__":
 
     # Finetuning
     if torch.cuda.is_available():
-        model.finetuning_model.cuda()  # TODO
+        model.finetuning_model.cuda()
         device = 'cuda'
     else:
         device = 'cpu'

@@ -112,7 +112,7 @@ class Model:
                                for y in pred_labels_enc]
                 print("TOKEN\tGOLD\tPREDICTED")
                 for token, gs_label, pred_label in zip(
-                    tokens, gs_labels, pred_labels):
+                        tokens, gs_labels, pred_labels):
                     # chr(92) = \
                     print(f"{token}\t{gs_label}\t{pred_label}\t{'' if gs_label == pred_label else '/!' + chr(92)}")
 

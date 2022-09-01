@@ -36,12 +36,12 @@ def read_raw_input(filename, max_sents=-1, encoding="utf8",
                     if verbose and i % 1000 == 0:
                         print(i)
                 continue
-            *words, word_pos = line.split()
-            cur_toks += [word for word in words]
-            cur_pos.append(word_pos)
-            # Treat multi-word tokens (that will be split up anyway)
-            # like subtokens
-            cur_pos += [DUMMY_POS for _ in range(1, len(words))]
+            # *words, word_pos = line.split()
+            # cur_toks += [word for word in words]
+            # # Treat multi-word tokens (that will be split up anyway)
+            # # like subtokens
+            # cur_pos += [word_pos for _ in range(len(words))]
+            word, _, word_pos = line.rpartition(" ")
         if cur_toks:
             toks.append(cur_toks)
             pos.append(cur_pos)
@@ -362,8 +362,7 @@ class Data:
             for token, pos_tag in zip(sent_toks, sent_pos):
                 subtoks = tokenizer.tokenize(token)
                 cur_toks += subtoks
-                cur_pos += [pos_tag]
-                cur_pos += [DUMMY_POS for _ in range(1, len(subtoks))]
+                cur_pos += [pos_tag for _ in range(len(subtoks))]
             cur_toks = cur_toks[:T - 1] + ["[SEP]"]
             self.toks_bert.append(cur_toks)
             self.input_mask[i][:len(cur_toks)] = len(cur_toks) * [1]
