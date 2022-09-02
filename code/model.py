@@ -4,6 +4,7 @@ import copy
 import time
 
 import numpy as np
+from sklearn.metrics import accuracy_score, f1_score
 import torch
 from torch.nn import CrossEntropyLoss
 from torch.nn.utils import clip_grad_norm_
@@ -55,8 +56,13 @@ class Model:
             print(f"Epoch {epoch + 1}/{n_epochs} started at " + self.now())
             self.train_classifier(device, iter_train, optimizer, scheduler,
                                   tokenizer, dummy_idx)
-            self.eval(device, iter_dev, dummy_idx, "dev")
-            self.eval(device, iter_test, dummy_idx, "test")
+            self.eval_classifier(device, iter_dev, dummy_idx, "dev")
+            if iter_test:
+                self.eval_classifier(device, iter_test, dummy_idx, "test")
+
+    def predict(self, device, iter_test, dummy_idx, out_file):
+        self.eval_classifier(device, iter_test, dummy_idx, "test",
+                             out_file=out_file)
 
     @staticmethod
     def now():
@@ -67,13 +73,15 @@ class Model:
         self.finetuning_model.train()
         n_batches = len(iter_train)
         train_loss = 0
+        y_true = np.empty(dtype=int)
+        y_pred = np.empty(dtype=int)
         for i, batch in enumerate(iter_train):
             self.finetuning_model.zero_grad()  # Clear old gradients
 
             loss, logits = self.forward_finetuning(
                 input_ids=batch[0].to(device),
-                attention_mask=batch[2].to(device),
-                labels=batch[1].to(device),
+                attention_mask=batch[1].to(device),
+                labels=batch[2].to(device),
                 dummy_idx=dummy_idx)
             train_loss += loss.item()
             loss.backward()  # Calculate gradients
@@ -82,31 +90,72 @@ class Model:
             optimizer.step()  # Update model parameters
             scheduler.step()  # Update learning rate
 
-            if i % sanity_mod == 0:
-                self.sanity_check(ids=batch[0], labels=batch[1],
-                                  logits=logits.detach().cpu().numpy(),
-                                  mask=batch[2], tokenizer=tokenizer)
+            y_true = np.append(y_true, batch[2])
+            y_pred = np.append(
+                y_pred, np.argmax(logits.detach().cpu().numpy(), axis=1))
 
             if i % 10 == 0:
-                print(f"Batch {i:>2}/{n_batches} {self.now()} loss: {out.loss.item()}")
+                print(f"Batch {i:>2}/{n_batches} {self.now()}", end="\t")
+                print(f"loss: {loss.item():.4f}", end="\t")
 
-        print(f"Mean train loss for epoch: {train_loss / n_batches}")
+            if i % sanity_mod == 0:
+                self.sanity_check(ids=batch[0], labels=batch[2],
+                                  logits=logits.detach().cpu().numpy(),
+                                  mask=batch[1], tokenizer=tokenizer)
 
-    def eval_classifier(self, device, iter_test, dummy_idx, eval_type):
+        print(f"Mean train loss for epoch: {train_loss / n_batches:.4f}")
+        self.print_scores(y_true, y_pred, dummy_idx)
+
+    def eval_classifier(self, device, iter_test, dummy_idx, eval_type,
+                        tokenizer, sanity_mod=1000, out_file=None):
         self.finetuning_model.eval()
         n_batches = len(iter_test)
         eval_loss = 0
+        y_true = np.empty(dtype=int)
+        y_pred = np.empty(dtype=int)
+        x = np.empty(dtype=np.int64)
         for i, batch in enumerate(iter_test):
             with torch.no_grad():
                 loss, logits = self.forward_finetuning(
                     input_ids=batch[0].to(device),
-                    attention_mask=batch[2].to(device),
-                    labels=batch[1].to(device),
+                    attention_mask=batch[1].to(device),
+                    labels=batch[2].to(device) if len(batch) > 2 else None,
                     dummy_idx=dummy_idx)
-                eval_loss += loss.item()
+                if len(batch) > 2:
+                    eval_loss += loss.item()
+                    y_true = np.append(y_true, batch[1])
+                x = np.append(x, batch[0])
+                y_pred = np.append(y_pred,
+                                   np.argmax(logits.detach().cpu().numpy(),
+                                             axis=1))
+                if i % sanity_mod == 0:
+                    self.sanity_check(
+                        ids=batch[0],
+                        labels=batch[2] if len(batch) > 2 else None,
+                        logits=logits.detach().cpu().numpy(),
+                        mask=batch[1],
+                        tokenizer=tokenizer)
 
-                # TODO additional metrics
-        print(f"Mean {eval_type} loss for epoch: {eval_loss / n_batches}")
+        if eval_loss > 0.000:
+            print(f"Mean {eval_type} loss: {eval_loss / n_batches}")
+            self.print_scores(y_true, y_pred, dummy_idx)
+
+        if out_file:
+            with open(out_file, "w", encoding='utf8') as f:
+                if eval_loss > 0.000:
+                    for tok_id, gs_id, pred_id in zip(x, y_true, y_pred):
+                        f.write(tokenizer.convert_ids_to_tokens(int(tok_id)))
+                        f.write("\t")
+                        f.write(self.finetuning_model.config.id2label[gs_id])
+                        f.write("\t")
+                        f.write(self.finetuning_model.config.id2label[pred_id])
+                        f.write("\n")
+                else:
+                    for tok_id, pred_id in zip(x, y_pred):
+                        f.write(tokenizer.convert_ids_to_tokens(int(tok_id)))
+                        f.write("\t")
+                        f.write(self.finetuning_model.config.id2label[pred_id])
+                        f.write("\n")
 
     def forward_finetuning(self, input_ids, attention_mask, labels,
                            dummy_idx):
@@ -117,27 +166,49 @@ class Model:
         sequence_output = outputs[0]
         sequence_output = self.finetuning_model.dropout(sequence_output)
         logits = self.finetuning_model.classifier(sequence_output)
-        loss = CrossEntropyLoss(ignore_index=dummy_idx)(
-            logits.view(-1, self.finetuning_model.num_labels),
-            labels.view(-1))
+        if labels:
+            loss = CrossEntropyLoss(ignore_index=dummy_idx)(
+                logits.view(-1, self.finetuning_model.num_labels),
+                labels.view(-1))
+        else:
+            loss = None
         return loss, logits
 
     def sanity_check(self, ids, labels, logits, mask, tokenizer):
-        tokens = tokenizer.convert_ids_to_tokens(ids[mask.astype(bool)])
-        gs_labels = [self.finetuning_model.config.id2label[y] for y in labels]
-        pred_labels_enc = np.argmax(logits, axis=1)
-        pred_labels = [self.finetuning_model.config.id2label[y]
-                       for y in pred_labels_enc]
+        tokens, gs_labels, pred_labels = self.decode(
+            ids, labels, logits, mask, tokenizer)
         print("TOKEN\tGOLD\tPREDICTED\tWRONG/IGNORED")
         for token, gs_label, pred_label in zip(
                 tokens, gs_labels, pred_labels):
             print(f"{token}\t{gs_label}\t{pred_label}\t", end="")
             if gs_label == DUMMY_POS:
                 print("--")
-            elif gs_label != pred_label:
+            elif labels is not None and gs_label != pred_label:
                 print("/!\\")
             else:
                 print()
+
+    def print_scores(self, y_true, y_pred, dummy_idx):
+        mask = np.where(y_true == dummy_idx, 0, 1)
+        acc = accuracy_score(y_true, y_pred, sample_weight=mask)
+        f1_micro = f1_score(y_true, y_pred, sample_weight=mask,
+                            average='micro')
+        f1_macro = f1_score(y_true, y_pred, sample_weight=mask,
+                            average='macro')
+        print(f"Accuracy: {acc:.2f}")
+        print(f"F1 micro: {f1_micro:.2f}")
+        print(f"F1 macro: {f1_macro:.2f}")
+
+    def decode(self, tok_ids, label_ids, logits, mask, tokenizer):
+        tokens = tokenizer.convert_ids_to_tokens(tok_ids[mask.astype(bool)])
+        if label_ids is None:
+            gs_labels = ["?" for _ in mask]
+        else:
+            gs_labels = [self.finetuning_model.config.id2label[y]
+                         for y in label_ids]
+        pred_labels = [self.finetuning_model.config.id2label[y]
+                       for y in np.argmax(logits, axis=1)]
+        return tokens, gs_labels, pred_labels
 
     def save_finetuned(self, path):
         self.finetuning_model.save_pretrained(path)

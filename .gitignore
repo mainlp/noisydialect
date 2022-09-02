@@ -5,3 +5,5 @@ figs/
 logs/
 data/
 notes/
+datasets/*
+!datasets/*.md

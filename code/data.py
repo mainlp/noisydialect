@@ -137,8 +137,8 @@ class Data:
     def tensor_dataset(self):
         return TensorDataset(
             torch.Tensor(self.x).to(torch.int64),
-            torch.Tensor(self.y).to(torch.int64),
-            torch.Tensor(self.input_mask).to(torch.int64))
+            torch.Tensor(self.input_mask).to(torch.int64),
+            torch.Tensor(self.y).to(torch.int64))
 
     def alphabet(self):
         return {c for sent in self.toks_orig for tok in sent for c in tok
