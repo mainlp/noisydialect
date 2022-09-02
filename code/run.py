@@ -49,7 +49,8 @@ if __name__ == "__main__":
         dev = Data(config.name_dev, other_dir=config.orig_dir_dev)
     else:
         toks_td, pos_td = read_raw_input(config.orig_file_traindev,
-                                         config.max_sents_traindev)
+                                         config.max_sents_traindev,
+                                         config.encoding_traindev)
         toks_orig_train, toks_orig_dev, pos_train, pos_dev = train_test_split(
             toks_td, pos_td, test_size=config.dev_ratio)
         train = Data(config.name_train, toks_orig=toks_orig_train,
@@ -60,6 +61,7 @@ if __name__ == "__main__":
     # Test data: LRL tokens
     if config.orig_file_test:
         test = Data(config.name_test, raw_data_path=config.orig_file_test,
+                    raw_data_enc=config.encoding_test,
                     max_sents=config.max_sents_test,
                     pos2idx=train.pos2idx)
         test.prepare_xy(tokenizer, config.T, config.subtoken_rep)

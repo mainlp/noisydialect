@@ -73,8 +73,8 @@ class Model:
         self.finetuning_model.train()
         n_batches = len(iter_train)
         train_loss = 0
-        y_true = np.empty(dtype=int)
-        y_pred = np.empty(dtype=int)
+        y_true = np.empty(0, dtype=int)
+        y_pred = np.empty(0, dtype=int)
         for i, batch in enumerate(iter_train):
             self.finetuning_model.zero_grad()  # Clear old gradients
 
@@ -90,18 +90,19 @@ class Model:
             optimizer.step()  # Update model parameters
             scheduler.step()  # Update learning rate
 
-            y_true = np.append(y_true, batch[2])
-            y_pred = np.append(
-                y_pred, np.argmax(logits.detach().cpu().numpy(), axis=1))
+            b_y_gs = batch[2].detach().cpu().numpy()
+            b_logits = logits.detach().cpu().numpy()
+            y_true = np.append(y_true, b_y_gs)
+            y_pred = np.append(y_pred, np.argmax(b_logits, axis=1))
 
             if i % 10 == 0:
                 print(f"Batch {i:>2}/{n_batches} {self.now()}", end="\t")
                 print(f"loss: {loss.item():.4f}", end="\t")
 
             if i % sanity_mod == 0:
-                self.sanity_check(ids=batch[0], labels=batch[2],
-                                  logits=logits.detach().cpu().numpy(),
-                                  mask=batch[1], tokenizer=tokenizer)
+                b_x = batch[0].detach().cpu().numpy()
+                b_mask = batch[1].detach().cpu().numpy()
+                self.sanity_check(b_x, b_y_gs, b_logits, b_mask, tokenizer)
 
         print(f"Mean train loss for epoch: {train_loss / n_batches:.4f}")
         self.print_scores(y_true, y_pred, dummy_idx)
@@ -111,9 +112,9 @@ class Model:
         self.finetuning_model.eval()
         n_batches = len(iter_test)
         eval_loss = 0
-        y_true = np.empty(dtype=int)
-        y_pred = np.empty(dtype=int)
-        x = np.empty(dtype=np.int64)
+        y_true = np.empty(0, dtype=int)
+        y_pred = np.empty(0, dtype=int)
+        x = np.empty(0, dtype=np.int64)
         for i, batch in enumerate(iter_test):
             with torch.no_grad():
                 loss, logits = self.forward_finetuning(
@@ -121,20 +122,20 @@ class Model:
                     attention_mask=batch[1].to(device),
                     labels=batch[2].to(device) if len(batch) > 2 else None,
                     dummy_idx=dummy_idx)
+                b_x = batch[0].detach().cpu().numpy()
+                b_mask = batch[1].detach().cpu().numpy()
+                if len(batch) > 2:
+                    b_y_gs = batch[2].detach().cpu().numpy()
+                else:
+                    b_y_gs = None
+                b_logits = logits.detach().cpu().numpy()
                 if len(batch) > 2:
                     eval_loss += loss.item()
-                    y_true = np.append(y_true, batch[1])
-                x = np.append(x, batch[0])
-                y_pred = np.append(y_pred,
-                                   np.argmax(logits.detach().cpu().numpy(),
-                                             axis=1))
+                    y_true = np.append(y_true, b_y_gs)
+                x = np.append(x, b_x)
+                y_pred = np.append(y_pred, np.argmax(b_logits, axis=1))
                 if i % sanity_mod == 0:
-                    self.sanity_check(
-                        ids=batch[0],
-                        labels=batch[2] if len(batch) > 2 else None,
-                        logits=logits.detach().cpu().numpy(),
-                        mask=batch[1],
-                        tokenizer=tokenizer)
+                    self.sanity_check(b_x, b_y_gs, b_logits, b_mask, tokenizer)
 
         if eval_loss > 0.000:
             print(f"Mean {eval_type} loss: {eval_loss / n_batches}")
@@ -166,7 +167,7 @@ class Model:
         sequence_output = outputs[0]
         sequence_output = self.finetuning_model.dropout(sequence_output)
         logits = self.finetuning_model.classifier(sequence_output)
-        if labels:
+        if labels is not None:
             loss = CrossEntropyLoss(ignore_index=dummy_idx)(
                 logits.view(-1, self.finetuning_model.num_labels),
                 labels.view(-1))

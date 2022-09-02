@@ -1,6 +1,7 @@
 import copy
 import os
 import random
+import sys
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -50,15 +51,14 @@ class Data:
     def __init__(self,
                  name,
                  toks_orig=None, pos_orig=None,
-                 toks_bert=None, x=None, y=None,
-                 input_mask=None, tok_mask=None,
+                 toks_bert=None, x=None, y=None, input_mask=None,
                  pos2idx=None,
                  # If loading an existing dataset:
                  load_parent_dir=None,
                  # If initializing from another dataset:
                  other_dir=None,
                  # If initializing from scratch:
-                 raw_data_path=None, max_sents=-1,
+                 raw_data_path=None, raw_data_enc="utf8", max_sents=-1,
                  ):
         self.name = name
         self.toks_orig = toks_orig
@@ -67,7 +67,6 @@ class Data:
         self.x = x
         self.y = y
         self.input_mask = input_mask
-        self.tok_mask = tok_mask
         self.pos2idx = pos2idx
         if load_parent_dir:
             print(f"Loading {name} from path ({load_parent_dir}/{name})")
@@ -77,7 +76,7 @@ class Data:
             self.load_orig(other_dir)
         elif raw_data_path:
             print(f"Initializing {name} from scratch ({raw_data_path})")
-            self.read_raw_input(raw_data_path, max_sents)
+            self.read_raw_input(raw_data_path, max_sents, raw_data_enc)
         else:
             print(f"Initializing {name} from args only")
         print(self)
@@ -151,8 +150,7 @@ class Data:
 
     # ---- Adding noise ----
 
-    def read_raw_input(self, filename, max_sents, encoding="utf8",
-                       verbose=True):
+    def read_raw_input(self, filename, max_sents, encoding, verbose=True):
         self.toks_orig, self.pos_orig = read_raw_input(
             filename, max_sents, encoding, verbose)
 
@@ -394,7 +392,13 @@ class Data:
                 {tok_pos for sent_pos in pos for tok_pos in sent_pos})}
         self.y = np.empty((N, T))
         for i, sent_pos in enumerate(pos):
-            self.y[i] = [self.pos2idx[tok_pos] for tok_pos in sent_pos]
+            try:
+                self.y[i] = [self.pos2idx[tok_pos] for tok_pos in sent_pos]
+            except KeyError as e:
+                print(e)
+                print([(tok, pos) for tok, pos in zip(
+                    self.toks_bert[i], sent_pos)])
+                sys.exit(1)
         assert len(self.toks_bert) == self.x.shape[0] == len(pos), \
             f"{len(self.toks_bert)} == {self.x.shape[0]} == {len(pos)}"
         if verbose:
@@ -423,8 +427,7 @@ class Data:
         print(f"Saving {self.name} to {directory}")
         # Also works with None args:
         np.savez(os.path.join(directory, "arrays.npz"),
-                 x=self.x, y=self.y, input_mask=self.input_mask,
-                 tok_mask=self.tok_mask)
+                 x=self.x, y=self.y, input_mask=self.input_mask)
         if save_orig:
             self.save_tsv(self.toks_orig, directory, "toks_orig.tsv")
             self.save_tsv(self.pos_orig, directory, "pos_orig.tsv")
@@ -451,22 +454,14 @@ class Data:
             self.x = npzfile["x"]
         except ValueError:
             print("Couldn't load 'x'")
-            pass
         try:
             self.y = npzfile["y"]
         except ValueError:
             print("Couldn't load 'y'")
-            pass
         try:
             self.input_mask = npzfile["input_mask"]
         except ValueError:
             print("Couldn't load 'input_mask'")
-            pass
-        try:
-            self.tok_mask = npzfile["tok_mask"]
-        except ValueError:
-            print("Couldn't load 'tok_mask'")
-            pass
         self.toks_bert = self.tsv2list(directory, "toks_bert.tsv")
         self.load_orig(directory)
 
@@ -524,7 +519,6 @@ class Data:
             f"x={self.tensor2str(self.x)}, " \
             f"y={self.tensor2str(self.y)}, " \
             f"input_mask={self.tensor2str(self.input_mask)}, " \
-            f"tok_mask={self.list2str(self.tok_mask)}, " \
             f"pos2idx={'None' if self.pos2idx is None else len(self.pos2idx)})"
 
     def copy_toks_orig(self):

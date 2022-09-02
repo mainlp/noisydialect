@@ -1,7 +1,9 @@
 class Config:
     __slots__ = 'name_train', 'name_dev', 'name_test', \
                 'prepare_input_traindev', \
-                'orig_file_traindev', 'orig_file_test', 'max_sents_traindev', \
+                'orig_file_traindev', 'orig_file_test', \
+                'encoding_traindev', 'encoding_test', \
+                'max_sents_traindev', \
                 'max_sents_test', 'dev_ratio', \
                 'orig_dir_train', 'orig_dir_dev', \
                 'T', 'subtoken_rep', 'tokenizer_name', \
@@ -22,6 +24,8 @@ class Config:
                  # Loading data:
                  orig_file_traindev=None,
                  orig_file_test=None,
+                 encoding_traindev="utf8",
+                 encoding_test="utf8",
                  max_sents_traindev=-1,  # -1: no max limit
                  max_sents_test=-1,  # -1: no max limit
                  dev_ratio=0.1,
@@ -51,6 +55,8 @@ class Config:
         self.name_test = name_test
         self.orig_file_traindev = orig_file_traindev
         self.orig_file_test = orig_file_test
+        self.encoding_traindev = encoding_traindev
+        self.encoding_test = encoding_test
         self.max_sents_traindev = max_sents_traindev
         self.max_sents_test = max_sents_test
         self.dev_ratio = dev_ratio
