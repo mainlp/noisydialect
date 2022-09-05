@@ -25,7 +25,7 @@ def read_raw_input(filename, max_sents=-1, encoding="utf8",
         cur_toks, cur_pos = [], []
         i = 0
         for line in f_in:
-            line = line.strip()
+            line = line.strip().replace("\xa0", "")
             if not line:
                 if cur_toks:
                     toks.append(cur_toks)

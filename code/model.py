@@ -205,6 +205,8 @@ class Model:
         if label_ids is None:
             gs_labels = ["?" for _ in mask]
         else:
+            print(label_ids.shape)
+            print(label_ids)
             gs_labels = [self.finetuning_model.config.id2label[y]
                          for y in label_ids]
         pred_labels = [self.finetuning_model.config.id2label[y]
