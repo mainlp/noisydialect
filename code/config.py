@@ -34,7 +34,7 @@ class Config:
                  # If the input matrices still need to be prepared:
                  prepare_input_traindev=False,
                  T=60,
-                 subtoken_rep='first',  # 'first', 'last', 'all'
+                 subtoken_rep='last',  # 'first', 'last', 'all'
                  tokenizer_name="dbmdz/bert-base-german-cased",
                  noise_type=None,  # None -> no noise
                  noise_lvl_min=0.1,
