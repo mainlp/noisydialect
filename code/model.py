@@ -102,7 +102,8 @@ class Model:
             if i % sanity_mod == 0:
                 b_x = batch[0].detach().cpu().numpy()
                 b_mask = batch[1].detach().cpu().numpy()
-                self.sanity_check(b_x, b_y_gs, b_logits, b_mask, tokenizer)
+                self.sanity_check(b_x[0], b_y_gs[0], b_logits[0], b_mask[0],
+                                  tokenizer)
 
         print(f"Mean train loss for epoch: {train_loss / n_batches:.4f}")
         self.print_scores(y_true, y_pred, dummy_idx)
@@ -135,7 +136,8 @@ class Model:
                 x = np.append(x, b_x)
                 y_pred = np.append(y_pred, np.argmax(b_logits, axis=1))
                 if i % sanity_mod == 0:
-                    self.sanity_check(b_x, b_y_gs, b_logits, b_mask, tokenizer)
+                    self.sanity_check(b_x[0], b_y_gs[0], b_logits[0],
+                                      b_mask[0], tokenizer)
 
         if eval_loss > 0.000:
             print(f"Mean {eval_type} loss: {eval_loss / n_batches}")
@@ -176,6 +178,7 @@ class Model:
         return loss, logits
 
     def sanity_check(self, ids, labels, logits, mask, tokenizer):
+        # Assumes all IDs belong just to one sentence
         tokens, gs_labels, pred_labels = self.decode(
             ids, labels, logits, mask, tokenizer)
         print("TOKEN\tGOLD\tPREDICTED\tWRONG/IGNORED")
@@ -201,12 +204,12 @@ class Model:
         print(f"F1 macro: {f1_macro:.2f}")
 
     def decode(self, tok_ids, label_ids, logits, mask, tokenizer):
+        # Assumes all IDs belong just to one sentence
         tokens = tokenizer.convert_ids_to_tokens(tok_ids[mask.astype(bool)])
         if label_ids is None:
             gs_labels = ["?" for _ in mask]
         else:
-            print(label_ids.shape)
-            print(label_ids)
+            # print(label_ids)
             gs_labels = [self.finetuning_model.config.id2label[y]
                          for y in label_ids]
         pred_labels = [self.finetuning_model.config.id2label[y]

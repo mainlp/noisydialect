@@ -96,14 +96,10 @@ class Data:
         return ratio
 
     def unk_ratio(self, return_all=False, cls_sep_per_sent=2):
-        n_unks_orig, n_unks_bert = 0, 0
-        for sent in self.toks_orig:
-            for tok in sent:
-                if tok == "UNK":
-                    n_unks_orig += 1
+        n_unks_bert = 0
         for sent in self.toks_bert:
             for tok in sent:
-                if tok == "UNK":
+                if tok == "[UNK]":
                     n_unks_bert += 1
         n_toks_bert = self.n_toks_bert(cls_sep_per_sent)
         try:
@@ -111,7 +107,7 @@ class Data:
         except (TypeError, ZeroDivisionError):
             ratio = -1
         if return_all:
-            return ratio, n_unks_bert, n_toks_bert, n_unks_orig
+            return ratio, n_unks_bert, n_toks_bert
         return ratio
 
     def n_toks_orig(self):
@@ -133,7 +129,12 @@ class Data:
         plt.pcolormesh(matrix)
         plt.savefig(f"../figs/{name}.png")
 
-    def tensor_dataset(self):
+    def tensor_dataset(self, use_cuda):
+        if use_cuda:
+            return TensorDataset(
+                torch.Tensor(self.x).to(torch.int64).cuda(),
+                torch.Tensor(self.input_mask).to(torch.int64).cuda(),
+                torch.Tensor(self.y).to(torch.int64).cuda())
         return TensorDataset(
             torch.Tensor(self.x).to(torch.int64),
             torch.Tensor(self.input_mask).to(torch.int64),
@@ -386,6 +387,8 @@ class Data:
                        + (T - len(cur_pos) - 1) * [DUMMY_POS]  # padding
                        )
             pos.append(cur_pos)
+            if verbose and i % 1000 == 0:
+                print(i)
         if not self.pos2idx:
             # BERT doesn't want labels that are already onehot-encoded
             self.pos2idx = {tag: idx for idx, tag in enumerate(
