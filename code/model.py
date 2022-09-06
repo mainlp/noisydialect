@@ -50,15 +50,19 @@ class Model:
         pass  # TODO
 
     def finetune(self, device, iter_train, iter_dev, iter_test,
-                 optimizer, scheduler, n_epochs, tokenizer, dummy_idx):
+                 optimizer, scheduler, n_epochs, tokenizer, dummy_idx,
+                 sanity_mod):
+        self.finetuning_model.to(device)
         for epoch in range(n_epochs):
             print("============")
             print(f"Epoch {epoch + 1}/{n_epochs} started at " + self.now())
             self.train_classifier(device, iter_train, optimizer, scheduler,
-                                  tokenizer, dummy_idx)
-            self.eval_classifier(device, iter_dev, dummy_idx, "dev")
+                                  tokenizer, dummy_idx, sanity_mod)
+            self.eval_classifier(device, iter_dev, dummy_idx, "dev",
+                                 sanity_mod)
             if iter_test:
-                self.eval_classifier(device, iter_test, dummy_idx, "test")
+                self.eval_classifier(device, iter_test, dummy_idx, "test",
+                                     sanity_mod)
 
     def predict(self, device, iter_test, dummy_idx, out_file):
         self.eval_classifier(device, iter_test, dummy_idx, "test",
@@ -91,19 +95,22 @@ class Model:
             scheduler.step()  # Update learning rate
 
             b_y_gs = batch[2].detach().cpu().numpy()
+            # logits: (batch_size, T, n_labels)
             b_logits = logits.detach().cpu().numpy()
             y_true = np.append(y_true, b_y_gs)
-            y_pred = np.append(y_pred, np.argmax(b_logits, axis=1))
+            y_pred = np.append(y_pred, np.argmax(b_logits, axis=2))
 
             if i % 10 == 0:
                 print(f"Batch {i:>2}/{n_batches} {self.now()}", end="\t")
-                print(f"loss: {loss.item():.4f}", end="\t")
+                print(f"loss: {loss.item():.4f}")
 
             if i % sanity_mod == 0:
                 b_x = batch[0].detach().cpu().numpy()
                 b_mask = batch[1].detach().cpu().numpy()
                 self.sanity_check(b_x[0], b_y_gs[0], b_logits[0], b_mask[0],
                                   tokenizer)
+                self.print_scores(b_y_gs[0], np.argmax(b_logits[0], axis=1),
+                                  dummy_idx)
 
         print(f"Mean train loss for epoch: {train_loss / n_batches:.4f}")
         self.print_scores(y_true, y_pred, dummy_idx)
@@ -192,7 +199,10 @@ class Model:
             else:
                 print()
 
-    def print_scores(self, y_true, y_pred, dummy_idx):
+    @staticmethod
+    def print_scores(y_true, y_pred, dummy_idx):
+        y_true = y_true.flatten()
+        y_pred = y_pred.flatten()
         mask = np.where(y_true == dummy_idx, 0, 1)
         acc = accuracy_score(y_true, y_pred, sample_weight=mask)
         f1_micro = f1_score(y_true, y_pred, sample_weight=mask,
@@ -209,7 +219,6 @@ class Model:
         if label_ids is None:
             gs_labels = ["?" for _ in mask]
         else:
-            # print(label_ids)
             gs_labels = [self.finetuning_model.config.id2label[y]
                          for y in label_ids]
         pred_labels = [self.finetuning_model.config.id2label[y]

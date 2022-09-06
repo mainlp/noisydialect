@@ -66,8 +66,9 @@ if __name__ == "__main__":
                     pos2idx=train.pos2idx)
         test.prepare_xy(tokenizer, config.T, config.subtoken_rep)
         test.save(config.data_parent_dir)
-        print(f"Subtoken ratio ({config.name_test}): {test.subtok_ratio(return_all=True)}\n")
-        print(f"UNK ratio ({config.name_test}): {test.unk_ratio(return_all=True)}\n")
+        print(f"Subtoken ratio ({config.name_test}): {test.subtok_ratio(return_all=True)}")
+        print(f"UNK ratio ({config.name_test}): {test.unk_ratio(return_all=True)}")
+        print(f"Label distribution ({config.name_test}): {test.pos_y_distrib()}")
     else:
         test = Data(config.name_test, load_parent_dir=config.data_parent_dir)
     alphabet_test = test.alphabet()
@@ -78,14 +79,16 @@ if __name__ == "__main__":
                         config.noise_lvl_max, alphabet_test)
         train.prepare_xy(tokenizer, config.T, config.subtoken_rep)
         train.save(config.data_parent_dir)
-        print(f"Subtoken ratio ({config.name_train}): {train.subtok_ratio(return_all=True)}\n")
-        print(f"UNK ratio ({config.name_train}): {test.unk_ratio(return_all=True)}\n")
+        print(f"Subtoken ratio ({config.name_train}): {train.subtok_ratio(return_all=True)}")
+        print(f"UNK ratio ({config.name_train}): {test.unk_ratio(return_all=True)}")
+        print(f"Label distribution ({config.name_train}): {train.pos_y_distrib()}")
         dev.add_noise(config.noise_type, config.noise_lvl_min,
                       config.noise_lvl_max, alphabet_test)
         dev.prepare_xy(tokenizer, config.T, config.subtoken_rep)
         dev.save(config.data_parent_dir)
-        print(f"Subtoken ratio ({config.name_dev}): {dev.subtok_ratio(return_all=True)}\n")
-        print(f"UNK ratio ({config.name_dev}): {test.unk_ratio(return_all=True)}\n")
+        print(f"Subtoken ratio ({config.name_dev}): {dev.subtok_ratio(return_all=True)}")
+        print(f"UNK ratio ({config.name_dev}): {test.unk_ratio(return_all=True)}")
+        print(f"Label distribution ({config.name_dev}): {dev.pos_y_distrib()}")
 
     # visualize(x_test, f"x_test_{args.n_sents_test}")
 
@@ -95,8 +98,7 @@ if __name__ == "__main__":
     # TODO continued pretraining
 
     # Finetuning
-    use_cuda = torch.cuda.is_available()
-    if use_cuda:
+    if torch.cuda.is_available():
         model.finetuning_model.cuda()
         device = 'cuda'
     else:
@@ -104,15 +106,15 @@ if __name__ == "__main__":
     print("Device", device)
     optimizer = AdamW(model.finetuning_model.parameters())
 
-    dataset_train = train.tensor_dataset(use_cuda)
+    dataset_train = train.tensor_dataset()
     iter_train = DataLoader(dataset_train,
                             sampler=RandomSampler(dataset_train),
                             batch_size=config.batch_size)
-    dataset_dev = dev.tensor_dataset(use_cuda)
+    dataset_dev = dev.tensor_dataset()
     iter_dev = DataLoader(dataset_dev,
                           sampler=RandomSampler(dataset_dev),
                           batch_size=config.batch_size)
-    dataset_test = test.tensor_dataset(use_cuda)
+    dataset_test = test.tensor_dataset()
     iter_test = DataLoader(dataset_test,
                            sampler=RandomSampler(dataset_test),
                            batch_size=config.batch_size)

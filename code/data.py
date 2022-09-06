@@ -1,3 +1,4 @@
+from collections import Counter
 import copy
 import os
 import random
@@ -123,18 +124,33 @@ class Data:
         except TypeError:
             return None
 
+    def pos_orig_distrib(self):
+        c = Counter([pos for sent in self.pos_orig for pos in sent])
+        total = sum(c.values())
+        return sorted([(key, cnt / total) for key, cnt in c.items()],
+                      key=lambda x: -x[1])
+
+    def idx2pos(self):
+        return {self.pos2idx[pos]: pos for pos in self.pos2idx}
+
+    def pos_y_distrib(self):
+        if self.y is None:
+            return None
+        idx2pos = self.idx2pos()
+        dummy_idx = self.dummy_idx()
+        c = Counter([idx2pos[int(pos)] for sent in self.y
+                     for pos in sent if int(pos) != dummy_idx])
+        total = sum(c.values())
+        return sorted([(key, cnt / total) for key, cnt in c.items()],
+                      key=lambda x: -x[1])
+
     @staticmethod
     def visualize(matrix, name):
         plt.clf()
         plt.pcolormesh(matrix)
         plt.savefig(f"../figs/{name}.png")
 
-    def tensor_dataset(self, use_cuda):
-        if use_cuda:
-            return TensorDataset(
-                torch.Tensor(self.x).to(torch.int64).cuda(),
-                torch.Tensor(self.input_mask).to(torch.int64).cuda(),
-                torch.Tensor(self.y).to(torch.int64).cuda())
+    def tensor_dataset(self):
         return TensorDataset(
             torch.Tensor(self.x).to(torch.int64),
             torch.Tensor(self.input_mask).to(torch.int64),
