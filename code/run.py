@@ -59,7 +59,7 @@ if __name__ == "__main__":
                    pos_orig=pos_dev, pos2idx=train.pos2idx)
 
     # Test data: LRL tokens
-    if config.orig_file_test:
+    if config.prepare_input_test:
         test = Data(config.name_test, raw_data_path=config.orig_file_test,
                     raw_data_enc=config.encoding_test,
                     max_sents=config.max_sents_test,
@@ -104,7 +104,6 @@ if __name__ == "__main__":
     else:
         device = 'cpu'
     print("Device", device)
-    optimizer = AdamW(model.finetuning_model.parameters())
 
     dataset_train = train.tensor_dataset()
     iter_train = DataLoader(dataset_train,
@@ -118,10 +117,14 @@ if __name__ == "__main__":
     iter_test = DataLoader(dataset_test,
                            sampler=RandomSampler(dataset_test),
                            batch_size=config.batch_size)
+
+    optimizer = AdamW(model.finetuning_model.parameters(),
+                      lr=config.learning_rate,
+                      weight_decay=config.weight_decay)
     scheduler = get_linear_schedule_with_warmup(
         optimizer, num_warmup_steps=0,
         num_training_steps=len(iter_train) * config.n_epochs)
 
     model.finetune(device, iter_train, iter_dev, iter_test,
                    optimizer, scheduler, config.n_epochs, tokenizer,
-                   train.dummy_idx())
+                   train.dummy_idx(), config.sanity_mod)

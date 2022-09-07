@@ -414,7 +414,7 @@ class Data:
             try:
                 self.y[i] = [self.pos2idx[tok_pos] for tok_pos in sent_pos]
             except KeyError as e:
-                print(e)
+                print("Encounted unknown POS tag:", e)
                 print([(tok, pos) for tok, pos in zip(
                     self.toks_bert[i], sent_pos)])
                 sys.exit(1)

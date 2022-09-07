@@ -57,12 +57,12 @@ class Model:
             print("============")
             print(f"Epoch {epoch + 1}/{n_epochs} started at " + self.now())
             self.train_classifier(device, iter_train, optimizer, scheduler,
-                                  tokenizer, dummy_idx, sanity_mod)
-            self.eval_classifier(device, iter_dev, dummy_idx, "dev",
-                                 sanity_mod)
+                                  tokenizer, dummy_idx, epoch, sanity_mod)
+            self.eval_classifier(device, iter_dev, dummy_idx, "dev", epoch,
+                                 tokenizer, sanity_mod)
             if iter_test:
                 self.eval_classifier(device, iter_test, dummy_idx, "test",
-                                     sanity_mod)
+                                     epoch, tokenizer, sanity_mod)
 
     def predict(self, device, iter_test, dummy_idx, out_file):
         self.eval_classifier(device, iter_test, dummy_idx, "test",
@@ -73,7 +73,7 @@ class Model:
         return time.strftime("%Y/%m/%d %H:%M:%S", time.localtime())
 
     def train_classifier(self, device, iter_train, optimizer, scheduler,
-                         tokenizer, dummy_idx, sanity_mod=1000):
+                         tokenizer, dummy_idx, epoch, sanity_mod=1000):
         self.finetuning_model.train()
         n_batches = len(iter_train)
         train_loss = 0
@@ -100,7 +100,7 @@ class Model:
             y_true = np.append(y_true, b_y_gs)
             y_pred = np.append(y_pred, np.argmax(b_logits, axis=2))
 
-            if i % 10 == 0:
+            if i % 50 == 0:
                 print(f"Batch {i:>2}/{n_batches} {self.now()}", end="\t")
                 print(f"loss: {loss.item():.4f}")
 
@@ -109,14 +109,15 @@ class Model:
                 b_mask = batch[1].detach().cpu().numpy()
                 self.sanity_check(b_x[0], b_y_gs[0], b_logits[0], b_mask[0],
                                   tokenizer)
+                print("Scores for these sample predictions:")
                 self.print_scores(b_y_gs[0], np.argmax(b_logits[0], axis=1),
                                   dummy_idx)
 
-        print(f"Mean train loss for epoch: {train_loss / n_batches:.4f}")
+        print(f"Mean train loss for epoch {epoch}: {train_loss / n_batches:.4f}")
         self.print_scores(y_true, y_pred, dummy_idx)
 
     def eval_classifier(self, device, iter_test, dummy_idx, eval_type,
-                        tokenizer, sanity_mod=1000, out_file=None):
+                        tokenizer, epoch, sanity_mod=1000, out_file=None):
         self.finetuning_model.eval()
         n_batches = len(iter_test)
         eval_loss = 0
@@ -147,7 +148,7 @@ class Model:
                                       b_mask[0], tokenizer)
 
         if eval_loss > 0.000:
-            print(f"Mean {eval_type} loss: {eval_loss / n_batches}")
+            print(f"Mean {eval_type} loss for epoch {epoch}: {eval_loss / n_batches}")
             self.print_scores(y_true, y_pred, dummy_idx)
 
         if out_file:
@@ -205,12 +206,9 @@ class Model:
         y_pred = y_pred.flatten()
         mask = np.where(y_true == dummy_idx, 0, 1)
         acc = accuracy_score(y_true, y_pred, sample_weight=mask)
-        f1_micro = f1_score(y_true, y_pred, sample_weight=mask,
-                            average='micro')
         f1_macro = f1_score(y_true, y_pred, sample_weight=mask,
-                            average='macro')
+                            average='macro', zero_division=0)
         print(f"Accuracy: {acc:.2f}")
-        print(f"F1 micro: {f1_micro:.2f}")
         print(f"F1 macro: {f1_macro:.2f}")
 
     def decode(self, tok_ids, label_ids, logits, mask, tokenizer):

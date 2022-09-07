@@ -1,6 +1,6 @@
 class Config:
     __slots__ = 'name_train', 'name_dev', 'name_test', \
-                'prepare_input_traindev', \
+                'prepare_input_traindev', 'prepare_input_test', \
                 'orig_file_traindev', 'orig_file_test', \
                 'encoding_traindev', 'encoding_test', \
                 'max_sents_traindev', \
@@ -9,13 +9,14 @@ class Config:
                 'T', 'subtoken_rep', 'tokenizer_name', \
                 'noise_type', 'noise_lvl_min', 'noise_lvl_max', \
                 'data_parent_dir', 'bert_name', \
-                'classifier_dropout', 'n_epochs', 'batch_size'
+                'classifier_dropout', 'n_epochs', 'batch_size', \
+                'learning_rate', 'weight_decay', 'sanity_mod'
 
     ints = ['max_sents_traindev', 'max_sents_test', 'T', 'n_epochs',
-            'batch_size']
+            'batch_size', 'sanity_mod']
     floats = ['dev_ratio', 'noise_lvl_min', 'noise_lvl_max',
-              'classifier_dropout']
-    bools = ['prepare_input_traindev']
+              'classifier_dropout', 'learning_rate', 'weight_decay']
+    bools = ['prepare_input_traindev', 'prepare_input_test']
 
     def __init__(self,
                  name_train=None,
@@ -33,6 +34,7 @@ class Config:
                  orig_dir_dev=None,
                  # If the input matrices still need to be prepared:
                  prepare_input_traindev=False,
+                 prepare_input_test=False,
                  T=60,
                  subtoken_rep='last',  # 'first', 'last', 'all'
                  tokenizer_name="dbmdz/bert-base-german-cased",
@@ -48,8 +50,12 @@ class Config:
                  # Training:
                  n_epochs=2,
                  batch_size=32,
+                 learning_rate=2e-5,
+                 weight_decay=0.01,
+                 sanity_mod=1000,
                  ):
         self.prepare_input_traindev = prepare_input_traindev
+        self.prepare_input_test = prepare_input_test
         self.name_train = name_train
         self.name_dev = name_dev
         self.name_test = name_test
@@ -73,6 +79,9 @@ class Config:
         self.classifier_dropout = classifier_dropout
         self.n_epochs = n_epochs
         self.batch_size = batch_size
+        self.learning_rate = learning_rate
+        self.weight_decay = weight_decay
+        self.sanity_mod = sanity_mod
 
     def save(self, path):
         with open(path, "w", encoding="utf8") as f:
