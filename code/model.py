@@ -8,8 +8,7 @@ from sklearn.metrics import accuracy_score, f1_score
 import torch
 from torch.nn import CrossEntropyLoss
 from torch.nn.utils import clip_grad_norm_
-from transformers import BertConfig, BertModel, BertPreTrainedModel, \
-    BertForTokenClassification
+from transformers import BertForTokenClassification
 from transformers.models.bert.modeling_bert import BertForMaskedLM
 
 
@@ -50,19 +49,18 @@ class Model:
         pass  # TODO
 
     def finetune(self, device, iter_train, iter_dev, iter_test,
-                 optimizer, scheduler, n_epochs, tokenizer, dummy_idx,
-                 sanity_mod):
+                 optimizer, n_epochs, tokenizer, dummy_idx, sanity_mod):
         self.finetuning_model.to(device)
         for epoch in range(n_epochs):
             print("============")
             print(f"Epoch {epoch + 1}/{n_epochs} started at " + self.now())
-            self.train_classifier(device, iter_train, optimizer, scheduler,
-                                  tokenizer, dummy_idx, epoch, sanity_mod)
-            self.eval_classifier(device, iter_dev, dummy_idx, "dev", epoch,
-                                 tokenizer, sanity_mod)
+            self.train_classifier(device, iter_train, optimizer, tokenizer,
+                                  dummy_idx, epoch, sanity_mod)
+            self.eval_classifier(device, iter_dev, dummy_idx, "dev",
+                                 tokenizer, epoch, sanity_mod)
             if iter_test:
                 self.eval_classifier(device, iter_test, dummy_idx, "test",
-                                     epoch, tokenizer, sanity_mod)
+                                     tokenizer, epoch, sanity_mod)
 
     def predict(self, device, iter_test, dummy_idx, out_file):
         self.eval_classifier(device, iter_test, dummy_idx, "test",
@@ -72,8 +70,8 @@ class Model:
     def now():
         return time.strftime("%Y/%m/%d %H:%M:%S", time.localtime())
 
-    def train_classifier(self, device, iter_train, optimizer, scheduler,
-                         tokenizer, dummy_idx, epoch, sanity_mod=1000):
+    def train_classifier(self, device, iter_train, optimizer, tokenizer,
+                         dummy_idx, epoch, sanity_mod=1000):
         self.finetuning_model.train()
         n_batches = len(iter_train)
         train_loss = 0
@@ -92,7 +90,7 @@ class Model:
             clip_grad_norm_(self.finetuning_model.parameters(), 1.0)
 
             optimizer.step()  # Update model parameters
-            scheduler.step()  # Update learning rate
+            # scheduler.step()  # Update learning rate
 
             b_y_gs = batch[2].detach().cpu().numpy()
             # logits: (batch_size, T, n_labels)

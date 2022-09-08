@@ -10,7 +10,7 @@ from sklearn.model_selection import train_test_split
 import torch
 from torch.optim import AdamW
 from torch.utils.data import DataLoader, RandomSampler
-from transformers import AutoTokenizer, get_linear_schedule_with_warmup
+from transformers import AutoTokenizer
 
 
 if __name__ == "__main__":
@@ -121,10 +121,7 @@ if __name__ == "__main__":
     optimizer = AdamW(model.finetuning_model.parameters(),
                       lr=config.learning_rate,
                       weight_decay=config.weight_decay)
-    scheduler = get_linear_schedule_with_warmup(
-        optimizer, num_warmup_steps=0,
-        num_training_steps=len(iter_train) * config.n_epochs)
 
     model.finetune(device, iter_train, iter_dev, iter_test,
-                   optimizer, scheduler, config.n_epochs, tokenizer,
+                   optimizer, config.n_epochs, tokenizer,
                    train.dummy_idx(), config.sanity_mod)
