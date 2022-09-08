@@ -140,7 +140,7 @@ class Model:
                     eval_loss += loss.item()
                     y_true = np.append(y_true, b_y_gs)
                 x = np.append(x, b_x)
-                y_pred = np.append(y_pred, np.argmax(b_logits, axis=1))
+                y_pred = np.append(y_pred, np.argmax(b_logits, axis=2))
                 if i % sanity_mod == 0:
                     self.sanity_check(b_x[0], b_y_gs[0], b_logits[0],
                                       b_mask[0], tokenizer)
