@@ -13,15 +13,7 @@ from torch.utils.data import DataLoader, RandomSampler
 from transformers import AutoTokenizer
 
 
-if __name__ == "__main__":
-    parser = ArgumentParser()
-    parser.add_argument("-c", dest="config_path",
-                        help="path to the configuration file",
-                        default="")
-    # parser.add_argument("-q", "--quiet", action="store_false", dest="verbose",
-    #                     default=True, help="no messages to stdout")
-
-    args = parser.parse_args()
+def main(args):
     config = Config()
     try:
         config.load(args.config_path)
@@ -40,6 +32,13 @@ if __name__ == "__main__":
 
     # --- Finetuning ---
 
+    with open("tagset_stts.txt", encoding="utf8") as f:
+        pos2idx = {}
+        for i, line in enumerate(f):
+            line = line.strip()
+            if line:
+                pos2idx[line] = i
+
     # Training/validation data: HRL tokens
     if not config.prepare_input_traindev:
         train = Data(config.name_train, load_parent_dir=config.data_parent_dir)
@@ -54,16 +53,16 @@ if __name__ == "__main__":
         toks_orig_train, toks_orig_dev, pos_train, pos_dev = train_test_split(
             toks_td, pos_td, test_size=config.dev_ratio)
         train = Data(config.name_train, toks_orig=toks_orig_train,
-                     pos_orig=pos_train)
+                     pos_orig=pos_train, pos2idx=pos2idx)
         dev = Data(config.name_dev, toks_orig=toks_orig_dev,
-                   pos_orig=pos_dev, pos2idx=train.pos2idx)
+                   pos_orig=pos_dev, pos2idx=pos2idx)
 
     # Test data: LRL tokens
     if config.prepare_input_test:
         test = Data(config.name_test, raw_data_path=config.orig_file_test,
                     raw_data_enc=config.encoding_test,
                     max_sents=config.max_sents_test,
-                    pos2idx=train.pos2idx)
+                    pos2idx=pos2idx)
         test.prepare_xy(tokenizer, config.T, config.subtoken_rep)
         test.save(config.data_parent_dir)
         print(f"Subtoken ratio ({config.name_test}): {test.subtok_ratio(return_all=True)}")
@@ -92,7 +91,7 @@ if __name__ == "__main__":
 
     # visualize(x_test, f"x_test_{args.n_sents_test}")
 
-    model = Model(config.bert_name, pos2idx=train.pos2idx,
+    model = Model(config.bert_name, pos2idx=pos2idx,
                   classifier_dropout=config.classifier_dropout)
 
     # TODO continued pretraining
@@ -125,3 +124,14 @@ if __name__ == "__main__":
     model.finetune(device, iter_train, iter_dev, iter_test,
                    optimizer, config.n_epochs, tokenizer,
                    train.dummy_idx(), config.sanity_mod)
+
+
+if __name__ == "__main__":
+    parser = ArgumentParser()
+    parser.add_argument("-c", dest="config_path",
+                        help="path to the configuration file",
+                        default="")
+    # parser.add_argument("-q", "--quiet", action="store_false", dest="verbose",
+    #                     default=True, help="no messages to stdout")
+    args = parser.parse_args()
+    main(args)
