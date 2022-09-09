@@ -1,24 +1,22 @@
 from data import DUMMY_POS
 
 import copy
-import time
 
 import numpy as np
+import pytorch_lightning as pl
 from sklearn.metrics import accuracy_score, f1_score
 import torch
 from torch.nn import CrossEntropyLoss
-from torch.nn.utils import clip_grad_norm_
 from transformers import BertForTokenClassification
 from transformers.models.bert.modeling_bert import BertForMaskedLM
 
 
-class Model:
-
+class Classifier(pl.LightningModule):
     def __init__(self, pretrained_model_name_or_path,
                  pos2idx, classifier_dropout,
                  print_model_structures=False, print_config=True,
                  ):
-        # self.mode = "PRETRAINING"  # ["PRETRAINING", "FINETUNING", "EVAL"]
+        super().__init__()
         """
         According to the DBMDZ model configuration, their model is of type
         BertForMaskedLM rather than BertForPretraining, which also
@@ -44,186 +42,62 @@ class Model:
             if print_model_structures:
                 print(self.finetuning_model)
         # TODO do this more elegantly/low-level
+        self.dummy_idx = pos2idx[DUMMY_POS]
+        self.learning_rate = learning_rate
 
-    def continue_pretraining(self):
-        pass  # TODO
-
-    def finetune(self, device, iter_train, iter_dev, iter_test,
-                 optimizer, n_epochs, tokenizer, dummy_idx, sanity_mod):
-        self.finetuning_model.to(device)
-        for epoch in range(n_epochs):
-            print("============")
-            print(f"Epoch {epoch + 1}/{n_epochs} started at " + self.now())
-            self.train_classifier(device, iter_train, optimizer, tokenizer,
-                                  dummy_idx, epoch, sanity_mod)
-            self.eval_classifier(device, iter_dev, dummy_idx, "dev",
-                                 tokenizer, epoch, sanity_mod)
-            if iter_test:
-                self.eval_classifier(device, iter_test, dummy_idx, "test",
-                                     tokenizer, epoch, sanity_mod)
-
-    def predict(self, device, iter_test, dummy_idx, out_file):
-        self.eval_classifier(device, iter_test, dummy_idx, "test",
-                             out_file=out_file)
-
-    @staticmethod
-    def now():
-        return time.strftime("%Y/%m/%d %H:%M:%S", time.localtime())
-
-    def train_classifier(self, device, iter_train, optimizer, tokenizer,
-                         dummy_idx, epoch, sanity_mod=1000):
-        self.finetuning_model.train()
-        n_batches = len(iter_train)
-        train_loss = 0
-        y_true = np.empty(0, dtype=int)
-        y_pred = np.empty(0, dtype=int)
-        for i, batch in enumerate(iter_train):
-            self.finetuning_model.zero_grad()  # Clear old gradients
-
-            loss, logits = self.forward_finetuning(
-                input_ids=batch[0].to(device),
-                attention_mask=batch[1].to(device),
-                labels=batch[2].to(device),
-                dummy_idx=dummy_idx)
-            train_loss += loss.item()
-            loss.backward()  # Calculate gradients
-            clip_grad_norm_(self.finetuning_model.parameters(), 1.0)
-
-            optimizer.step()  # Update model parameters
-            # scheduler.step()  # Update learning rate
-
-            b_y_gs = batch[2].detach().cpu().numpy()
-            # logits: (batch_size, T, n_labels)
-            b_logits = logits.detach().cpu().numpy()
-            y_true = np.append(y_true, b_y_gs)
-            y_pred = np.append(y_pred, np.argmax(b_logits, axis=2))
-
-            if i % 50 == 0:
-                print(f"Batch {i:>2}/{n_batches} {self.now()}", end="\t")
-                print(f"loss: {loss.item():.4f}")
-
-            if i % sanity_mod == 0:
-                b_x = batch[0].detach().cpu().numpy()
-                b_mask = batch[1].detach().cpu().numpy()
-                self.sanity_check(b_x[0], b_y_gs[0], b_logits[0], b_mask[0],
-                                  tokenizer)
-                print("Scores for these sample predictions:")
-                self.print_scores(b_y_gs[0], np.argmax(b_logits[0], axis=1),
-                                  dummy_idx)
-
-        print(f"Mean train loss for epoch {epoch}: {train_loss / n_batches:.4f}")
-        self.print_scores(y_true, y_pred, dummy_idx)
-
-    def eval_classifier(self, device, iter_test, dummy_idx, eval_type,
-                        tokenizer, epoch, sanity_mod=1000, out_file=None):
-        self.finetuning_model.eval()
-        n_batches = len(iter_test)
-        eval_loss = 0
-        y_true = np.empty(0, dtype=int)
-        y_pred = np.empty(0, dtype=int)
-        x = np.empty(0, dtype=np.int64)
-        for i, batch in enumerate(iter_test):
-            with torch.no_grad():
-                loss, logits = self.forward_finetuning(
-                    input_ids=batch[0].to(device),
-                    attention_mask=batch[1].to(device),
-                    labels=batch[2].to(device) if len(batch) > 2 else None,
-                    dummy_idx=dummy_idx)
-                b_x = batch[0].detach().cpu().numpy()
-                b_mask = batch[1].detach().cpu().numpy()
-                if len(batch) > 2:
-                    b_y_gs = batch[2].detach().cpu().numpy()
-                else:
-                    b_y_gs = None
-                b_logits = logits.detach().cpu().numpy()
-                if len(batch) > 2:
-                    eval_loss += loss.item()
-                    y_true = np.append(y_true, b_y_gs)
-                x = np.append(x, b_x)
-                y_pred = np.append(y_pred, np.argmax(b_logits, axis=2))
-                if i % sanity_mod == 0:
-                    self.sanity_check(b_x[0], b_y_gs[0], b_logits[0],
-                                      b_mask[0], tokenizer)
-
-        if eval_loss > 0.000:
-            print(f"Mean {eval_type} loss for epoch {epoch}: {eval_loss / n_batches}")
-            self.print_scores(y_true, y_pred, dummy_idx)
-
-        if out_file:
-            with open(out_file, "w", encoding='utf8') as f:
-                if eval_loss > 0.000:
-                    for tok_id, gs_id, pred_id in zip(x, y_true, y_pred):
-                        f.write(tokenizer.convert_ids_to_tokens(int(tok_id)))
-                        f.write("\t")
-                        f.write(self.finetuning_model.config.id2label[gs_id])
-                        f.write("\t")
-                        f.write(self.finetuning_model.config.id2label[pred_id])
-                        f.write("\n")
-                else:
-                    for tok_id, pred_id in zip(x, y_pred):
-                        f.write(tokenizer.convert_ids_to_tokens(int(tok_id)))
-                        f.write("\t")
-                        f.write(self.finetuning_model.config.id2label[pred_id])
-                        f.write("\n")
-
-    def forward_finetuning(self, input_ids, attention_mask, labels,
-                           dummy_idx):
-        # Forward pass, as for BertForTokenClassification,
-        # but ignoring the [DUMMY] tags when computing the
-        # CrossEntropyLoss
+    def forward(self, input_ids, attention_mask):
         outputs = self.finetuning_model.bert(input_ids, attention_mask)
         sequence_output = outputs[0]
         sequence_output = self.finetuning_model.dropout(sequence_output)
         logits = self.finetuning_model.classifier(sequence_output)
-        if labels is not None:
-            loss = CrossEntropyLoss(ignore_index=dummy_idx)(
-                logits.view(-1, self.finetuning_model.num_labels),
-                labels.view(-1))
-        else:
-            loss = None
-        return loss, logits
+        return logits
 
-    def sanity_check(self, ids, labels, logits, mask, tokenizer):
-        # Assumes all IDs belong just to one sentence
-        tokens, gs_labels, pred_labels = self.decode(
-            ids, labels, logits, mask, tokenizer)
-        print("TOKEN\tGOLD\tPREDICTED\tWRONG/IGNORED")
-        for token, gs_label, pred_label in zip(
-                tokens, gs_labels, pred_labels):
-            print(f"{token}\t{gs_label}\t{pred_label}\t", end="")
-            if gs_label == DUMMY_POS:
-                print("--")
-            elif labels is not None and gs_label != pred_label:
-                print("/!\\")
-            else:
-                print()
+    def loss(self, logits, labels):
+        return CrossEntropyLoss(ignore_index=self.dummy_idx)(
+            logits.view(-1, self.finetuning_model.num_labels),
+            labels.view(-1))
 
-    @staticmethod
-    def print_scores(y_true, y_pred, dummy_idx):
-        y_true = y_true.flatten()
-        y_pred = y_pred.flatten()
-        mask = np.where(y_true == dummy_idx, 0, 1)
+    def score(self, logits, labels):
+        y_true = labels.detach().cpu().numpy().flatten()
+        y_pred = np.argmax(logits.detach().cpu().numpy(), axis=2).flatten()
+        mask = np.where(y_true == self.dummy_idx, 0, 1)
         acc = accuracy_score(y_true, y_pred, sample_weight=mask)
         f1_macro = f1_score(y_true, y_pred, sample_weight=mask,
                             average='macro', zero_division=0)
-        print(f"Accuracy: {acc:.2f}")
-        print(f"F1 macro: {f1_macro:.2f}")
+        return acc, f1_macro
 
-    def decode(self, tok_ids, label_ids, logits, mask, tokenizer):
-        # Assumes all IDs belong just to one sentence
-        tokens = tokenizer.convert_ids_to_tokens(tok_ids[mask.astype(bool)])
-        if label_ids is None:
-            gs_labels = ["?" for _ in mask]
-        else:
-            gs_labels = [self.finetuning_model.config.id2label[y]
-                         for y in label_ids]
-        pred_labels = [self.finetuning_model.config.id2label[y]
-                       for y in np.argmax(logits, axis=1)]
-        return tokens, gs_labels, pred_labels
+    def training_step(self, train_batch, batch_idx):
+        x, mask, y = train_batch
+        logits = self.forward(x, mask)
+        loss = self.loss(logits, y)
+        acc, f1_macro = self.score(logits, y)
+        self.log_dict({"train_loss": loss,
+                       "train_acc": acc,
+                       "train_f1": f1_macro}, prog_bar=True)
+        return loss
 
-    def save_finetuned(self, path):
-        self.finetuning_model.save_pretrained(path)
+    def validation_step(self, val_batch, batch_idx):
+        x, mask, y = val_batch
+        logits = self.forward(x, mask)
+        loss = self.loss(logits, y)
+        acc, f1_macro = self.score(logits, y)
+        self.log_dict({"val_loss": loss,
+                       "val_acc": acc,
+                       "val_f1": f1_macro},
+                      prog_bar=True)
 
-    def load_finetuned(self, path):
-        self.finetuning_model = BertForTokenClassification.from_pretrained(
-            path)
+    def test_step(self, test_batch, batch_idx):
+        x, mask, y = test_batch
+        logits = self.forward(x, mask)
+        loss = self.loss(logits, y)
+        acc, f1_macro = self.score(logits, y)
+        self.log_dict({"test_loss": loss,
+                       "test_acc": acc,
+                       "test_f1": f1_macro}, prog_bar=True)
+
+    def predict_step(self, batch, batch_idx, dataloader_idx=0):
+        return self(batch)
+
+    def configure_optimizers(self):
+        optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate)
+        return optimizer

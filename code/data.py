@@ -6,12 +6,109 @@ import sys
 
 import matplotlib.pyplot as plt
 import numpy as np
+import pytorch_lightning as pl
+from sklearn.model_selection import train_test_split
 import torch
-from torch.utils.data import TensorDataset
+from torch.utils.data import DataLoader, TensorDataset
+from transformers import AutoTokenizer
 import unicodedata
 
 # Used for CLS, SEP, and for word-medial/final subtokens
 DUMMY_POS = "<DUMMY>"
+
+
+class PosDataModule(pl.LightningDataModule):
+    def __init__(self, config, pos2idx):
+        super().__init__()
+        self.config = config
+        self.pos2idx = pos2idx
+        self.tokenizer = None
+        if config.tokenizer_name:
+            self.tokenizer = AutoTokenizer.from_pretrained(
+                config.tokenizer_name)
+
+    def prepare_data(self):
+        # Training/validation data: HRL tokens
+        if self.config.prepare_input_traindev:
+            if self.config.orig_dir_train and self.config.orig_dir_dev:
+                train = Data(self.config.name_train,
+                             other_dir=self.orig_dir_train)
+                dev = Data(self.config.name_val,
+                           other_dir=self.orig_dir_dev)
+            else:
+                toks_td, pos_td = read_raw_input(
+                    self.config.orig_file_traindev,
+                    self.config.max_sents_traindev,
+                    self.config.encoding_traindev)
+                (toks_orig_train, toks_orig_dev,
+                    pos_train, pos_dev) = train_test_split(
+                    toks_td, pos_td, test_size=self.config.dev_ratio)
+                train = Data(self.config.name_train, toks_orig=toks_orig_train,
+                             pos_orig=pos_train)
+                dev = Data(self.config.name_dev, toks_orig=toks_orig_dev,
+                           pos_orig=pos_dev, pos2idx=train.pos2idx)
+
+        # Test data: LRL tokens
+        if self.config.prepare_input_test:
+            test = Data(self.config.name_test,
+                        raw_data_path=self.config.orig_file_test,
+                        raw_data_enc=self.config.encoding_test,
+                        max_sents=self.config.max_sents_test,
+                        pos2idx=self.pos2idx)
+            test.prepare_xy(self.tokenizer, self.config.T,
+                            self.config.subtoken_rep)
+            test.save(self.config.data_parent_dir)
+            print(f"Subtoken ratio ({self.config.name_test}): {test.subtok_ratio(return_all=True)}")
+            print(f"UNK ratio ({self.config.name_test}): {test.unk_ratio(return_all=True)}")
+            print(f"Label distribution ({self.config.name_test}): {test.pos_y_distrib()}")
+        else:
+            test = Data(self.config.name_test,
+                        load_parent_dir=self.config.data_parent_dir)
+        alphabet_test = test.alphabet()
+
+        # Prepare input matrices for finetuning
+        if self.config.prepare_input_traindev:
+            train.add_noise(self.config.noise_type, self.config.noise_lvl_min,
+                            self.config.noise_lvl_max, alphabet_test)
+            train.prepare_xy(self.tokenizer, self.config.T,
+                             self.config.subtoken_rep)
+            train.save(self.config.data_parent_dir)
+            print(f"Subtoken ratio ({self.config.name_train}): {train.subtok_ratio(return_all=True)}")
+            print(f"UNK ratio ({self.config.name_train}): {test.unk_ratio(return_all=True)}")
+            print(f"Label distribution ({self.config.name_train}): {train.pos_y_distrib()}")
+            dev.add_noise(self.config.noise_type, self.config.noise_lvl_min,
+                          self.config.noise_lvl_max, alphabet_test)
+            dev.prepare_xy(self.tokenizer, self.config.T,
+                           self.config.subtoken_rep)
+            dev.save(self.config.data_parent_dir)
+            print(f"Subtoken ratio ({self.config.name_dev}): {dev.subtok_ratio(return_all=True)}")
+            print(f"UNK ratio ({self.config.name_dev}): {test.unk_ratio(return_all=True)}")
+            print(f"Label distribution ({self.config.name_dev}): {dev.pos_y_distrib()}")
+
+    def setup(self, stage):
+        if stage == 'fit':
+            self.train = Data(self.config.name_train,
+                              load_parent_dir=self.config.data_parent_dir)
+            self.val = Data(self.config.name_dev,
+                            load_parent_dir=self.config.data_parent_dir)
+        elif stage == 'test':
+            self.test = Data(self.config.name_test,
+                             load_parent_dir=self.config.data_parent_dir)
+
+    def train_dataloader(self):
+        return DataLoader(self.train.tensor_dataset(),
+                          batch_size=self.config.batch_size)
+
+    def val_dataloader(self):
+        return DataLoader(self.val.tensor_dataset(),
+                          batch_size=self.config.batch_size)
+
+    def test_dataloader(self):
+        return DataLoader(self.test.tensor_dataset(),
+                          batch_size=self.config.batch_size)
+
+
+# Preprocessing
 
 
 def read_raw_input(filename, max_sents=-1, encoding="utf8",
