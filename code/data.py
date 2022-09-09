@@ -32,9 +32,9 @@ class PosDataModule(pl.LightningDataModule):
         if self.config.prepare_input_traindev:
             if self.config.orig_dir_train and self.config.orig_dir_dev:
                 train = Data(self.config.name_train,
-                             other_dir=self.orig_dir_train)
-                dev = Data(self.config.name_val,
-                           other_dir=self.orig_dir_dev)
+                             other_dir=self.config.orig_dir_train)
+                dev = Data(self.config.name_dev,
+                           other_dir=self.config.orig_dir_dev)
             else:
                 toks_td, pos_td = read_raw_input(
                     self.config.orig_file_traindev,
@@ -91,19 +91,33 @@ class PosDataModule(pl.LightningDataModule):
                               load_parent_dir=self.config.data_parent_dir)
             self.val = Data(self.config.name_dev,
                             load_parent_dir=self.config.data_parent_dir)
-        elif stage == 'test':
+        elif stage in ['test', 'predict']:
             self.test = Data(self.config.name_test,
                              load_parent_dir=self.config.data_parent_dir)
 
+    def print_preview(self, data):
+        print(data)
+        idx2pos = data.idx2pos()
+        for tok, pos_idx in zip(data.toks_bert[0], data.y[0]):
+            print(tok, idx2pos[pos_idx])
+
     def train_dataloader(self):
+        self.print_preview(self.train)
         return DataLoader(self.train.tensor_dataset(),
                           batch_size=self.config.batch_size)
 
     def val_dataloader(self):
+        self.print_preview(self.val)
         return DataLoader(self.val.tensor_dataset(),
                           batch_size=self.config.batch_size)
 
     def test_dataloader(self):
+        self.print_preview(self.test)
+        return DataLoader(self.test.tensor_dataset(),
+                          batch_size=self.config.batch_size)
+
+    def predict_dataloader(self):
+        self.print_preview(self.test)
         return DataLoader(self.test.tensor_dataset(),
                           batch_size=self.config.batch_size)
 

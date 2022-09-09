@@ -7,3 +7,5 @@ data/
 notes/
 datasets/*
 !datasets/*.md
+*/lightning_logs/
+*BACKUP*
