@@ -40,6 +40,7 @@ def main(config_path, dryrun=False):
                                    fast_dev_run=True,)
         dummy_trainer.fit(model, datamodule=dm)
         dummy_trainer.validate(datamodule=dm, ckpt_path="last")
+        dummy_trainer.test(datamodule=dm, ckpt_path="last")
         return
 
     # TODO gpu id
@@ -56,12 +57,15 @@ def main(config_path, dryrun=False):
 
     dm = PosDataModule(config, pos2idx)
 
+
 if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("-c", dest="config_path",
                         help="path to the configuration file",
                         default="")
+    parser.add_argument("-d", "--dryrun", action="store_true", dest="dryrun",
+                        default=False)
     # parser.add_argument("-q", "--quiet", action="store_false", dest="verbose",
     #                     default=True, help="no messages to stdout")
     args = parser.parse_args()
-    main(args.config_path)
+    main(args.config_path, args.dryrun)

@@ -44,9 +44,9 @@ class PosDataModule(pl.LightningDataModule):
                     pos_train, pos_dev) = train_test_split(
                     toks_td, pos_td, test_size=self.config.dev_ratio)
                 train = Data(self.config.name_train, toks_orig=toks_orig_train,
-                             pos_orig=pos_train)
+                             pos_orig=pos_train, pos2idx=self.pos2idx)
                 dev = Data(self.config.name_dev, toks_orig=toks_orig_dev,
-                           pos_orig=pos_dev, pos2idx=train.pos2idx)
+                           pos_orig=pos_dev, pos2idx=self.pos2idx)
 
         # Test data: LRL tokens
         if self.config.prepare_input_test:
@@ -123,7 +123,7 @@ def read_raw_input(filename, max_sents=-1, encoding="utf8",
         cur_toks, cur_pos = [], []
         i = 0
         for line in f_in:
-            line = line.strip().replace("\xa0", "")
+            line = line.strip().replace("\xa0", " ")
             if not line:
                 if cur_toks:
                     toks.append(cur_toks)
