@@ -33,15 +33,17 @@ def main(config_path, dryrun=False):
     model = Classifier(config.bert_name, pos2idx, config.classifier_dropout,
                        config.learning_rate)
 
+    # TODO gpu id
     if dryrun:
         # just checking if the code works
-        dummy_trainer = pl.Trainer(accelerator='gpu', gpus=[1],
+        dummy_trainer = pl.Trainer(accelerator='gpu', devices=[1],
                                    fast_dev_run=True,)
         dummy_trainer.fit(model, datamodule=dm)
+        dummy_trainer.validate(datamodule=dm, ckpt_path="last")
         return
 
     # TODO gpu id
-    trainer = pl.Trainer(accelerator='gpu', gpus=[6],
+    trainer = pl.Trainer(accelerator='gpu', devices=[6],
                          max_epochs=config.n_epochs)
     trainer.fit(model, datamodule=dm)
     trainer.validate(datamodule=dm)

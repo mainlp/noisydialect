@@ -13,7 +13,7 @@ from transformers.models.bert.modeling_bert import BertForMaskedLM
 
 class Classifier(pl.LightningModule):
     def __init__(self, pretrained_model_name_or_path,
-                 pos2idx, classifier_dropout,
+                 pos2idx, classifier_dropout, learning_rate,
                  print_model_structures=False, print_config=True,
                  ):
         super().__init__()
