@@ -4,6 +4,8 @@ import os
 import random
 import sys
 
+from tokenizer import SCATokenizer
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pytorch_lightning as pl
@@ -24,8 +26,11 @@ class PosDataModule(pl.LightningDataModule):
         self.pos2idx = pos2idx
         self.tokenizer = None
         if config.tokenizer_name:
-            self.tokenizer = AutoTokenizer.from_pretrained(
-                config.tokenizer_name)
+            if config.use_sca_tokenizer:
+                self.tokenizer = SCATokenizer(config.tokenizer_name)
+            else:
+                self.tokenizer = AutoTokenizer.from_pretrained(
+                    config.tokenizer_name)
 
     def prepare_data(self):
         # Training/validation data: HRL tokens
@@ -56,7 +61,8 @@ class PosDataModule(pl.LightningDataModule):
                         max_sents=self.config.max_sents_test,
                         pos2idx=self.pos2idx)
             test.prepare_xy(self.tokenizer, self.config.T,
-                            self.config.subtoken_rep)
+                            self.config.subtoken_rep,
+                            alias_tokenizer=self.use_sca_tokenizer)
             test.save(self.config.data_parent_dir)
             print(f"Subtoken ratio ({self.config.name_test}): {test.subtok_ratio(return_all=True)}")
             print(f"UNK ratio ({self.config.name_test}): {test.unk_ratio(return_all=True)}")
@@ -71,7 +77,8 @@ class PosDataModule(pl.LightningDataModule):
             train.add_noise(self.config.noise_type, self.config.noise_lvl_min,
                             self.config.noise_lvl_max, alphabet_test)
             train.prepare_xy(self.tokenizer, self.config.T,
-                             self.config.subtoken_rep)
+                             self.config.subtoken_rep,
+                             alias_tokenizer=self.use_sca_tokenizer)
             train.save(self.config.data_parent_dir)
             print(f"Subtoken ratio ({self.config.name_train}): {train.subtok_ratio(return_all=True)}")
             print(f"UNK ratio ({self.config.name_train}): {test.unk_ratio(return_all=True)}")
@@ -79,7 +86,8 @@ class PosDataModule(pl.LightningDataModule):
             dev.add_noise(self.config.noise_type, self.config.noise_lvl_min,
                           self.config.noise_lvl_max, alphabet_test)
             dev.prepare_xy(self.tokenizer, self.config.T,
-                           self.config.subtoken_rep)
+                           self.config.subtoken_rep,
+                           alias_tokenizer=self.use_sca_tokenizer)
             dev.save(self.config.data_parent_dir)
             print(f"Subtoken ratio ({self.config.name_dev}): {dev.subtok_ratio(return_all=True)}")
             print(f"UNK ratio ({self.config.name_dev}): {test.unk_ratio(return_all=True)}")
@@ -482,17 +490,24 @@ class Data:
                    # the token during the evaluation?
                    # 'first', 'last' or 'all'
                    subtoken_rep,
+                   # Does the tokenizer group together tokens that share the
+                   # same alias?
+                   alias_tokenizer=False,
                    verbose=True):
+        assert tokenizer._pad_token_type_id == 0
         assert T >= 2
         N = len(self.toks_orig)
-        self.x = np.zeros((N, T), dtype=np.float64)
+        if alias_tokenizer:
+            self.x = np.zeros((N, T, tokenizer.max_siblings), dtype=np.float64)
+        else:
+            self.x = np.zeros((N, T), dtype=np.float64)
         self.toks_bert, pos = [], []
         self.input_mask = np.zeros((N, T))
         cur_toks, cur_pos = [], []
         for i, (sent_toks, sent_pos) in enumerate(
                 zip(self.toks_orig, self.pos_orig)):
             cur_toks = ["[CLS]"]
-            cur_pos = [DUMMY_POS]  # CLS
+            cur_pos = [DUMMY_POS]  # [CLS]
             for token, pos_tag in zip(sent_toks, sent_pos):
                 subtoks = tokenizer.tokenize(token)
                 cur_toks += subtoks
@@ -507,8 +522,12 @@ class Data:
             cur_toks = cur_toks[:T - 1] + ["[SEP]"]
             self.toks_bert.append(cur_toks)
             self.input_mask[i][:len(cur_toks)] = len(cur_toks) * [1]
-            self.x[i][:len(cur_toks)] = tokenizer.convert_tokens_to_ids(
-                cur_toks)
+            token_ids = tokenizer.convert_tokens_to_ids(cur_toks)
+            if alias_tokenizer:
+                for j, ids_for_tok in enumerate(token_ids):
+                    self.x[i][j][:len(ids_for_tok)] = ids_for_tok
+            else:
+                self.x[i][:len(cur_toks)] = token_ids
             cur_pos = (cur_pos[:T - 1]
                        + [DUMMY_POS]  # SEP
                        + (T - len(cur_pos) - 1) * [DUMMY_POS]  # padding

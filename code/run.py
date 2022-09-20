@@ -16,13 +16,14 @@ def main(config_path, gpus=[0], dryrun=False):
         config.load(config_path)
         config.save(config_path)
     except FileNotFoundError:
-        print("Couldn't find config (using standard config)")
-#    sys.stdout = cust_logger.Logger("run_" + config.name_train,
-#                                    include_timestamp=True)
+        print("Couldn't find config (quitting)")
+        sys.exit(1)
+    sys.stdout = cust_logger.Logger("run_" + config.name_train,
+                                    include_timestamp=True)
     print(config)
 
     # TODO put path into config
-    with open("tagset_stts.txt", encoding="utf8") as f:
+    with open(config.tagset_path, encoding="utf8") as f:
         pos2idx = {}
         for i, line in enumerate(f):
             line = line.strip()

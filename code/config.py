@@ -2,11 +2,13 @@ class Config:
     __slots__ = 'name_train', 'name_dev', 'name_test', \
                 'prepare_input_traindev', 'prepare_input_test', \
                 'orig_file_traindev', 'orig_file_test', \
+                'tagset_path', \
                 'encoding_traindev', 'encoding_test', \
                 'max_sents_traindev', \
                 'max_sents_test', 'dev_ratio', \
                 'orig_dir_train', 'orig_dir_dev', \
                 'T', 'subtoken_rep', 'tokenizer_name', \
+                'use_sca_tokenizer', \
                 'noise_type', 'noise_lvl_min', 'noise_lvl_max', \
                 'data_parent_dir', 'bert_name', \
                 'classifier_dropout', 'n_epochs', 'batch_size', \
@@ -16,7 +18,8 @@ class Config:
             'batch_size', 'sanity_mod']
     floats = ['dev_ratio', 'noise_lvl_min', 'noise_lvl_max',
               'classifier_dropout', 'learning_rate', 'weight_decay']
-    bools = ['prepare_input_traindev', 'prepare_input_test']
+    bools = ['prepare_input_traindev', 'prepare_input_test',
+             'use_sca_tokenizer']
 
     def __init__(self,
                  name_train=None,
@@ -32,12 +35,17 @@ class Config:
                  dev_ratio=0.1,
                  orig_dir_train=None,
                  orig_dir_dev=None,
+                 tagset_path="tagset_stts.txt",
                  # If the input matrices still need to be prepared:
                  prepare_input_traindev=False,
                  prepare_input_test=False,
                  T=60,
                  subtoken_rep='last',  # 'first', 'last', 'all'
                  tokenizer_name="dbmdz/bert-base-german-cased",
+                 # If use_sca_tokenizer == True, tokenizer_name is
+                 # the name of the base tokenizer from which the
+                 # SCATokenizer is built.
+                 use_sca_tokenizer=False,
                  noise_type=None,  # None -> no noise
                  noise_lvl_min=0.1,
                  noise_lvl_max=0.15,
@@ -68,9 +76,11 @@ class Config:
         self.dev_ratio = dev_ratio
         self.orig_dir_train = orig_dir_train
         self.orig_dir_dev = orig_dir_dev
+        self.tagset_path = tagset_path
         self.T = T
         self.subtoken_rep = subtoken_rep
         self.tokenizer_name = tokenizer_name
+        self.use_sca_tokenizer = use_sca_tokenizer
         self.noise_type = noise_type
         self.noise_lvl_min = noise_lvl_min
         self.noise_lvl_max = noise_lvl_max
