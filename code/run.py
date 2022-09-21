@@ -32,7 +32,7 @@ def main(config_path, gpus=[0], dryrun=False):
 
     dm = PosDataModule(config, pos2idx)
     model = Classifier(config.bert_name, pos2idx, config.classifier_dropout,
-                       config.learning_rate)
+                       config.learning_rate, config.use_sca_tokenizer)
 
     if dryrun:
         # just checking if the code works

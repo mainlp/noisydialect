@@ -25,12 +25,12 @@ class PosDataModule(pl.LightningDataModule):
         self.config = config
         self.pos2idx = pos2idx
         self.tokenizer = None
-        if config.tokenizer_name:
-            if config.use_sca_tokenizer:
-                self.tokenizer = SCATokenizer(config.tokenizer_name)
-            else:
-                self.tokenizer = AutoTokenizer.from_pretrained(
-                    config.tokenizer_name)
+        self.use_sca_tokenizer = config.use_sca_tokenizer
+        if self.use_sca_tokenizer:
+            self.tokenizer = SCATokenizer(config.tokenizer_name)
+        else:
+            self.tokenizer = AutoTokenizer.from_pretrained(
+                config.tokenizer_name)
 
     def prepare_data(self):
         # Training/validation data: HRL tokens

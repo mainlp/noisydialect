@@ -1,4 +1,5 @@
 from data import DUMMY_POS
+from embeddings import CombinedEmbeddings
 
 import copy
 
@@ -14,6 +15,7 @@ from transformers.models.bert.modeling_bert import BertForMaskedLM
 class Classifier(pl.LightningModule):
     def __init__(self, pretrained_model_name_or_path,
                  pos2idx, classifier_dropout, learning_rate,
+                 use_sca_embeddings=False,
                  print_model_structures=False, print_config=True,
                  ):
         super().__init__()
@@ -35,6 +37,11 @@ class Classifier(pl.LightningModule):
         config.__setattr__("architectures", ["BertForTokenClassification"])
         self.finetuning_model = BertForTokenClassification(config)
         self.finetuning_model.bert = self.pretraining_model.bert
+        if use_sca_embeddings:
+            sca_embeddings = CombinedEmbeddings(
+                self.pretraining_model.bert.embeddings)
+            self.pretraining_model.embeddings = sca_embeddings
+            self.finetuning_model.embeddings = sca_embeddings
         if print_config or print_model_structures:
             print("Finetuning model")
             if print_config:
