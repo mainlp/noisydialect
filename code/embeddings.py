@@ -47,8 +47,8 @@ class CombinedEmbeddings(BertEmbeddings):
             # inputs_embeds = self.word_embeddings(input_ids)  # original
             no_bags = input_ids.size()[-1] == 1
             inputs_embeds = torch.empty(
-                [d for d in input_shape] + [self.word_embeddings.embedding_dim]
-            )
+                [d for d in input_shape] + [self.word_embeddings.embedding_dim],
+                device=input_ids.device)
             for batch in range(input_shape[0]):
                 for i, id_list in enumerate(input_ids[batch]):
                     if id_list[0] == 0 or no_bags:

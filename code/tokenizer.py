@@ -131,6 +131,8 @@ class SCATokenizer(BertTokenizer):
         text = text.replace("eh", "e")
         text = text.replace("e", "e")
 
+        # Since pairs of voiced/voiceless consonants are in the same
+        # sound classes, we don't need to worry about final devoicing.
         # B - labial fricatives
         text = text.replace("pf", "b")
         text = text.replace("ph", "b")
@@ -148,7 +150,9 @@ class SCATokenizer(BertTokenizer):
         text = text.replace("sch", "s")
         text = text.replace("chs", "ks")
         text = text.replace("s", "s")
-    #     text = text.replace("ß", "s")
+        # Note that /ʃ/ and /z/, /s/ are in the same group,
+        # so no need to worry about syllable-initial <st>, <sp>
+        text = text.replace("ß", "s")
         # G - velar/uvular fricatives
         # technically, this should only include [x] but not [ç] (s)
         text = text.replace("ch", "g")
