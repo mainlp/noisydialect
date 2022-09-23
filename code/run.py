@@ -7,6 +7,7 @@ from argparse import ArgumentParser
 import sys
 
 import pytorch_lightning as pl
+from transformers import BertTokenizer
 
 
 def main(config_path, gpus=[0], dryrun=False):
@@ -31,8 +32,21 @@ def main(config_path, gpus=[0], dryrun=False):
                 pos2idx[line] = i
 
     dm = PosDataModule(config, pos2idx)
+    subtok2weight = None
+    if config.use_sca_tokenizer and config.sca_sibling_weighting == 'relative':
+        dm.prepare_data()
+        # Don't reload and re-prepare the input data when the classifier
+        # is trained/evaluated (especially since this could result in a
+        # new train--dev split):
+        dm.config.prepare_input_traindev = False
+        dm.config.prepare_input_test = False
+        dm.setup("fit")
+        orig_tokenizer = BertTokenizer.from_pretrained(config.tokenizer_name)
+        subtok2weight = dm.train.get_subtoken_sibling_distribs(dm.tokenizer,
+                                                               orig_tokenizer)
     model = Classifier(config.bert_name, pos2idx, config.classifier_dropout,
-                       config.learning_rate, config.use_sca_tokenizer)
+                       config.learning_rate, config.use_sca_tokenizer,
+                       subtok2weight)
 
     if dryrun:
         # just checking if the code works

@@ -243,6 +243,62 @@ class Data:
         except TypeError:
             return None
 
+    def sca_sibling_ratio(self):
+        if not self.x:
+            return None
+        n_toks, n_siblings = 0, 0
+        for sent in self.x:
+            for siblings in sent:
+                if siblings[0] == 0:
+                    # [PAD]
+                    break
+                if siblings[0] == 102 or siblings[0] == 103:
+                    # [CLS], [SEP]
+                    continue
+                n_toks += 1
+                n_siblings += np.count_nonzero(siblings)
+        print(n_toks, n_siblings, n_siblings / n_toks)
+
+    def get_subtoken_sibling_distribs(self, tokenizer, tokenizer_orig):
+        sca2deu = {}
+        for i, sent in enumerate(self.toks_orig):
+            if i % 1000 == 0:
+                print(i)
+            for tok in sent:
+                if tokenizer.do_lower_case:
+                    tok = tok.lower()
+                subtoks = tokenizer.tokenize(tok)
+                if len(subtoks) == 1:
+                    counter = sca2deu.get(subtoks[0], Counter())
+                    counter.update([tokenizer_orig._convert_token_to_id(tok)])
+                    sca2deu[subtoks[0]] = counter
+                    continue
+
+                start_idx = 0
+                for subtok in subtoks:
+                    for end_idx in range(len(tok), start_idx, -1):
+                        tok_substr = tok[start_idx:end_idx]
+                        tok_substr_sca = tokenizer.deu2sca(tok_substr)
+                        if subtok.startswith("##"):
+                            tok_substr_sca = "##" + tok_substr_sca
+                        if tok_substr_sca == subtok:
+                            counter = sca2deu.get(subtok, Counter())
+                            if subtok.startswith("##"):
+                                tok_substr = "##" + tok_substr
+                            counter.update([
+                                tokenizer_orig._convert_token_to_id(
+                                    tok_substr)])
+                            sca2deu[subtok] = counter
+                            start_idx += len(tok_substr)
+                            break
+        subtok2weight = {}
+        for sca in sca2deu:
+            siblings = sca2deu[sca]
+            total = sum(siblings.values())
+            for deu in siblings:
+                subtok2weight[deu] = siblings[deu] / total
+        return subtok2weight
+
     def pos_orig_distrib(self):
         c = Counter([pos for sent in self.pos_orig for pos in sent])
         total = sum(c.values())

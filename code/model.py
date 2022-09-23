@@ -17,7 +17,7 @@ from transformers.models.bert.modeling_bert import BertForMaskedLM
 class Classifier(pl.LightningModule):
     def __init__(self, pretrained_model_name_or_path,
                  pos2idx, classifier_dropout, learning_rate,
-                 use_sca_embeddings=False,
+                 use_sca_embeddings=False, subtok2weight=None,
                  print_model_structures=False, print_config=True,
                  ):
         super().__init__()
@@ -42,7 +42,8 @@ class Classifier(pl.LightningModule):
             sca_bert = BertForCombinedEmbeddings(self.pretraining_model.bert)
             self.pretraining_model.bert = sca_bert
             self.finetuning_model.bert = sca_bert
-            sca_embeddings = CombinedEmbeddings(sca_bert.embeddings)
+            sca_embeddings = CombinedEmbeddings(sca_bert.embeddings,
+                                                subtok2weight)
             self.pretraining_model.embeddings = sca_embeddings
             self.pretraining_model.bert.embeddings = sca_embeddings
             self.finetuning_model.embeddings = sca_embeddings

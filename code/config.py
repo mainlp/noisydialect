@@ -8,7 +8,7 @@ class Config:
                 'max_sents_test', 'dev_ratio', \
                 'orig_dir_train', 'orig_dir_dev', \
                 'T', 'subtoken_rep', 'tokenizer_name', \
-                'use_sca_tokenizer', \
+                'use_sca_tokenizer', 'sca_sibling_weighting', \
                 'noise_type', 'noise_lvl_min', 'noise_lvl_max', \
                 'data_parent_dir', 'bert_name', \
                 'classifier_dropout', 'n_epochs', 'batch_size', \
@@ -46,6 +46,7 @@ class Config:
                  # the name of the base tokenizer from which the
                  # SCATokenizer is built.
                  use_sca_tokenizer=False,
+                 sca_sibling_weighting="relative",  # 'mean', 'relative'
                  noise_type=None,  # None -> no noise
                  noise_lvl_min=0.1,
                  noise_lvl_max=0.15,
@@ -81,6 +82,7 @@ class Config:
         self.subtoken_rep = subtoken_rep
         self.tokenizer_name = tokenizer_name
         self.use_sca_tokenizer = use_sca_tokenizer
+        self.sca_sibling_weighting = sca_sibling_weighting
         self.noise_type = noise_type
         self.noise_lvl_min = noise_lvl_min
         self.noise_lvl_max = noise_lvl_max

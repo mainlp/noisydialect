@@ -4,8 +4,9 @@ from transformers.models.bert.modeling_bert import BertEmbeddings
 
 
 class CombinedEmbeddings(BertEmbeddings):
-    def __init__(self, pretrained_embeddings):
+    def __init__(self, pretrained_embeddings, subtok2weight=None):
         self.__dict__.update(pretrained_embeddings.__dict__)
+        self.subtok2weight = subtok2weight
 
     # Overrides the BertEmbeddings method
     # https://github.com/huggingface/transformers/blob/2c8b508ccabea6638aa463a137852ff3b64be036/src/transformers/models/bert/modeling_bert.py#L209
@@ -46,7 +47,7 @@ class CombinedEmbeddings(BertEmbeddings):
             # BertEmbeddings version:
             # inputs_embeds = self.word_embeddings(input_ids)  # original
             no_bags = input_ids.size()[-1] == 1
-            inputs_embeds = torch.empty(
+            inputs_embeds = torch.zeros(
                 [d for d in input_shape] + [self.word_embeddings.embedding_dim],
                 device=input_ids.device)
             for batch in range(input_shape[0]):
@@ -69,8 +70,28 @@ class CombinedEmbeddings(BertEmbeddings):
                                 end_idx = j
                                 break
                         embedding_bag = self.word_embeddings(id_list[:end_idx])
-                        # TODO different weighting schemes
-                        inputs_embeds[batch][i] = embedding_bag.mean(axis=0)
+                        # If we have weights for the subtokens, weigh each
+                        # embedding according to its weight, otherwise just
+                        # use the mean.
+                        if self.subtok2weight:
+                            weights = []
+                            found_weights = False
+                            for idx in id_list[:end_idx]:
+                                try:
+                                    weights.append(self.subtok2weight[
+                                        idx.item()])
+                                    found_weights = True
+                                except KeyError:
+                                    weights.append(0.0)
+                            if found_weights:
+                                for weight, emb in zip(weights, embedding_bag):
+                                    inputs_embeds[batch][i] += weight * emb
+                                else:
+                                    inputs_embeds[batch][i] = embedding_bag \
+                                        .mean(axis=0)
+                        else:
+                            inputs_embeds[batch][i] = embedding_bag.mean(
+                                axis=0)
 
         token_type_embeddings = self.token_type_embeddings(token_type_ids)
 
