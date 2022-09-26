@@ -7,10 +7,11 @@ from argparse import ArgumentParser
 import sys
 
 import pytorch_lightning as pl
+import torch
 from transformers import BertTokenizer
 
 
-def main(config_path, gpus=[0], dryrun=False):
+def main(config_path, gpus=[0], dryrun=False, save_model=False):
     print(config_path)
     config = Config()
     try:
@@ -19,11 +20,10 @@ def main(config_path, gpus=[0], dryrun=False):
     except FileNotFoundError:
         print("Couldn't find config (quitting)")
         sys.exit(1)
-    sys.stdout = cust_logger.Logger("run_" + config.name_train,
-                                    include_timestamp=True)
+    # sys.stdout = cust_logger.Logger("run_" + config.name_train,
+    #                                 include_timestamp=True)
     print(config)
 
-    # TODO put path into config
     with open(config.tagset_path, encoding="utf8") as f:
         pos2idx = {}
         for i, line in enumerate(f):
@@ -60,6 +60,9 @@ def main(config_path, gpus=[0], dryrun=False):
     trainer = pl.Trainer(accelerator='gpu', devices=gpus,
                          max_epochs=config.n_epochs)
     trainer.fit(model, datamodule=dm)
+    if save_model:
+        torch.save(model.finetuning_model.state_dict(),
+                   save_model)
     trainer.validate(datamodule=dm)
     trainer.test(datamodule=dm)
 
@@ -81,5 +84,7 @@ if __name__ == "__main__":
                         default=[0])
     parser.add_argument("-d", "--dryrun", action="store_true", dest="dryrun",
                         default=False)
+    parser.add_argument('--save_model', default=None,
+                        help="directory where the model should be saved")
     args = parser.parse_args()
-    main(args.config_path, args.gpus, args.dryrun)
+    main(args.config_path, args.gpus, args.dryrun, args.save_model)
