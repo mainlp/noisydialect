@@ -1,5 +1,5 @@
 class Config:
-    __slots__ = 'name_train', 'name_dev', 'name_test', \
+    __slots__ = 'config_name', 'name_train', 'name_dev', 'name_test', \
                 'prepare_input_traindev', 'prepare_input_test', \
                 'orig_file_traindev', 'orig_file_test', \
                 'tagset_path', \
@@ -22,6 +22,7 @@ class Config:
              'use_sca_tokenizer']
 
     def __init__(self,
+                 config_name,
                  name_train=None,
                  name_dev=None,
                  name_test=None,
@@ -63,6 +64,7 @@ class Config:
                  weight_decay=0.01,
                  sanity_mod=1000,
                  ):
+        self.config_name = config_name
         self.prepare_input_traindev = prepare_input_traindev
         self.prepare_input_test = prepare_input_test
         self.name_train = name_train
