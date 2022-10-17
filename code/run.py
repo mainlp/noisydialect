@@ -35,19 +35,8 @@ def main(config_path, gpus=[0], dryrun=False, seeds=[],
             if line:
                 pos2idx[line] = i
 
-    dm = PosDataModule(config, pos2idx)
-    subtok2weight = None
     if config.use_sca_tokenizer and config.sca_sibling_weighting == 'relative':
-        dm.prepare_data()
-        # Don't reload and re-prepare the input data when the classifier
-        # is trained/evaluated (especially since this could result in a
-        # new train--dev split):
-        dm.config.prepare_input_traindev = False
-        dm.config.prepare_input_test = False
-        dm.setup("fit")
         orig_tokenizer = BertTokenizer.from_pretrained(config.tokenizer_name)
-        subtok2weight = dm.train.get_subtoken_sibling_distribs(dm.tokenizer,
-                                                               orig_tokenizer)
 
     if seeds:
         gen = enumerate(seeds)
@@ -55,6 +44,26 @@ def main(config_path, gpus=[0], dryrun=False, seeds=[],
         gen = enumerate(["unkseed"])
     for i, seed in gen:
         print(f"Run {i} of {len(seeds)} (seed {seed})")
+        if seeds:
+            deterministic = True
+            pl.seed_everything(seed, workers=True)
+        else:
+            deterministic = None
+
+        dm = PosDataModule(config, pos2idx)
+        subtok2weight = None
+        if config.use_sca_tokenizer and \
+                config.sca_sibling_weighting == 'relative':
+            dm.prepare_data()
+            # Don't reload and re-prepare the input data when the classifier
+            # is trained/evaluated (especially since this could result in a
+            # new train--dev split):
+            dm.config.prepare_input_traindev = False
+            dm.config.prepare_input_test = False
+            dm.setup("fit")
+            subtok2weight = dm.train.get_subtoken_sibling_distribs(
+                dm.tokenizer, orig_tokenizer)
+
         model = Classifier(config.bert_name, pos2idx,
                            config.classifier_dropout,
                            config.learning_rate, config.use_sca_tokenizer,
@@ -73,11 +82,6 @@ def main(config_path, gpus=[0], dryrun=False, seeds=[],
         # TODO
 
         # --- Finetuning ---
-        if seeds:
-            deterministic = True
-            pl.seed_everything(seed, workers=True)
-        else:
-            deterministic = None
         if save_model:
             default_root_dir = f"{out_dir}/checkpoints/"
             Path(default_root_dir).mkdir(parents=True, exist_ok=True)
@@ -88,6 +92,7 @@ def main(config_path, gpus=[0], dryrun=False, seeds=[],
                              deterministic=deterministic,
                              default_root_dir=default_root_dir)
         if test_per_epoch:
+            dm.prepare_data()
             dm.setup("fit")
             dm.setup("test")
             trainer.fit(model, train_dataloaders=dm.train_dataloader(),

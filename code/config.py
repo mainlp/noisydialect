@@ -105,6 +105,8 @@ class Config:
     def load(self, path):
         with open(path, "r", encoding="utf8") as f:
             for line in f:
+                if line.startswith("#"):
+                    continue
                 cells = line.strip().split("\t")
                 try:
                     val = cells[1]
