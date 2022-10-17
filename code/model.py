@@ -61,6 +61,8 @@ class Classifier(pl.LightningModule):
         # Monitoring performance:
         self.val_preds_per_epoch = []
         self.val_gold_per_epoch = []
+        self.test_preds_per_epoch = []
+        self.test_gold_per_epoch = []
         self.test_preds = []
         self.test_gold = []
         self.epoch = 0
@@ -108,17 +110,29 @@ class Classifier(pl.LightningModule):
     def on_validation_epoch_start(self):
         self.cur_val_preds = []
         self.cur_val_gold = []
+        self.cur_test_preds = []
+        self.cur_test_gold = []
 
-    def validation_step(self, val_batch, batch_idx):
-        print("Validation step")
+    def validation_step(self, val_batch, batch_idx, dataloader_idx=0):
         x, mask, y = val_batch
         logits = self.forward(x, mask)
         loss = self.loss(logits, y)
         acc, f1_macro, y_pred, y_true = self.detach_and_score(logits, y)
-        self.cur_val_preds += y_pred.tolist()
-        self.cur_val_gold += y_true.tolist()
-        self.log_dict({"val_loss_batch": loss, "val_acc_batch": acc,
-                       "val_f1_batch": f1_macro}, prog_bar=True)
+        if dataloader_idx == 0:
+            # Regular validation step
+            self.cur_val_preds += y_pred.tolist()
+            self.cur_val_gold += y_true.tolist()
+            self.log_dict({"val_loss_batch": loss, "val_acc_batch": acc,
+                           "val_f1_batch": f1_macro}, prog_bar=True)
+        else:
+            # Validation step is actually a test step!
+            # This should only be allowed to happen for the baseline
+            # set-up (so I can extract model performance scores for
+            # every epoch instead of having to train a model for one
+            # epoch, check, train a new model for two epochs, check,
+            # train a new model for three epochs, check, and so on).
+            self.cur_test_preds += y_pred.tolist()
+            self.cur_test_gold += y_true.tolist()
 
     def on_validation_epoch_end(self):
         self.cur_val_preds = np.asarray(self.cur_val_preds)
@@ -128,6 +142,14 @@ class Classifier(pl.LightningModule):
         self.val_gold_per_epoch.append(self.cur_val_gold)
         self.log_dict({f"val_acc_epoch{self.epoch}": acc,
                        f"val_f1_epoch{self.epoch}": f1_macro})
+        if self.cur_test_preds:
+            self.cur_test_preds = np.asarray(self.cur_test_preds)
+            self.cur_test_gold = np.asarray(self.cur_test_gold)
+            acc, f1_macro = self.score(self.cur_test_preds, self.cur_test_gold)
+            self.test_preds_per_epoch.append(self.cur_test_preds)
+            self.test_gold_per_epoch.append(self.cur_test_gold)
+            self.log_dict({f"test_acc_epoch{self.epoch}": acc,
+                           f"test_f1_epoch{self.epoch}": f1_macro})
         self.epoch += 1
 
     def validation_results_per_epoch(self):

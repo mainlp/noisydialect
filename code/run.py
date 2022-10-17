@@ -13,7 +13,8 @@ from transformers import BertTokenizer
 
 
 def main(config_path, gpus=[0], dryrun=False, seeds=[],
-         results_dir="../results", save_model=False, save_predictions=False):
+         results_dir="../results", save_model=False, save_predictions=False,
+         test_per_epoch=False):
     print(config_path)
     config = Config()
     out_dir = ""
@@ -86,7 +87,14 @@ def main(config_path, gpus=[0], dryrun=False, seeds=[],
                              max_epochs=config.n_epochs,
                              deterministic=deterministic,
                              default_root_dir=default_root_dir)
-        trainer.fit(model, datamodule=dm)
+        if test_per_epoch:
+            dm.setup("fit")
+            dm.setup("test")
+            trainer.fit(model, train_dataloaders=dm.train_dataloader(),
+                        val_dataloaders=[dm.val_dataloader(),
+                                         dm.test_dataloader()])
+        else:
+            trainer.fit(model, datamodule=dm)
         # Training and validation scores:
         scores = {key: trainer.logged_metrics[key].item()
                   for key in trainer.logged_metrics}
@@ -94,13 +102,15 @@ def main(config_path, gpus=[0], dryrun=False, seeds=[],
             torch.save(model.finetuning_model.state_dict(),
                        f"{out_dir}/model_{seed}.pt")
 
-        trainer.test(datamodule=dm)
-        # trainer.logged_metrics got re-initialized during trainer.test
-        scores.update({key: trainer.logged_metrics[key].item()
-                       for key in trainer.logged_metrics})
+        if not test_per_epoch:
+            trainer.test(datamodule=dm)
+            # trainer.logged_metrics got re-initialized during trainer.test
+            scores.update({key: trainer.logged_metrics[key].item()
+                           for key in trainer.logged_metrics})
+
         with open(f"{out_dir}/results_{seed}.tsv", "w") as f:
             for metric in scores:
-                if not metric.endswith("_batch"):
+                if "_batch" not in metric:
                     f.write(f"{metric}\t{scores[metric]}\n")
 
         if save_predictions:
@@ -143,6 +153,8 @@ if __name__ == "__main__":
     parser.add_argument("-s", dest="seeds", nargs="+", type=int,
                         default=[12345, 23456, 34567, 45678, 56789],
                         help="(ignored if dryrun == True)")
+    parser.add_argument("--test_per_epoch", action="store_true", default=False,
+                        help="compute test set performance after each epoch")
     parser.add_argument('--save_model', action='store_true')
     parser.add_argument('--dont_save_model', dest='save_model',
                         action='store_false')
@@ -155,4 +167,5 @@ if __name__ == "__main__":
     parser.set_defaults(save_model=False, save_predictions=False)
     args = parser.parse_args()
     main(args.config_path, args.gpus, args.dryrun, args.seeds,
-         args.results_dir, args.save_model, args.save_predictions)
+         args.results_dir, args.save_model, args.save_predictions,
+         args.test_per_epoch)
