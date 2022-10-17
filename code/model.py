@@ -58,8 +58,12 @@ class Classifier(pl.LightningModule):
                 print(self.finetuning_model)
         self.dummy_idx = pos2idx[DUMMY_POS]
         self.learning_rate = learning_rate
+        # Monitoring performance:
+        self.val_preds_per_epoch = []
+        self.val_gold_per_epoch = []
         self.test_preds = []
         self.test_gold = []
+        self.epoch = 0
 
     def forward(self, input_ids, attention_mask):
         outputs = self.finetuning_model.bert(input_ids, attention_mask)
@@ -87,29 +91,76 @@ class Classifier(pl.LightningModule):
                             average='macro', zero_division=0)
         return acc, f1_macro
 
+    def on_train_start(self):
+        self.val_preds_per_epoch = []
+        self.val_gold_per_epoch = []
+        self.epoch = 0
+
     def training_step(self, train_batch, batch_idx):
         x, mask, y = train_batch
         logits = self.forward(x, mask)
         loss = self.loss(logits, y)
         acc, f1_macro, _, _ = self.detach_and_score(logits, y)
-        self.log_dict({"train_loss": loss, "train_acc": acc, "train_f1": f1_macro}, prog_bar=True)
+        self.log_dict({"train_loss_batch": loss, "train_acc_batch": acc,
+                       "train_f1_batch": f1_macro}, prog_bar=True)
         return loss
 
+    def on_validation_epoch_start(self):
+        self.cur_val_preds = []
+        self.cur_val_gold = []
+
     def validation_step(self, val_batch, batch_idx):
+        print("Validation step")
         x, mask, y = val_batch
         logits = self.forward(x, mask)
         loss = self.loss(logits, y)
-        acc, f1_macro, _, _ = self.detach_and_score(logits, y)
-        self.log_dict({"val_loss": loss, "val_acc": acc, "val_f1": f1_macro}, prog_bar=True)
+        acc, f1_macro, y_pred, y_true = self.detach_and_score(logits, y)
+        self.cur_val_preds += y_pred.tolist()
+        self.cur_val_gold += y_true.tolist()
+        self.log_dict({"val_loss_batch": loss, "val_acc_batch": acc,
+                       "val_f1_batch": f1_macro}, prog_bar=True)
+
+    def on_validation_epoch_end(self):
+        self.cur_val_preds = np.asarray(self.cur_val_preds)
+        self.cur_val_gold = np.asarray(self.cur_val_gold)
+        acc, f1_macro = self.score(self.cur_val_preds, self.cur_val_gold)
+        self.val_preds_per_epoch.append(self.cur_val_preds)
+        self.val_gold_per_epoch.append(self.cur_val_gold)
+        self.log_dict({f"val_acc_epoch{self.epoch}": acc,
+                       f"val_f1_epoch{self.epoch}": f1_macro})
+        self.epoch += 1
+
+    def validation_results_per_epoch(self):
+        accuracies = []
+        f1_scores = []
+        for preds, gold in zip(self.val_preds_per_epoch,
+                               self.val_gold_per_epoch):
+            acc, f1 = self.score(preds, gold)
+            accuracies.append(acc)
+            f1_scores.append(f1)
+        return accuracies, f1_scores
+
+    def on_test_start(self):
+        self.test_preds = []
+        self.test_gold = []
 
     def test_step(self, test_batch, batch_idx):
         x, mask, y = test_batch
         logits = self.forward(x, mask)
-        loss = self.loss(logits, y)
+        # loss = self.loss(logits, y)
         acc, f1_macro, y_pred, y_true = self.detach_and_score(logits, y)
-        self.test_preds += y_pred
-        self.test_gold += y_true
-        self.log_dict({"test_loss": loss, "test_acc": acc, "test_f1": f1_macro}, prog_bar=True)
+        self.test_preds += y_pred.tolist()
+        self.test_gold += y_true.tolist()
+        # self.log_dict({"test_loss_batch": loss, "test_acc_batch": acc,
+        #                "test_f1_batch": f1_macro}, prog_bar=True)
+
+    def on_test_epoch_end(self):
+        acc, f1_macro = self.score(np.asarray(self.test_preds),
+                                   np.asarray(self.test_gold))
+        self.log_dict({"test_acc": acc, "test_f1": f1_macro})
+
+    def test_results(self):
+        return self.score(self.test_preds, self.test_gold)
 
     def predict_step(self, batch, batch_idx, dataloader_idx=0):
         return self(batch[0], batch[1])

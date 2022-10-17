@@ -100,7 +100,8 @@ def main(config_path, gpus=[0], dryrun=False, seeds=[],
                        for key in trainer.logged_metrics})
         with open(f"{out_dir}/results_{seed}.tsv", "w") as f:
             for metric in scores:
-                f.write(f"{metric}\t{scores[metric]}\n")
+                if not metric.endswith("_batch"):
+                    f.write(f"{metric}\t{scores[metric]}\n")
 
         if save_predictions:
             predictions = trainer.predict(datamodule=dm)
