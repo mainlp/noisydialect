@@ -22,7 +22,7 @@ class Config:
              'use_sca_tokenizer']
 
     def __init__(self,
-                 config_name,
+                 config_name=None,  # needs to be set later!
                  name_train=None,
                  name_dev=None,
                  name_test=None,

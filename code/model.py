@@ -56,9 +56,10 @@ class Classifier(pl.LightningModule):
                 print(config)
             if print_model_structures:
                 print(self.finetuning_model)
-        # TODO do this more elegantly/low-level
         self.dummy_idx = pos2idx[DUMMY_POS]
         self.learning_rate = learning_rate
+        self.test_preds = []
+        self.test_gold = []
 
     def forward(self, input_ids, attention_mask):
         outputs = self.finetuning_model.bert(input_ids, attention_mask)
@@ -72,10 +73,14 @@ class Classifier(pl.LightningModule):
             logits.view(-1, self.finetuning_model.num_labels),
             labels.view(-1))
 
-    def score(self, logits, labels):
-        y_true = labels.detach().clone().cpu().numpy().flatten()
+    def detach_and_score(self, logits, labels):
         y_pred = np.argmax(logits.detach().clone().cpu().numpy(),
                            axis=2).flatten()
+        y_true = labels.detach().clone().cpu().numpy().flatten()
+        acc, f1_macro = self.score(y_pred, y_true)
+        return acc, f1_macro, y_pred, y_true
+
+    def score(self, y_pred, y_true):
         mask = np.where(y_true == self.dummy_idx, 0, 1)
         acc = accuracy_score(y_true, y_pred, sample_weight=mask)
         f1_macro = f1_score(y_true, y_pred, sample_weight=mask,
@@ -86,7 +91,7 @@ class Classifier(pl.LightningModule):
         x, mask, y = train_batch
         logits = self.forward(x, mask)
         loss = self.loss(logits, y)
-        acc, f1_macro = self.score(logits, y)
+        acc, f1_macro, _, _ = self.detach_and_score(logits, y)
         self.log_dict({"train_loss": loss, "train_acc": acc, "train_f1": f1_macro}, prog_bar=True)
         return loss
 
@@ -94,14 +99,16 @@ class Classifier(pl.LightningModule):
         x, mask, y = val_batch
         logits = self.forward(x, mask)
         loss = self.loss(logits, y)
-        acc, f1_macro = self.score(logits, y)
+        acc, f1_macro, _, _ = self.detach_and_score(logits, y)
         self.log_dict({"val_loss": loss, "val_acc": acc, "val_f1": f1_macro}, prog_bar=True)
 
     def test_step(self, test_batch, batch_idx):
         x, mask, y = test_batch
         logits = self.forward(x, mask)
         loss = self.loss(logits, y)
-        acc, f1_macro = self.score(logits, y)
+        acc, f1_macro, y_pred, y_true = self.detach_and_score(logits, y)
+        self.test_preds += y_pred
+        self.test_gold += y_true
         self.log_dict({"test_loss": loss, "test_acc": acc, "test_f1": f1_macro}, prog_bar=True)
 
     def predict_step(self, batch, batch_idx, dataloader_idx=0):

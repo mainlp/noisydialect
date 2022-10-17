@@ -3,6 +3,7 @@ from data import PosDataModule
 from model import Classifier
 
 from argparse import ArgumentParser
+import glob
 from pathlib import Path
 import sys
 
@@ -11,14 +12,16 @@ import torch
 from transformers import BertTokenizer
 
 
-def main(config_path, gpus=[0], dryrun=False, n_runs=1, save_model=False):
+def main(config_path, gpus=[0], dryrun=False, seeds=[],
+         results_dir="../results", save_model=False, save_predictions=False):
     print(config_path)
     config = Config()
+    out_dir = ""
     try:
         config.load(config_path)
-        Path("../results/{config.config_name}/").mkdir(parents=True,
-                                                       exist_ok=True)
-        config.save("../results/{config.config_name}/config.cfg")
+        out_dir = f"{results_dir}/{config.config_name}/"
+        Path(out_dir).mkdir(parents=True, exist_ok=True)
+        config.save(f"{out_dir}/config.cfg")
     except FileNotFoundError:
         print("Couldn't find config (quitting)")
         sys.exit(1)
@@ -45,8 +48,12 @@ def main(config_path, gpus=[0], dryrun=False, n_runs=1, save_model=False):
         subtok2weight = dm.train.get_subtoken_sibling_distribs(dm.tokenizer,
                                                                orig_tokenizer)
 
-    for i in range(n_runs):
-        print("Run {i} of {n_runs}")
+    if seeds:
+        gen = enumerate(seeds)
+    else:
+        gen = enumerate(["unkseed"])
+    for i, seed in gen:
+        print(f"Run {i} of {len(seeds)} (seed {seed})")
         model = Classifier(config.bert_name, pos2idx,
                            config.classifier_dropout,
                            config.learning_rate, config.use_sca_tokenizer,
@@ -57,25 +64,69 @@ def main(config_path, gpus=[0], dryrun=False, n_runs=1, save_model=False):
             dummy_trainer = pl.Trainer(accelerator='gpu', devices=gpus,
                                        fast_dev_run=True,)
             dummy_trainer.fit(model, datamodule=dm)
-            dummy_trainer.validate(datamodule=dm, ckpt_path="last")
-            dummy_trainer.test(datamodule=dm, ckpt_path="last")
+            dummy_trainer.validate(datamodule=dm)
+            dummy_trainer.test(datamodule=dm)
             return
 
         # --- Continued pre-training ---
         # TODO
 
         # --- Finetuning ---
+        if seeds:
+            deterministic = True
+            pl.seed_everything(seed, workers=True)
+        else:
+            deterministic = None
+        if save_model:
+            default_root_dir = f"{out_dir}/checkpoints/"
+            Path(default_root_dir).mkdir(parents=True, exist_ok=True)
+        else:
+            default_root_dir = None
         trainer = pl.Trainer(accelerator='gpu', devices=gpus,
-                             max_epochs=config.n_epochs)
+                             max_epochs=config.n_epochs,
+                             deterministic=deterministic,
+                             default_root_dir=default_root_dir)
         trainer.fit(model, datamodule=dm)
+        # Training and validation scores:
+        scores = {key: trainer.logged_metrics[key].item()
+                  for key in trainer.logged_metrics}
         if save_model:
             torch.save(model.finetuning_model.state_dict(),
-                       "../results/{config.config_name}/model_{i}.pt")
-        trainer.validate(datamodule=dm)
+                       f"{out_dir}/model_{seed}.pt")
+
         trainer.test(datamodule=dm)
-        predictions = trainer.predict(datamodule=dm)
-        torch.save(predictions,
-                   "../results/{config.config_name}/predictions_{i}.pickle")
+        # trainer.logged_metrics got re-initialized during trainer.test
+        scores.update({key: trainer.logged_metrics[key].item()
+                       for key in trainer.logged_metrics})
+        with open(f"{out_dir}/results_{seed}.tsv", "w") as f:
+            for metric in scores:
+                f.write(f"{metric}\t{scores[metric]}\n")
+
+        if save_predictions:
+            predictions = trainer.predict(datamodule=dm)
+            torch.save(predictions, f"{out_dir}/predictions_{seed}.pickle")
+
+    # Average scores across initializations
+    scores_all = {}
+    for res_file in glob.glob(f"{out_dir}/results*.tsv"):
+        if res_file.endswith("AVG.tsv"):
+            continue
+        with open(res_file) as f:
+            for line in f:
+                line = line.strip()
+                if (line.startswith("test") or line.startswith("val")) \
+                        and not line.endswith("loss"):
+                    metric, score = line.split("\t")
+                    scores_for_metric = scores_all.get(metric, [])
+                    scores_for_metric.append(float(score))
+                    scores_all[metric] = scores_for_metric
+    with open(f"{out_dir}/results_AVG.tsv", "w") as f:
+        for metric in scores_all:
+            n_runs = len(scores_all[metric])
+            f.write(f"{metric}\t{sum(scores_all[metric]) / n_runs}\n")
+            print(metric, sum(scores_all[metric]) / n_runs,
+                  str(n_runs) + " run(s)")
+        f.write(f"n_runs\t{n_runs}\n")
 
 
 if __name__ == "__main__":
@@ -88,12 +139,19 @@ if __name__ == "__main__":
                         default=[0])
     parser.add_argument("-d", "--dryrun", action="store_true", dest="dryrun",
                         default=False)
-    parser.add_argument("-n", dest="n_runs",
-                        help="Number of model initializations "
-                             "(1 if dryrun==True)",
-                        type=int, default=5)
-    parser.add_argument('--save_model', default=None,
-                        help="File where model should be saved (no extension)")
+    parser.add_argument("-s", dest="seeds", nargs="+", type=int,
+                        default=[12345, 23456, 34567, 45678, 56789],
+                        help="(ignored if dryrun == True)")
+    parser.add_argument('--save_model', action='store_true')
+    parser.add_argument('--dont_save_model', dest='save_model',
+                        action='store_false')
+    parser.add_argument('--save_predictions', action='store_true')
+    parser.add_argument('--dont_save_predictions', dest='save_predictions',
+                        action='store_false')
+    parser.add_argument("-r", dest="results_dir", default="../results",
+                        help="the parent directory in which the directory "
+                        "with the results should be saved")
+    parser.set_defaults(save_model=False, save_predictions=False)
     args = parser.parse_args()
-    main(args.config_path, args.gpus, args.dryrun, args.n_runs,
-         args.save_model)
+    main(args.config_path, args.gpus, args.dryrun, args.seeds,
+         args.results_dir, args.save_model, args.save_predictions)
