@@ -12,7 +12,7 @@ import torch
 from transformers import BertTokenizer
 
 
-def main(config_path, gpus=[0], dryrun=False, seeds=[],
+def main(config_path, gpus=[0], dryrun=False,
          results_dir="../results", save_model=False, save_predictions=False,
          test_per_epoch=False):
     print(config_path)
@@ -38,19 +38,25 @@ def main(config_path, gpus=[0], dryrun=False, seeds=[],
     if config.use_sca_tokenizer and config.sca_sibling_weighting == 'relative':
         orig_tokenizer = BertTokenizer.from_pretrained(config.tokenizer_name)
 
-    if seeds:
-        gen = enumerate(seeds)
+    if config.random_seeds:
+        gen = enumerate(config.random_seeds)
     else:
         gen = enumerate(["unkseed"])
     for i, seed in gen:
-        print(f"Run {i} of {len(seeds)} (seed {seed})")
-        if seeds:
+        print(f"Run {i} of {len(config.random_seeds)} (seed {seed})")
+        if config.random_seeds:
             deterministic = True
             pl.seed_everything(seed, workers=True)
         else:
             deterministic = None
 
-        dm = PosDataModule(config, pos2idx)
+        traindev_sfx, test_sfx = "", ""
+        if config.reinit_traindev_each_seed:
+            traindev_sfx = "_" + str(seed)
+        if config.reinit_test_each_seed:
+            test_sfx = "_" + str(seed)
+        dm = PosDataModule(config, pos2idx,
+                           traindev_sfx=traindev_sfx, test_sfx=test_sfx)
         subtok2weight = None
         if config.use_sca_tokenizer and \
                 config.sca_sibling_weighting == 'relative':
@@ -74,8 +80,8 @@ def main(config_path, gpus=[0], dryrun=False, seeds=[],
             dummy_trainer = pl.Trainer(accelerator='gpu', devices=gpus,
                                        fast_dev_run=True,)
             dummy_trainer.fit(model, datamodule=dm)
-            dummy_trainer.validate(datamodule=dm)
-            dummy_trainer.test(datamodule=dm)
+            dummy_trainer.validate(datamodule=dm, ckpt_path="last")
+            dummy_trainer.test(datamodule=dm, ckpt_path="last")
             return
 
         # --- Continued pre-training ---
@@ -151,13 +157,9 @@ if __name__ == "__main__":
                         help="path to the configuration file",
                         default="")
     parser.add_argument("-g", dest="gpus",
-                        help="GPU IDs", nargs="+", type=int,
-                        default=[0])
+                        help="GPU IDs", nargs="+", type=int, default=[0])
     parser.add_argument("-d", "--dryrun", action="store_true", dest="dryrun",
                         default=False)
-    parser.add_argument("-s", dest="seeds", nargs="+", type=int,
-                        default=[12345, 23456, 34567, 45678, 56789],
-                        help="(ignored if dryrun == True)")
     parser.add_argument("--test_per_epoch", action="store_true", default=False,
                         help="compute test set performance after each epoch")
     parser.add_argument('--save_model', action='store_true')
@@ -171,6 +173,6 @@ if __name__ == "__main__":
                         "with the results should be saved")
     parser.set_defaults(save_model=False, save_predictions=False)
     args = parser.parse_args()
-    main(args.config_path, args.gpus, args.dryrun, args.seeds,
+    main(args.config_path, args.gpus, args.dryrun,
          args.results_dir, args.save_model, args.save_predictions,
          args.test_per_epoch)

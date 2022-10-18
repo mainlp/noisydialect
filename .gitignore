@@ -9,3 +9,4 @@ datasets/*
 !datasets/*.md
 */lightning_logs/
 *BACKUP*
+results/

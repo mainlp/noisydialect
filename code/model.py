@@ -98,6 +98,9 @@ class Classifier(pl.LightningModule):
         self.val_gold_per_epoch = []
         self.epoch = 0
 
+    def on_train_epoch_start(self):
+        self.epoch += 1
+
     def training_step(self, train_batch, batch_idx):
         x, mask, y = train_batch
         logits = self.forward(x, mask)
@@ -150,7 +153,6 @@ class Classifier(pl.LightningModule):
             self.test_gold_per_epoch.append(self.cur_test_gold)
             self.log_dict({f"test_acc_epoch{self.epoch}": acc,
                            f"test_f1_epoch{self.epoch}": f1_macro})
-        self.epoch += 1
 
     def validation_results_per_epoch(self):
         accuracies = []

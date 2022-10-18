@@ -20,10 +20,14 @@ DUMMY_POS = "<DUMMY>"
 
 
 class PosDataModule(pl.LightningDataModule):
-    def __init__(self, config, pos2idx):
+    def __init__(self, config, pos2idx, traindev_sfx="", test_sfx=""):
         super().__init__()
         self.config = config
         self.pos2idx = pos2idx
+        self.train_name = config.name_train + traindev_sfx
+        self.dev_name = config.name_dev + traindev_sfx
+        self.test_name = config.name_test + test_sfx
+        self.test_sfx = test_sfx
         self.tokenizer = None
         self.use_sca_tokenizer = config.use_sca_tokenizer
         if self.use_sca_tokenizer:
@@ -36,9 +40,9 @@ class PosDataModule(pl.LightningDataModule):
         # Training/validation data: HRL tokens
         if self.config.prepare_input_traindev:
             if self.config.orig_dir_train and self.config.orig_dir_dev:
-                train = Data(self.config.name_train,
+                train = Data(self.train_name,
                              other_dir=self.config.orig_dir_train)
-                dev = Data(self.config.name_dev,
+                dev = Data(self.dev_name,
                            other_dir=self.config.orig_dir_dev)
             else:
                 toks_td, pos_td = read_raw_input(
@@ -48,14 +52,14 @@ class PosDataModule(pl.LightningDataModule):
                 (toks_orig_train, toks_orig_dev,
                     pos_train, pos_dev) = train_test_split(
                     toks_td, pos_td, test_size=self.config.dev_ratio)
-                train = Data(self.config.name_train, toks_orig=toks_orig_train,
+                train = Data(self.train_name, toks_orig=toks_orig_train,
                              pos_orig=pos_train, pos2idx=self.pos2idx)
-                dev = Data(self.config.name_dev, toks_orig=toks_orig_dev,
+                dev = Data(self.dev_name, toks_orig=toks_orig_dev,
                            pos_orig=pos_dev, pos2idx=self.pos2idx)
 
         # Test data: LRL tokens
         if self.config.prepare_input_test:
-            test = Data(self.config.name_test,
+            test = Data(self.test_name,
                         raw_data_path=self.config.orig_file_test,
                         raw_data_enc=self.config.encoding_test,
                         max_sents=self.config.max_sents_test,
@@ -68,7 +72,7 @@ class PosDataModule(pl.LightningDataModule):
             print(f"UNK ratio ({self.config.name_test}): {test.unk_ratio(return_all=True)}")
             print(f"Label distribution ({self.config.name_test}): {test.pos_y_distrib()}")
         else:
-            test = Data(self.config.name_test,
+            test = Data(self.test_name,
                         load_parent_dir=self.config.data_parent_dir)
         alphabet_test = test.alphabet()
 
@@ -95,12 +99,12 @@ class PosDataModule(pl.LightningDataModule):
 
     def setup(self, stage):
         if stage == 'fit':
-            self.train = Data(self.config.name_train,
+            self.train = Data(self.train_name,
                               load_parent_dir=self.config.data_parent_dir)
-            self.val = Data(self.config.name_dev,
+            self.val = Data(self.dev_name,
                             load_parent_dir=self.config.data_parent_dir)
         elif stage in ['test', 'predict']:
-            self.test = Data(self.config.name_test,
+            self.test = Data(self.test_name,
                              load_parent_dir=self.config.data_parent_dir)
 
     def print_preview(self, data):

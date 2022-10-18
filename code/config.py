@@ -1,25 +1,29 @@
 class Config:
     __slots__ = 'config_name', 'name_train', 'name_dev', 'name_test', \
-                'prepare_input_traindev', 'prepare_input_test', \
                 'orig_file_traindev', 'orig_file_test', \
                 'tagset_path', \
                 'encoding_traindev', 'encoding_test', \
                 'max_sents_traindev', \
                 'max_sents_test', 'dev_ratio', \
-                'orig_dir_train', 'orig_dir_dev', \
-                'T', 'subtoken_rep', 'tokenizer_name', \
+                'orig_dir_train', 'orig_dir_dev', 'T', \
+                'prepare_input_traindev', 'prepare_input_test', \
+                'reinit_traindev_each_seed', 'reinit_test_each_seed', \
+                'subtoken_rep', 'tokenizer_name', \
                 'use_sca_tokenizer', 'sca_sibling_weighting', \
                 'noise_type', 'noise_lvl_min', 'noise_lvl_max', \
                 'data_parent_dir', 'bert_name', \
                 'classifier_dropout', 'n_epochs', 'batch_size', \
-                'learning_rate', 'weight_decay', 'sanity_mod'
+                'learning_rate', 'sanity_mod', \
+                'random_seeds'
 
     ints = ['max_sents_traindev', 'max_sents_test', 'T', 'n_epochs',
             'batch_size', 'sanity_mod']
     floats = ['dev_ratio', 'noise_lvl_min', 'noise_lvl_max',
-              'classifier_dropout', 'learning_rate', 'weight_decay']
+              'classifier_dropout', 'learning_rate']
     bools = ['prepare_input_traindev', 'prepare_input_test',
+             'reinit_traindev_each_seed', 'reinit_test_each_seed',
              'use_sca_tokenizer']
+    lists_of_ints = ['random_seeds']
 
     def __init__(self,
                  config_name=None,  # needs to be set later!
@@ -40,6 +44,8 @@ class Config:
                  # If the input matrices still need to be prepared:
                  prepare_input_traindev=False,
                  prepare_input_test=False,
+                 reinit_traindev_each_seed=False,
+                 reinit_test_each_seed=False,
                  T=60,
                  subtoken_rep='last',  # 'first', 'last', 'all'
                  tokenizer_name="dbmdz/bert-base-german-cased",
@@ -61,12 +67,10 @@ class Config:
                  n_epochs=2,
                  batch_size=32,
                  learning_rate=2e-5,
-                 weight_decay=0.01,
                  sanity_mod=1000,
+                 random_seeds=[12345, 23456, 34567, 45678, 56789]
                  ):
         self.config_name = config_name
-        self.prepare_input_traindev = prepare_input_traindev
-        self.prepare_input_test = prepare_input_test
         self.name_train = name_train
         self.name_dev = name_dev
         self.name_test = name_test
@@ -81,6 +85,10 @@ class Config:
         self.orig_dir_dev = orig_dir_dev
         self.tagset_path = tagset_path
         self.T = T
+        self.prepare_input_traindev = prepare_input_traindev
+        self.prepare_input_test = prepare_input_test
+        self.reinit_traindev_each_seed = reinit_traindev_each_seed
+        self.reinit_test_each_seed = reinit_test_each_seed
         self.subtoken_rep = subtoken_rep
         self.tokenizer_name = tokenizer_name
         self.use_sca_tokenizer = use_sca_tokenizer
@@ -94,8 +102,8 @@ class Config:
         self.n_epochs = n_epochs
         self.batch_size = batch_size
         self.learning_rate = learning_rate
-        self.weight_decay = weight_decay
         self.sanity_mod = sanity_mod
+        self.random_seeds = random_seeds
 
     def save(self, path):
         with open(path, "w", encoding="utf8") as f:
@@ -118,9 +126,23 @@ class Config:
                         val = float(val)
                     elif cells[0] in self.bools:
                         val = cells[1] == "True"
+                    elif cells[1] in self.lists_of_ints:
+                        val = [int(entry.strip())
+                               for entry in val.strip()[1:-1].split(',')]
                     setattr(self, cells[0], val)
                 except AttributeError:
                     print(f"Key {cells[0]} is unknown (skipping)")
+
+    def compare(self, other):
+        found_differences = False
+        for attr in self.__slots__:
+            if getattr(self, attr) != getattr(other, attr):
+                found_differences = True
+                print(f"Different values for {attr}!")
+                print(getattr(self, attr))
+                print(getattr(other, attr))
+        if not found_differences:
+            print("Identical configs")
 
     def __str__(self):
         return "\n".join(
