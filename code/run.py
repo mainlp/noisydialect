@@ -1,9 +1,9 @@
+from analyze import average_scores
 from config import Config
 from data import PosDataModule
 from model import Classifier
 
 from argparse import ArgumentParser
-import glob
 from pathlib import Path
 import sys
 
@@ -129,26 +129,7 @@ def main(config_path, gpus=[0], dryrun=False,
             torch.save(predictions, f"{out_dir}/predictions_{seed}.pickle")
 
     # Average scores across initializations
-    scores_all = {}
-    for res_file in glob.glob(f"{out_dir}/results*.tsv"):
-        if res_file.endswith("AVG.tsv"):
-            continue
-        with open(res_file) as f:
-            for line in f:
-                line = line.strip()
-                if (line.startswith("test") or line.startswith("val")) \
-                        and not line.endswith("loss"):
-                    metric, score = line.split("\t")
-                    scores_for_metric = scores_all.get(metric, [])
-                    scores_for_metric.append(float(score))
-                    scores_all[metric] = scores_for_metric
-    with open(f"{out_dir}/results_AVG.tsv", "w") as f:
-        for metric in scores_all:
-            n_runs = len(scores_all[metric])
-            f.write(f"{metric}\t{sum(scores_all[metric]) / n_runs}\n")
-            print(metric, sum(scores_all[metric]) / n_runs,
-                  str(n_runs) + " run(s)")
-        f.write(f"n_runs\t{n_runs}\n")
+    average_scores(out_dir)
 
 
 if __name__ == "__main__":
