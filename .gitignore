@@ -5,7 +5,6 @@ figs/
 logs/
 data/
 notes/
-datasets/*
-!datasets/*.md
+datasets/*.tsv
 */lightning_logs/
 *BACKUP*

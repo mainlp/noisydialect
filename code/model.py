@@ -27,6 +27,7 @@ class Classifier(pl.LightningModule):
         encompasses next sentence prediction
         https://s3.amazonaws.com/models.huggingface.co/bert/bert-base-german-dbmdz-cased-config.json
         )
+        TODO This should be modified when/if I add a continued pretraining option
         """
         self.pretraining_model = BertForMaskedLM.from_pretrained(
             pretrained_model_name_or_path)

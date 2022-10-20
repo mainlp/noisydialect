@@ -1,3 +1,6 @@
 [submodule "NOAH-Corpus"]
 	path = datasets/NOAH-corpus
 	url = git@github.com:noe-eva/NOAH-Corpus.git
+[submodule "datasets/UD_German-HDT"]
+	path = datasets/UD_German-HDT
+	url = https://github.com/UniversalDependencies/UD_German-HDT

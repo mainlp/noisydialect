@@ -45,17 +45,23 @@ class PosDataModule(pl.LightningDataModule):
                 dev = Data(self.dev_name,
                            other_dir=self.config.orig_dir_dev)
             else:
-                toks_td, pos_td = read_raw_input(
-                    self.config.orig_file_traindev,
-                    self.config.max_sents_traindev,
-                    self.config.encoding_traindev)
-                (toks_orig_train, toks_orig_dev,
-                    pos_train, pos_dev) = train_test_split(
-                    toks_td, pos_td, test_size=self.config.dev_ratio)
-                train = Data(self.train_name, toks_orig=toks_orig_train,
-                             pos_orig=pos_train, pos2idx=self.pos2idx)
-                dev = Data(self.dev_name, toks_orig=toks_orig_dev,
-                           pos_orig=pos_dev, pos2idx=self.pos2idx)
+                if self.config.orig_file_traindev:
+                    toks_td, pos_td = read_raw_input(
+                        self.config.orig_file_traindev,
+                        self.config.max_sents_traindev,
+                        self.config.encoding_traindev)
+                    (toks_orig_train, toks_orig_dev,
+                        pos_train, pos_dev) = train_test_split(
+                        toks_td, pos_td, test_size=self.config.dev_ratio)
+                    train = Data(self.train_name, toks_orig=toks_orig_train,
+                                 pos_orig=pos_train, pos2idx=self.pos2idx)
+                    dev = Data(self.dev_name, toks_orig=toks_orig_dev,
+                               pos_orig=pos_dev, pos2idx=self.pos2idx)
+                else:
+                    train = Data(self.train_name,
+                                 raw_data_path=self.config.orig_dir_train)
+                    dev = Data(self.dev_name,
+                               raw_data_path=self.config.orig_dir_dev)
 
         # Test data: LRL tokens
         if self.config.prepare_input_test:
@@ -149,7 +155,6 @@ def read_raw_input(filename, max_sents=-1, encoding="utf8",
         cur_toks, cur_pos = [], []
         i = 0
         for line in f_in:
-            line = line.strip().replace("\xa0", " ")
             if not line:
                 if cur_toks:
                     toks.append(cur_toks)
@@ -161,7 +166,7 @@ def read_raw_input(filename, max_sents=-1, encoding="utf8",
                     if verbose and i % 1000 == 0:
                         print(i)
                 continue
-            word, _, word_pos = line.rpartition(" ")
+            word, word_pos = line.split("\t")
             cur_toks.append(word)
             cur_pos.append(word_pos)
         if cur_toks:
@@ -554,6 +559,7 @@ class Data:
                    # same alias?
                    alias_tokenizer=False,
                    verbose=True):
+        print("Preparing input matrices")
         assert tokenizer._pad_token_type_id == 0
         assert T >= 2
         N = len(self.toks_orig)

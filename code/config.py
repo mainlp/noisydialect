@@ -3,9 +3,11 @@ class Config:
                 'orig_file_traindev', 'orig_file_test', \
                 'tagset_path', \
                 'encoding_traindev', 'encoding_test', \
-                'max_sents_traindev', \
-                'max_sents_test', 'dev_ratio', \
+                'max_sents_traindev', 'max_sents_test', \
+                'dev_ratio', \
                 'orig_dir_train', 'orig_dir_dev', 'T', \
+                'orig_file_traindev', 'orig_file_train', \
+                'orig_file_dev', 'orig_file_test', \
                 'prepare_input_traindev', 'prepare_input_test', \
                 'reinit_traindev_each_seed', 'reinit_test_each_seed', \
                 'subtoken_rep', 'tokenizer_name', \
@@ -26,18 +28,20 @@ class Config:
     lists_of_ints = ['random_seeds']
 
     def __init__(self,
-                 config_name=None,  # needs to be set later!
+                 config_name=None,
                  name_train=None,
                  name_dev=None,
                  name_test=None,
                  # Loading data:
                  orig_file_traindev=None,
+                 orig_file_train=None,  # ignored if orig_file_traindev
+                 orig_file_dev=None,  # ignored if orig_file_traindev
                  orig_file_test=None,
                  encoding_traindev="utf8",
                  encoding_test="utf8",
                  max_sents_traindev=-1,  # -1: no max limit
                  max_sents_test=-1,  # -1: no max limit
-                 dev_ratio=0.1,
+                 dev_ratio=0.1,  # ignored unless orig_file_traindev
                  orig_dir_train=None,
                  orig_dir_dev=None,
                  tagset_path="tagset_stts.txt",
@@ -75,6 +79,8 @@ class Config:
         self.name_dev = name_dev
         self.name_test = name_test
         self.orig_file_traindev = orig_file_traindev
+        self.orig_file_train = orig_file_train
+        self.orig_file_dev = orig_file_dev
         self.orig_file_test = orig_file_test
         self.encoding_traindev = encoding_traindev
         self.encoding_test = encoding_test
@@ -117,19 +123,20 @@ class Config:
                     continue
                 cells = line.strip().split("\t")
                 try:
+                    key = cells[0]
                     val = cells[1]
                     if val == "None":
                         val = None
-                    elif cells[0] in self.ints:
+                    elif key in self.ints:
                         val = int(val)
-                    elif cells[0] in self.floats:
+                    elif key in self.floats:
                         val = float(val)
-                    elif cells[0] in self.bools:
+                    elif key in self.bools:
                         val = cells[1] == "True"
-                    elif cells[1] in self.lists_of_ints:
+                    elif key in self.lists_of_ints:
                         val = [int(entry.strip())
                                for entry in val.strip()[1:-1].split(',')]
-                    setattr(self, cells[0], val)
+                    setattr(self, key, val)
                 except AttributeError:
                     print(f"Key {cells[0]} is unknown (skipping)")
 
