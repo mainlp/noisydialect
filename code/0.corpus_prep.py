@@ -72,4 +72,4 @@ if __name__ == "__main__":
                        for f in args.files.split(",")]
         ud(input_files, args.out, args.upos)
     elif args.type == "noah":
-        noah(args.input_files, args.out)
+        noah(args.dir + "/" + args.files, args.out)
