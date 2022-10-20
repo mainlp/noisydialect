@@ -22,7 +22,7 @@ def main(config_path, gpus=[0], dryrun=False,
         config.load(config_path)
         out_dir = f"{results_dir}/{config.config_name}/"
         Path(out_dir).mkdir(parents=True, exist_ok=True)
-        config.save(f"{out_dir}/config.cfg")
+        config.save(f"{out_dir}/{config.config_name}.cfg")
     except FileNotFoundError:
         print("Couldn't find config (quitting)")
         sys.exit(1)
