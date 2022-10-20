@@ -2,7 +2,6 @@ class Config:
     __slots__ = 'config_name', 'name_train', 'name_dev', 'name_test', \
                 'orig_file_traindev', 'orig_file_test', \
                 'tagset_path', \
-                'encoding_traindev', 'encoding_test', \
                 'max_sents_traindev', 'max_sents_test', \
                 'dev_ratio', \
                 'orig_dir_train', 'orig_dir_dev', 'T', \
@@ -37,8 +36,6 @@ class Config:
                  orig_file_train=None,  # ignored if orig_file_traindev
                  orig_file_dev=None,  # ignored if orig_file_traindev
                  orig_file_test=None,
-                 encoding_traindev="utf8",
-                 encoding_test="utf8",
                  max_sents_traindev=-1,  # -1: no max limit
                  max_sents_test=-1,  # -1: no max limit
                  dev_ratio=0.1,  # ignored unless orig_file_traindev
@@ -82,8 +79,6 @@ class Config:
         self.orig_file_train = orig_file_train
         self.orig_file_dev = orig_file_dev
         self.orig_file_test = orig_file_test
-        self.encoding_traindev = encoding_traindev
-        self.encoding_test = encoding_test
         self.max_sents_traindev = max_sents_traindev
         self.max_sents_test = max_sents_test
         self.dev_ratio = dev_ratio
@@ -119,9 +114,12 @@ class Config:
     def load(self, path):
         with open(path, "r", encoding="utf8") as f:
             for line in f:
+                line = line.strip()
+                if not line:
+                    continue
                 if line.startswith("#"):
                     continue
-                cells = line.strip().split("\t")
+                cells = line.split("\t")
                 try:
                     key = cells[0]
                     val = cells[1]

@@ -9,7 +9,7 @@ Sentence boundaries are indicated by empty lines.
 from argparse import ArgumentParser
 
 
-def ud(input_files, out_file, upos=True, verbose=True):
+def ud(input_files, out_file, tagfix, upos=True, verbose=True):
     if upos:
         pos_idx = 3
     else:  # XPOS
@@ -33,8 +33,11 @@ def ud(input_files, out_file, upos=True, verbose=True):
                     cells = line.split("\t")
                     try:
                         form = cells[1]
-                        upos = cells[pos_idx]
-                        f_out.write(f"{form}\t{upos}\n")
+                        pos = cells[pos_idx]
+                        pos = tagfix.get(pos, pos)
+                        if pos == "_":
+                            continue
+                        f_out.write(f"{form}\t{pos}\n")
                     except IndexError:
                         print("!!! malformed line:")
                         print(line)
@@ -66,10 +69,16 @@ if __name__ == "__main__":
     parser.add_argument("--out", help="output file")
     parser.add_argument("--xpos", dest="upos", action="store_false",
                         default=True)
+    parser.add_argument("--tigerize", action="store_true", default=False)
     args = parser.parse_args()
+    tagfix = {}
+    if args.tigerize:
+        # TIGER-style STTS tag
+        tagfix["PAV"] = "PROAV"  # rename
+        tagfix["PIDAT"] = "PIAT"  # merge
     if args.type == "ud":
         input_files = [args.dir + "/" + f.strip()
                        for f in args.files.split(",")]
-        ud(input_files, args.out, args.upos)
+        ud(input_files, args.out, tagfix, args.upos)
     elif args.type == "noah":
         noah(args.dir + "/" + args.files, args.out)

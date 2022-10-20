@@ -40,16 +40,18 @@ class PosDataModule(pl.LightningDataModule):
         # Training/validation data: HRL tokens
         if self.config.prepare_input_traindev:
             if self.config.orig_dir_train and self.config.orig_dir_dev:
+                print("Constructing new data dirs based on existing dirs")
                 train = Data(self.train_name,
                              other_dir=self.config.orig_dir_train)
                 dev = Data(self.dev_name,
                            other_dir=self.config.orig_dir_dev)
             else:
                 if self.config.orig_file_traindev:
+                    print("Extracting data from traindev corpus and splitting "
+                          "them into train vs. dev")
                     toks_td, pos_td = read_raw_input(
                         self.config.orig_file_traindev,
-                        self.config.max_sents_traindev,
-                        self.config.encoding_traindev)
+                        self.config.max_sents_traindev)
                     (toks_orig_train, toks_orig_dev,
                         pos_train, pos_dev) = train_test_split(
                         toks_td, pos_td, test_size=self.config.dev_ratio)
@@ -58,16 +60,16 @@ class PosDataModule(pl.LightningDataModule):
                     dev = Data(self.dev_name, toks_orig=toks_orig_dev,
                                pos_orig=pos_dev, pos2idx=self.pos2idx)
                 else:
+                    print("Extracting data from train and dev corpora")
                     train = Data(self.train_name,
-                                 raw_data_path=self.config.orig_dir_train)
+                                 raw_data_path=self.config.orig_file_train)
                     dev = Data(self.dev_name,
-                               raw_data_path=self.config.orig_dir_dev)
+                               raw_data_path=self.config.orig_file_dev)
 
         # Test data: LRL tokens
         if self.config.prepare_input_test:
             test = Data(self.test_name,
                         raw_data_path=self.config.orig_file_test,
-                        raw_data_enc=self.config.encoding_test,
                         max_sents=self.config.max_sents_test,
                         pos2idx=self.pos2idx)
             test.prepare_xy(self.tokenizer, self.config.T,
@@ -143,18 +145,18 @@ class PosDataModule(pl.LightningDataModule):
 # Preprocessing
 
 
-def read_raw_input(filename, max_sents=-1, encoding="utf8",
-                   verbose=True):
+def read_raw_input(filename, max_sents=-1, verbose=True):
     """
     Reads the original (non-BERT) tokens and their labels
     """
     if verbose:
         print("Reading data from " + filename)
     toks, pos = [], []
-    with open(filename, encoding=encoding) as f_in:
+    with open(filename, encoding="utf8") as f_in:
         cur_toks, cur_pos = [], []
         i = 0
         for line in f_in:
+            line = line.strip()
             if not line:
                 if cur_toks:
                     toks.append(cur_toks)
@@ -166,7 +168,12 @@ def read_raw_input(filename, max_sents=-1, encoding="utf8",
                     if verbose and i % 1000 == 0:
                         print(i)
                 continue
-            word, word_pos = line.split("\t")
+            try:
+                word, word_pos = line.split("\t")
+            except ValueError:
+                print("ERROR:")
+                print(line)
+                sys.exit(1)
             cur_toks.append(word)
             cur_pos.append(word_pos)
         if cur_toks:
@@ -187,7 +194,7 @@ class Data:
                  # If initializing from another dataset:
                  other_dir=None,
                  # If initializing from scratch:
-                 raw_data_path=None, raw_data_enc="utf8", max_sents=-1,
+                 raw_data_path=None, max_sents=-1,
                  ):
         self.name = name
         self.toks_orig = toks_orig
@@ -205,7 +212,7 @@ class Data:
             self.load_orig(other_dir)
         elif raw_data_path:
             print(f"Initializing {name} from scratch ({raw_data_path})")
-            self.read_raw_input(raw_data_path, max_sents, raw_data_enc)
+            self.read_raw_input(raw_data_path, max_sents)
         else:
             print(f"Initializing {name} from args only")
         print(self)
@@ -351,9 +358,9 @@ class Data:
 
     # ---- Adding noise ----
 
-    def read_raw_input(self, filename, max_sents, encoding, verbose=True):
+    def read_raw_input(self, filename, max_sents, verbose=True):
         self.toks_orig, self.pos_orig = read_raw_input(
-            filename, max_sents, encoding, verbose)
+            filename, max_sents, verbose)
 
     def add_noise(self, noise_type, noise_lvl_min,
                   noise_lvl_max, target_alphabet):
