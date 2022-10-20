@@ -16,6 +16,10 @@ python 0.corpus_prep.py --type ud --dir ../datasets/UD_German-HDT/ --files de_hd
 # NOAH (GSW) -- test -- TIGERized STTS tags, UPOS tags
 python 0.corpus_prep.py --type noah --dir ../datasets/NOAH-corpus/ --files test_GSW_STTS.txt --out ../datasets/test_NOAH_STTS.tsv
 python 0.corpus_prep.py --type noah --dir ../datasets/NOAH-corpus/ --files test_GSW_UPOS.txt --out ../datasets/test_NOAH_UPOS.tsv
+# UD_Swiss_German-UZH (GSW) -- test -- UPOS tags
+python 0.corpus_prep.py --type ud --dir ../datasets/UD_Swiss_German-UZH/ --files gsw_uzh-ud-test.conllu --out ../datasets/test_UZH_UPOS.tsv
+# UD_Low_Saxon-LSDC (NDS) -- test -- UPOS tags
+python 0.corpus_prep.py --type ud --dir ../datasets/UD_Low_Saxon-LSDC/ --files nds_lsdc-ud-test.conllu --out ../datasets/test_LSDC_UPOS.tsv
 ```
 
 2. Extract feature matrices for those experiments where the input representations aren't modified:
@@ -41,7 +45,7 @@ python run.py -c ../configs/hdt-noah.gbert-large.orig.60.stts.cfg --test_per_epo
 python run.py -c ../configs/hdt-noah.mbert-cased.orig.60.stts.cfg --test_per_epoch
 python run.py -c ../configs/hdt-noah.europeana-deu.orig.60.stts.cfg --test_per_epoch
 
-# dbmdz-base with random noise:
+# dbmdz-cased with random noise (STTS):
 python run.py -c ../configs/hdt-noah.dbmdz-cased.randnoise10-15.60.stts.cfg --test_per_epoch
 python run.py -c ../configs/hdt-noah.dbmdz-cased.randnoise25-30.60.stts.cfg --test_per_epoch
 python run.py -c ../configs/hdt-noah.dbmdz-cased.randnoise40-45.60.stts.cfg --test_per_epoch

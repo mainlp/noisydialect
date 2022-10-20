@@ -4,3 +4,9 @@
 [submodule "datasets/UD_German-HDT"]
 	path = datasets/UD_German-HDT
 	url = https://github.com/UniversalDependencies/UD_German-HDT
+[submodule "datasets/UD_Swiss_German-UZH"]
+	path = datasets/UD_Swiss_German-UZH
+	url = git@github.com:UniversalDependencies/UD_Swiss_German-UZH.git
+[submodule "datasets/UD_Low_Saxon-LSDC"]
+	path = datasets/UD_Low_Saxon-LSDC
+	url = git@github.com:UniversalDependencies/UD_Low_Saxon-LSDC.git
