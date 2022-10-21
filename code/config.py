@@ -30,12 +30,12 @@ class Config:
                  config_name=None,
                  name_train=None,
                  name_dev=None,
-                 name_test=None,
+                 name_test=None,  # can be a comma-separated list
                  # Loading data:
                  orig_file_traindev=None,
                  orig_file_train=None,  # ignored if orig_file_traindev
                  orig_file_dev=None,  # ignored if orig_file_traindev
-                 orig_file_test=None,
+                 orig_file_test=None,  # can be a comma-separated list
                  max_sents_traindev=-1,  # -1: no max limit
                  max_sents_test=-1,  # -1: no max limit
                  dev_ratio=0.1,  # ignored unless orig_file_traindev

@@ -1,6 +1,6 @@
 from analyze_results import average_scores
 from config import Config
-from data import PosDataModule
+from datamodule import PosDataModule
 from model import Classifier
 
 from argparse import ArgumentParser
