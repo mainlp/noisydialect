@@ -3,7 +3,7 @@ Used for creating the input matrices for the experiments where the data
 aren't modified; this prevents some data prep/loading redundancies later on.
 """
 from config import Config
-from data import PosDataModule
+from datamodule import PosDataModule
 
 import sys
 

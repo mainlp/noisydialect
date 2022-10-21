@@ -41,7 +41,7 @@ class Config:
                  dev_ratio=0.1,  # ignored unless orig_file_traindev
                  orig_dir_train=None,
                  orig_dir_dev=None,
-                 tagset_path="tagset_stts.txt",
+                 tagset_path="../datasets/tagset_stts.txt",
                  # If the input matrices still need to be prepared:
                  prepare_input_traindev=False,
                  prepare_input_test=False,

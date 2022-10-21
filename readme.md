@@ -32,6 +32,9 @@ python 0.data_prep.py ../configs/0.hdt-noah.gbert-base.orig.60.stts.cfg
 python 0.data_prep.py ../configs/0.hdt-noah.gbert-large.orig.60.stts.cfg
 python 0.data_prep.py ../configs/0.hdt-noah.mbert-cased.orig.60.stts.cfg
 python 0.data_prep.py ../configs/0.hdt-noah.europeana-deu.orig.60.stts.cfg
+
+# Vanilla UPOS data:
+python 0.data_prep.py ../configs/0.hdt-noah_lsdc_uzh.dbmdz-cased.orig.60.upos.cfg
 ```
 
 3. Run baselines:
