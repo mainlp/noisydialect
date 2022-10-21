@@ -101,9 +101,10 @@ def main(config_path, gpus=[0], dryrun=False,
             dm.prepare_data()
             dm.setup("fit")
             dm.setup("test")
+            # test_dataloader() returns a list of dataloaders
+            val_dataloaders = [dm.val_dataloader()] + dm.test_dataloader()
             trainer.fit(model, train_dataloaders=dm.train_dataloader(),
-                        val_dataloaders=[dm.val_dataloader(),
-                                         dm.test_dataloader()])
+                        val_dataloaders=val_dataloaders)
         else:
             trainer.fit(model, datamodule=dm)
         # Training and validation scores:
@@ -115,7 +116,7 @@ def main(config_path, gpus=[0], dryrun=False,
 
         if not test_per_epoch:
             trainer.test(datamodule=dm)
-            # trainer.logged_metrics got re-initialized during trainer.test
+            # trainer.logged_metrics got re-initialized during trainer.test()
             scores.update({key: trainer.logged_metrics[key].item()
                            for key in trainer.logged_metrics})
 

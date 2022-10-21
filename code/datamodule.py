@@ -14,7 +14,8 @@ class PosDataModule(pl.LightningDataModule):
         self.pos2idx = pos2idx
         self.train_name = config.name_train + traindev_sfx
         self.dev_name = config.name_dev + traindev_sfx
-        self.test_name = config.name_test + test_sfx
+        self.test_names = [name_test + test_sfx
+                           for name_test in config.name_test.split(",")]
         self.test_sfx = test_sfx
         self.tokenizer = None
         self.use_sca_tokenizer = config.use_sca_tokenizer
@@ -61,39 +62,35 @@ class PosDataModule(pl.LightningDataModule):
                              self.config.subtoken_rep,
                              alias_tokenizer=self.use_sca_tokenizer)
             train.save(self.config.data_parent_dir)
-            print(f"Subtoken ratio ({self.config.name_train}): {train.subtok_ratio(return_all=True)}")
-            print(f"UNK ratio ({self.config.name_train}): {train.unk_ratio(return_all=True)}")
-            print(f"Label distribution ({self.config.name_train}): {train.pos_y_distrib()}")
+            print(f"Subtoken ratio ({self.train_name}): {train.subtok_ratio(return_all=True)}")
+            print(f"UNK ratio ({self.train_name}): {train.unk_ratio(return_all=True)}")
+            print(f"Label distribution ({self.train_name}): {train.pos_y_distrib()}")
             dev.add_noise(self.config.noise_type, self.config.noise_lvl_min,
                           self.config.noise_lvl_max, alphabet)
             dev.prepare_xy(self.tokenizer, self.config.T,
                            self.config.subtoken_rep,
                            alias_tokenizer=self.use_sca_tokenizer)
             dev.save(self.config.data_parent_dir)
-            print(f"Subtoken ratio ({self.config.name_dev}): {dev.subtok_ratio(return_all=True)}")
-            print(f"UNK ratio ({self.config.name_dev}): {dev.unk_ratio(return_all=True)}")
-            print(f"Label distribution ({self.config.name_dev}): {dev.pos_y_distrib()}")
+            print(f"Subtoken ratio ({self.dev_name}): {dev.subtok_ratio(return_all=True)}")
+            print(f"UNK ratio ({self.dev_name}): {dev.unk_ratio(return_all=True)}")
+            print(f"Label distribution ({self.dev_name}): {dev.pos_y_distrib()}")
 
         # Test data: LRL tokens
-        self.multi_test = "," in self.config.test_name
         if self.config.prepare_input_test:
-            # TODO multi-test
-            test = Data(self.test_name,
-                        raw_data_path=self.config.orig_file_test,
-                        max_sents=self.config.max_sents_test,
-                        pos2idx=self.pos2idx)
-            test.prepare_xy(self.tokenizer, self.config.T,
-                            self.config.subtoken_rep,
-                            alias_tokenizer=self.use_sca_tokenizer)
-            test.save(self.config.data_parent_dir)
-            print(f"Subtoken ratio ({self.config.name_test}): {test.subtok_ratio(return_all=True)}")
-            print(f"UNK ratio ({self.config.name_test}): {test.unk_ratio(return_all=True)}")
-            print(f"Label distribution ({self.config.name_test}): {test.pos_y_distrib()}")
-        else:
-            # TODO multi-test
-            test = Data(self.test_name,
-                        load_parent_dir=self.config.data_parent_dir)
-
+            for test_name, orig_file_test in [
+                    i for i in zip(self.test_names,
+                                   self.config.orig_file_test.split(","))]:
+                test = Data(test_name,
+                            raw_data_path=orig_file_test,
+                            max_sents=self.config.max_sents_test,
+                            pos2idx=self.pos2idx)
+                test.prepare_xy(self.tokenizer, self.config.T,
+                                self.config.subtoken_rep,
+                                alias_tokenizer=self.use_sca_tokenizer)
+                test.save(self.config.data_parent_dir)
+                print(f"Subtoken ratio ({test_name}): {test.subtok_ratio(return_all=True)}")
+                print(f"UNK ratio ({test_name}): {test.unk_ratio(return_all=True)}")
+                print(f"Label distribution ({test_name}): {test.pos_y_distrib()}")
 
     def setup(self, stage):
         if stage == 'fit':
@@ -102,8 +99,9 @@ class PosDataModule(pl.LightningDataModule):
             self.val = Data(self.dev_name,
                             load_parent_dir=self.config.data_parent_dir)
         elif stage in ['test', 'predict']:
-            self.test = Data(self.test_name,
-                             load_parent_dir=self.config.data_parent_dir)
+            self.tests = [Data(
+                test_name, load_parent_dir=self.config.data_parent_dir)
+                for test_name in self.test_names]
 
     def print_preview(self, data):
         print(data)
@@ -122,9 +120,11 @@ class PosDataModule(pl.LightningDataModule):
                           batch_size=self.config.batch_size)
 
     def test_dataloader(self):
-        self.print_preview(self.test)
-        return DataLoader(self.test.tensor_dataset(),
-                          batch_size=self.config.batch_size)
+        for test in self.tests:
+            self.print_preview(test)
+        return [DataLoader(test.tensor_dataset(),
+                           batch_size=self.config.batch_size)
+                for test in self.tests]
 
     def predict_dataloader(self):
         self.print_preview(self.test)

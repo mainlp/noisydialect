@@ -243,12 +243,38 @@ class Data:
         elif noise_type == 'add_custom_noise_gsw':
             self.add_custom_noise_gsw(noise_lvl_min, noise_lvl_max)
 
-    def noisy_indices(self, sent_toks, percentage_noisy):
+    @staticmethod
+    def percentage_noisy(noise_lvl_min, noise_lvl_max):
+        if noise_lvl_max - noise_lvl_min < 0.01:
+            return noise_lvl_min
+        return random.randrange(round(100 * noise_lvl_min),
+                                round(100 * noise_lvl_max)) / 100
+
+    @staticmethod
+    def noisy_indices(sent_toks, percentage_noisy):
         poss_indices = [i for i, tok in enumerate(sent_toks)
                         if any(c.isalpha() for c in tok)]
-        idx_noisy = random.sample(poss_indices,
-                                  k=round(percentage_noisy * len(sent_toks)))
+        idx_noisy = random.sample(
+            poss_indices, k=round(percentage_noisy * len(poss_indices)))
         return idx_noisy
+
+    @staticmethod
+    def add_char(word, alphabet):
+        idx = random.randrange(-1, len(word))
+        if idx == -1:
+            return random.sample(alphabet, 1)[0] + word
+        return word[:idx + 1] + random.sample(alphabet, 1)[0] + word[idx + 1:]
+
+    @staticmethod
+    def delete_char(word, alphabet):
+        idx = random.randrange(len(word))
+        return word[:idx] + word[idx + 1:]
+
+    @staticmethod
+    def replace_char(word, alphabet, idx=-1):
+        if idx < 0:
+            idx = random.randrange(len(word))
+        return word[:idx] + random.sample(alphabet, 1)[0] + word[idx + 1:]
 
     def add_random_noise(self, noise_lvl_min, noise_lvl_max, target_alphabet,
                          noise=["add_char", "delete_char", "replace_char"]):
@@ -273,31 +299,6 @@ class Data:
             toks_noisy.append(sent_toks_noisy)
         print(f"Modified {n_changed} tokens.")
         self.toks_orig = toks_noisy
-
-    @staticmethod
-    def add_char(word, alphabet):
-        idx = random.randrange(-1, len(word))
-        if idx == -1:
-            return random.sample(alphabet, 1)[0] + word
-        return word[:idx + 1] + random.sample(alphabet, 1)[0] + word[idx + 1:]
-
-    @staticmethod
-    def delete_char(word, alphabet):
-        idx = random.randrange(len(word))
-        return word[:idx] + word[idx + 1:]
-
-    @staticmethod
-    def replace_char(word, alphabet, idx=-1):
-        if idx < 0:
-            idx = random.randrange(len(word))
-        return word[:idx] + random.sample(alphabet, 1)[0] + word[idx + 1:]
-
-    @staticmethod
-    def percentage_noisy(noise_lvl_min, noise_lvl_max):
-        if noise_lvl_max - noise_lvl_min < 0.01:
-            return noise_lvl_min
-        return random.randrange(round(100 * noise_lvl_min),
-                                round(100 * noise_lvl_max)) / 100
 
     def add_custom_noise_general(self, noise_lvl_min, noise_lvl_max,
                                  target_alphabet):

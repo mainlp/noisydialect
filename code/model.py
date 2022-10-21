@@ -18,6 +18,7 @@ class Classifier(pl.LightningModule):
     def __init__(self, pretrained_model_name_or_path,
                  pos2idx, classifier_dropout, learning_rate,
                  use_sca_embeddings=False, subtok2weight=None,
+                 val_data_names=["dev"],
                  print_model_structures=False, print_config=True,
                  ):
         super().__init__()
@@ -60,10 +61,9 @@ class Classifier(pl.LightningModule):
         self.dummy_idx = pos2idx[DUMMY_POS]
         self.learning_rate = learning_rate
         # Monitoring performance:
-        self.val_preds_per_epoch = []
-        self.val_gold_per_epoch = []
-        self.test_preds_per_epoch = []
-        self.test_gold_per_epoch = []
+        self.val_data_names = val_data_names
+        self.val_preds_per_epoch = [[] for _ in val_data_names]
+        self.val_gold_per_epoch = [[] for _ in val_data_names]
         self.test_preds = []
         self.test_gold = []
         self.epoch = 0
@@ -112,58 +112,30 @@ class Classifier(pl.LightningModule):
         return loss
 
     def on_validation_epoch_start(self):
-        self.cur_val_preds = []
-        self.cur_val_gold = []
-        self.cur_test_preds = []
-        self.cur_test_gold = []
+        self.cur_val_preds = [[] for _ in self.val_data_names]
+        self.cur_val_gold = [[] for _ in self.val_data_names]
 
     def validation_step(self, val_batch, batch_idx, dataloader_idx=0):
         x, mask, y = val_batch
         logits = self.forward(x, mask)
         loss = self.loss(logits, y)
         acc, f1_macro, y_pred, y_true = self.detach_and_score(logits, y)
-        if dataloader_idx == 0:
-            # Regular validation step
-            self.cur_val_preds += y_pred.tolist()
-            self.cur_val_gold += y_true.tolist()
-            self.log_dict({"val_loss_batch": loss, "val_acc_batch": acc,
-                           "val_f1_batch": f1_macro}, prog_bar=True)
-        else:
-            # Validation step is actually a test step!
-            # This should only be allowed to happen for the baseline
-            # set-up (so I can extract model performance scores for
-            # every epoch instead of having to train a model for one
-            # epoch, check, train a new model for two epochs, check,
-            # train a new model for three epochs, check, and so on).
-            self.cur_test_preds += y_pred.tolist()
-            self.cur_test_gold += y_true.tolist()
+        self.cur_val_preds[dataloader_idx] += y_pred.tolist()
+        self.cur_val_gold[dataloader_idx] += y_true.tolist()
+        val_name = self.val_data_names[dataloader_idx]
+        self.log_dict({val_name + "_loss_batch": loss,
+                       val_name + "_acc_batch": acc,
+                       val_name + "_f1_batch": f1_macro}, prog_bar=True)
 
     def on_validation_epoch_end(self):
-        self.cur_val_preds = np.asarray(self.cur_val_preds)
-        self.cur_val_gold = np.asarray(self.cur_val_gold)
-        acc, f1_macro = self.score(self.cur_val_preds, self.cur_val_gold)
-        self.val_preds_per_epoch.append(self.cur_val_preds)
-        self.val_gold_per_epoch.append(self.cur_val_gold)
-        self.log_dict({f"val_acc_epoch{self.epoch}": acc,
-                       f"val_f1_epoch{self.epoch}": f1_macro})
-        if self.cur_test_preds:
-            self.cur_test_preds = np.asarray(self.cur_test_preds)
-            self.cur_test_gold = np.asarray(self.cur_test_gold)
-            acc, f1_macro = self.score(self.cur_test_preds, self.cur_test_gold)
-            self.test_preds_per_epoch.append(self.cur_test_preds)
-            self.test_gold_per_epoch.append(self.cur_test_gold)
-            self.log_dict({f"test_acc_epoch{self.epoch}": acc,
-                           f"test_f1_epoch{self.epoch}": f1_macro})
-
-    def validation_results_per_epoch(self):
-        accuracies = []
-        f1_scores = []
-        for preds, gold in zip(self.val_preds_per_epoch,
-                               self.val_gold_per_epoch):
-            acc, f1 = self.score(preds, gold)
-            accuracies.append(acc)
-            f1_scores.append(f1)
-        return accuracies, f1_scores
+        for i, val_name in enumerate(self.val_data_names):
+            cur_preds = np.asarray(self.cur_val_preds[i])
+            cur_gold = np.asarray(self.cur_val_gold[i])
+            acc, f1_macro = self.score(cur_preds, cur_gold)
+            self.val_preds_per_epoch[i].append(cur_preds)
+            self.val_gold_per_epoch[i].append(cur_gold)
+            self.log_dict({f"{val_name}_acc_epoch{self.epoch}": acc,
+                           f"{val_name}_f1_epoch{self.epoch}": f1_macro})
 
     def on_test_start(self):
         self.test_preds = []
