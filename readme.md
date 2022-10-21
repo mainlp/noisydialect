@@ -2,6 +2,7 @@ Use the `-recursive` flag while cloning (the `datasets` folder contains submodul
 
 ```
 git clone git@github.com:mainlp/noisydialect.git -recursive
+cd code
 ```
 
 1. Convert the corpora into a common format:
@@ -35,6 +36,11 @@ python 0.data_prep.py ../configs/0.hdt-noah.europeana-deu.orig.60.stts.cfg
 
 # Vanilla UPOS data:
 python 0.data_prep.py ../configs/0.hdt-noah_lsdc_uzh.dbmdz-cased.orig.60.upos.cfg
+python 0.data_prep.py ../configs/0.hdt-noah_lsdc_uzh.dbmdz-uncased.orig.60.upos.cfg
+python 0.data_prep.py ../configs/0.hdt-noah_lsdc_uzh.gbert-base.orig.60.upos.cfg
+python 0.data_prep.py ../configs/0.hdt-noah_lsdc_uzh.gbert-large.orig.60.upos.cfg
+python 0.data_prep.py ../configs/0.hdt-noah_lsdc_uzh.mbert-cased.orig.60.upos.cfg
+python 0.data_prep.py ../configs/0.hdt-noah_lsdc_uzh.europeana-deu.orig.60.upos.cfg
 ```
 
 3. Run baselines:
@@ -53,4 +59,11 @@ python run.py -c ../configs/hdt-noah.dbmdz-cased.randnoise10-15.60.stts.cfg --te
 python run.py -c ../configs/hdt-noah.dbmdz-cased.randnoise25-30.60.stts.cfg --test_per_epoch
 python run.py -c ../configs/hdt-noah.dbmdz-cased.randnoise40-45.60.stts.cfg --test_per_epoch
 python run.py -c ../configs/hdt-noah.dbmdz-cased.randnoise55-60.60.stts.cfg --test_per_epoch
+
+# Vanilla UPOS data:
+python run.py -c ../configs/hdt-noah_lsdc_uzh.dbmdz-cased.orig.60.upos.cfg --test_per_epoch
+python run.py -c ../configs/hdt-noah_lsdc_uzh.dbmdz-uncased.orig.60.upos.cfg --test_per_epoch
+python run.py -c ../configs/hdt-noah_lsdc_uzh.gbert-base.orig.60.upos.cfg --test_per_epoch
+python run.py -c ../configs/hdt-noah_lsdc_uzh.gbert-large.orig.60.upos.cfg --test_per_epoch
+python run.py -c ../configs/hdt-noah_lsdc_uzh.europeana-deu.orig.60.upos.cfg --test_per_epoch
 ```
