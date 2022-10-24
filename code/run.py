@@ -118,11 +118,26 @@ def main(config_path, gpus=[0], dryrun=False,
             torch.save(model.finetuning_model.state_dict(),
                        f"{out_dir}/model_{seed}.pt")
 
-        if not test_per_epoch:
+        if test_per_epoch:
+            for i, val_name in enumerate(val_data_names):
+                for epoch, (epoch_preds, epoch_gold) in enumerate(
+                        zip(model.val_preds[i], model.val_gold[i])):
+                    with open(
+                            f"{out_dir}/predictions_{val_name}_ep{epoch}.tsv",
+                            "w", encoding="utf8") as f:
+                        f.write("PREDICTED\tGOLD\n")
+                        for p, g in zip(epoch_preds, epoch_gold):
+                            f.write(f"{p}\t{g}\n")
+        else:
             trainer.test(datamodule=dm)
             # trainer.logged_metrics got re-initialized during trainer.test()
             scores.update({key: trainer.logged_metrics[key].item()
                            for key in trainer.logged_metrics})
+            with open(f"{out_dir}/predictions_test.tsv",
+                      "w", encoding="utf8") as f:
+                f.write("PREDICTED\tGOLD\n")
+                for p, g in zip(model.test_preds, model.test_gold):
+                    f.write(f"{p}\t{g}\n")
 
         with open(f"{out_dir}/results_{seed}.tsv", "w") as f:
             for metric in scores:

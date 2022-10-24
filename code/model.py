@@ -62,8 +62,9 @@ class Classifier(pl.LightningModule):
         self.learning_rate = learning_rate
         # Monitoring performance:
         self.val_data_names = val_data_names
-        self.val_preds_per_epoch = [[] for _ in val_data_names]
-        self.val_gold_per_epoch = [[] for _ in val_data_names]
+        # nested: validation set -> epoch
+        self.val_preds = [[] for _ in val_data_names]
+        self.val_gold = [[] for _ in val_data_names]
         self.test_preds = []
         self.test_gold = []
         self.epoch = 0
@@ -95,8 +96,6 @@ class Classifier(pl.LightningModule):
         return acc, f1_macro
 
     def on_train_start(self):
-        self.val_preds_per_epoch = []
-        self.val_gold_per_epoch = []
         self.epoch = 0
 
     def on_train_epoch_start(self):
@@ -129,11 +128,14 @@ class Classifier(pl.LightningModule):
 
     def on_validation_epoch_end(self):
         for i, val_name in enumerate(self.val_data_names):
+            print(i, val_name)
             cur_preds = np.asarray(self.cur_val_preds[i])
             cur_gold = np.asarray(self.cur_val_gold[i])
             acc, f1_macro = self.score(cur_preds, cur_gold)
-            self.val_preds_per_epoch[i].append(cur_preds)
-            self.val_gold_per_epoch[i].append(cur_gold)
+            print("acc", acc)
+            print("f1 macro", f1_macro)
+            self.val_preds[i].append(cur_preds)
+            self.val_gold[i].append(cur_gold)
             self.log_dict({f"{val_name}_acc_epoch{self.epoch}": acc,
                            f"{val_name}_f1_epoch{self.epoch}": f1_macro})
 
