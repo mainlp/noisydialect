@@ -5,7 +5,7 @@ git clone git@github.com:mainlp/noisydialect.git -recursive
 cd code
 ```
 
-1. Convert the corpora into a common format:
+1. Convert the corpora into a common format: (This creates files named `{train,dev,test}_CORPUS-NAME_TAG-TYPE.tsv` in the `datasets` folder.)
 
 ```
 # Hamburg Dependency Treebank (DEU) -- train/dev -- TIGERized STTS tags
@@ -23,27 +23,29 @@ python 0.corpus_prep.py --type ud --dir ../datasets/UD_Swiss_German-UZH/ --files
 python 0.corpus_prep.py --type ud --dir ../datasets/UD_Low_Saxon-LSDC/ --files nds_lsdc-ud-test.conllu --out ../datasets/test_LSDC_UPOS.tsv
 ```
 
-2. Extract feature matrices for those experiments where the input representations aren't modified:
+2. Extract feature matrices for those experiments where the input representations aren't modified: (This creates subfolders in `data`, containing the input representations.)
 
 ```
 # Vanilla STTS data:
-python 0.data_prep.py ../configs/0.hdt-noah.dbmdz-cased.orig.60.stts.cfg
-python 0.data_prep.py ../configs/0.hdt-noah.dbmdz-uncased.orig.60.stts.cfg
-python 0.data_prep.py ../configs/0.hdt-noah.gbert-base.orig.60.stts.cfg
-python 0.data_prep.py ../configs/0.hdt-noah.gbert-large.orig.60.stts.cfg
-python 0.data_prep.py ../configs/0.hdt-noah.mbert-cased.orig.60.stts.cfg
-python 0.data_prep.py ../configs/0.hdt-noah.europeana-deu.orig.60.stts.cfg
+python 0.data-matrix_prep.py ../configs/0.hdt-noah.dbmdz-cased.orig.60.stts.cfg
+python 0.data-matrix_prep.py ../configs/0.hdt-noah.dbmdz-uncased.orig.60.stts.cfg
+python 0.data-matrix_prep.py ../configs/0.hdt-noah.gbert-base.orig.60.stts.cfg
+python 0.data-matrix_prep.py ../configs/0.hdt-noah.gbert-large.orig.60.stts.cfg
+python 0.data-matrix_prep.py ../configs/0.hdt-noah.mbert-cased.orig.60.stts.cfg
+python 0.data-matrix_prep.py ../configs/0.hdt-noah.europeana-deu.orig.60.stts.cfg
+
+python 0.data-matrix_prep.py ../configs/0.hdt-noah.dbmdz-cased_first.orig.60.stts.cfg
 
 # Vanilla UPOS data:
-python 0.data_prep.py ../configs/0.hdt-noah_lsdc_uzh.dbmdz-cased.orig.60.upos.cfg
-python 0.data_prep.py ../configs/0.hdt-noah_lsdc_uzh.dbmdz-uncased.orig.60.upos.cfg
-python 0.data_prep.py ../configs/0.hdt-noah_lsdc_uzh.gbert-base.orig.60.upos.cfg
-python 0.data_prep.py ../configs/0.hdt-noah_lsdc_uzh.gbert-large.orig.60.upos.cfg
-python 0.data_prep.py ../configs/0.hdt-noah_lsdc_uzh.mbert-cased.orig.60.upos.cfg
-python 0.data_prep.py ../configs/0.hdt-noah_lsdc_uzh.europeana-deu.orig.60.upos.cfg
+python 0.data-matrix_prep.py ../configs/0.hdt-noah_lsdc_uzh.dbmdz-cased.orig.60.upos.cfg
+python 0.data-matrix_prep.py ../configs/0.hdt-noah_lsdc_uzh.dbmdz-uncased.orig.60.upos.cfg
+python 0.data-matrix_prep.py ../configs/0.hdt-noah_lsdc_uzh.gbert-base.orig.60.upos.cfg
+python 0.data-matrix_prep.py ../configs/0.hdt-noah_lsdc_uzh.gbert-large.orig.60.upos.cfg
+python 0.data-matrix_prep.py ../configs/0.hdt-noah_lsdc_uzh.mbert-cased.orig.60.upos.cfg
+python 0.data-matrix_prep.py ../configs/0.hdt-noah_lsdc_uzh.europeana-deu.orig.60.upos.cfg
 ```
 
-3. Run baselines:
+3. Run baselines: (The results are saved in `results`, in folders named after the configs.)
 
 ```
 # Vanilla STTS data:
@@ -53,6 +55,8 @@ python run.py -c ../configs/hdt-noah.gbert-base.orig.60.stts.cfg --test_per_epoc
 python run.py -c ../configs/hdt-noah.gbert-large.orig.60.stts.cfg --test_per_epoch
 python run.py -c ../configs/hdt-noah.mbert-cased.orig.60.stts.cfg --test_per_epoch
 python run.py -c ../configs/hdt-noah.europeana-deu.orig.60.stts.cfg --test_per_epoch
+
+python run.py -c ../configs/hdt-noah.dbmdz-cased.orig.60_first.stts.cfg --test_per_epoch
 
 # dbmdz-cased with random noise (STTS):
 python run.py -c ../configs/hdt-noah.dbmdz-cased.randnoise10-15.60.stts.cfg --test_per_epoch

@@ -1,6 +1,5 @@
 class Config:
     __slots__ = 'config_name', 'name_train', 'name_dev', 'name_test', \
-                'orig_file_traindev', 'orig_file_test', \
                 'tagset_path', \
                 'max_sents_traindev', 'max_sents_test', \
                 'dev_ratio', \

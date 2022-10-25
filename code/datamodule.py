@@ -25,6 +25,9 @@ class PosDataModule(pl.LightningDataModule):
             self.tokenizer = AutoTokenizer.from_pretrained(
                 config.tokenizer_name)
 
+    def idx2pos(self):
+        return {self.pos2idx[pos]: pos for pos in self.pos2idx}
+
     def prepare_data(self):
         # Training/validation data: HRL tokens
         if self.config.prepare_input_traindev:
@@ -50,9 +53,9 @@ class PosDataModule(pl.LightningDataModule):
                                pos_orig=pos_dev, pos2idx=self.pos2idx)
                 else:
                     print("Extracting data from train and dev corpora")
-                    train = Data(self.train_name,
+                    train = Data(self.train_name, pos2idx=self.pos2idx,
                                  raw_data_path=self.config.orig_file_train)
-                    dev = Data(self.dev_name,
+                    dev = Data(self.dev_name, pos2idx=self.pos2idx,
                                raw_data_path=self.config.orig_file_dev)
             # Prepare input matrices for finetuning
             alphabet = train.alphabet()
