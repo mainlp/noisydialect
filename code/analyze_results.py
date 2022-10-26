@@ -3,7 +3,7 @@ import numpy as np
 import re
 import sys
 
-pattern = re.compile("(val|test)_(f1|acc)_epoch[0-9]+$")
+pattern = re.compile("(dev|val|test).*_(f1|acc)_epoch[0-9]+$")
 
 
 def average_scores(directory):
@@ -15,7 +15,8 @@ def average_scores(directory):
         with open(res_file) as f:
             for line in f:
                 line = line.strip()
-                if (line.startswith("test") or line.startswith("val")) \
+                if (line.startswith("test") or line.startswith("dev")
+                    or line.startswith("val")) \
                         and not line.endswith("loss"):
                     metric, score = line.split("\t")
                     scores_for_metric = scores_all.get(metric, [])
@@ -34,7 +35,15 @@ def average_scores(directory):
         epoch2data2metric = {}
         max_epoch = -1
         for key in scores_all:
-            data, metric, epochstr = key.split("_")
+            cells = key.split("_")
+            data = cells[0]
+            metric = cells[-2]
+            epochstr = cells[-1]
+            # TODO multi-UPOS scenarios
+            if data[:3] in ("dev", "val"):
+                data = "val"
+            elif data[:4] == "test":
+                data = "test"
             epoch = int(epochstr[5:])
             if epoch > max_epoch:
                 max_epoch = epoch
@@ -46,12 +55,13 @@ def average_scores(directory):
                 epoch2data2metric[epoch][data][metric] = {}
             epoch2data2metric[epoch][data][metric] = scores_all[key]
         with open(summary_file, "w") as f_out:
-            f_out.write("EPOCH\tF1 (TEST)\tSTDEV (F1 TEST)\t"
+            f_out.write("N_RUNS\tEPOCH\tF1 (TEST)\tSTDEV (F1 TEST)\t"
                         "ACC (TEST)\tSTDEV (ACC TEST)\t"
                         "F1 (VAL)\tSTDEV (F1 VAL)\t"
                         "ACC (VAL)\tSTDEV (ACC VAL)\n")
             for epoch in range(1, 1 + max_epoch):
-                f_out.write(f"{epoch}")
+                n_runs = len(epoch2data2metric[epoch]["test"]["f1"])
+                f_out.write(f"{n_runs}\t{epoch}")
                 for data in ("test", "val"):
                     for metric in ("f1", "acc"):
                         scores = epoch2data2metric[epoch][data][metric]

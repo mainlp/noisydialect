@@ -27,14 +27,13 @@ python 0.corpus_prep.py --type ud --dir ../datasets/UD_Low_Saxon-LSDC/ --files n
 
 ```
 # Vanilla STTS data:
+python 0.data-matrix_prep.py ../configs/0.hdt-noah.dbmdz-cased_first.orig.60.stts.cfg
 python 0.data-matrix_prep.py ../configs/0.hdt-noah.dbmdz-cased.orig.60.stts.cfg
 python 0.data-matrix_prep.py ../configs/0.hdt-noah.dbmdz-uncased.orig.60.stts.cfg
 python 0.data-matrix_prep.py ../configs/0.hdt-noah.gbert-base.orig.60.stts.cfg
 python 0.data-matrix_prep.py ../configs/0.hdt-noah.gbert-large.orig.60.stts.cfg
 python 0.data-matrix_prep.py ../configs/0.hdt-noah.mbert-cased.orig.60.stts.cfg
 python 0.data-matrix_prep.py ../configs/0.hdt-noah.europeana-deu.orig.60.stts.cfg
-
-python 0.data-matrix_prep.py ../configs/0.hdt-noah.dbmdz-cased_first.orig.60.stts.cfg
 
 # Vanilla UPOS data:
 python 0.data-matrix_prep.py ../configs/0.hdt-noah_lsdc_uzh.dbmdz-cased.orig.60.upos.cfg
@@ -49,14 +48,13 @@ python 0.data-matrix_prep.py ../configs/0.hdt-noah_lsdc_uzh.europeana-deu.orig.6
 
 ```
 # Vanilla STTS data:
+python run.py -c ../configs/hdt-noah.dbmdz-cased.orig.60_first.stts.cfg --test_per_epoch
 python run.py -c ../configs/hdt-noah.dbmdz-cased.orig.60.stts.cfg --test_per_epoch
 python run.py -c ../configs/hdt-noah.dbmdz-uncased.orig.60.stts.cfg --test_per_epoch
 python run.py -c ../configs/hdt-noah.gbert-base.orig.60.stts.cfg --test_per_epoch
 python run.py -c ../configs/hdt-noah.gbert-large.orig.60.stts.cfg --test_per_epoch
 python run.py -c ../configs/hdt-noah.mbert-cased.orig.60.stts.cfg --test_per_epoch
 python run.py -c ../configs/hdt-noah.europeana-deu.orig.60.stts.cfg --test_per_epoch
-
-python run.py -c ../configs/hdt-noah.dbmdz-cased.orig.60_first.stts.cfg --test_per_epoch
 
 # dbmdz-cased with random noise (STTS):
 python run.py -c ../configs/hdt-noah.dbmdz-cased.randnoise10-15.60.stts.cfg --test_per_epoch
@@ -69,5 +67,6 @@ python run.py -c ../configs/hdt-noah_lsdc_uzh.dbmdz-cased.orig.60.upos.cfg --tes
 python run.py -c ../configs/hdt-noah_lsdc_uzh.dbmdz-uncased.orig.60.upos.cfg --test_per_epoch
 python run.py -c ../configs/hdt-noah_lsdc_uzh.gbert-base.orig.60.upos.cfg --test_per_epoch
 python run.py -c ../configs/hdt-noah_lsdc_uzh.gbert-large.orig.60.upos.cfg --test_per_epoch
+python run.py -c ../configs/hdt-noah_lsdc_uzh.mbert-cased.orig.60.upos.cfg --test_per_epoch
 python run.py -c ../configs/hdt-noah_lsdc_uzh.europeana-deu.orig.60.upos.cfg --test_per_epoch
 ```
