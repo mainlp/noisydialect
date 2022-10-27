@@ -11,7 +11,7 @@ class Config:
                 'subtoken_rep', 'tokenizer_name', \
                 'use_sca_tokenizer', 'sca_sibling_weighting', \
                 'noise_type', 'noise_lvl_min', 'noise_lvl_max', \
-                'data_parent_dir', 'bert_name', \
+                'data_parent_dir', 'bert_name', 'plm_type',\
                 'classifier_dropout', 'n_epochs', 'batch_size', \
                 'learning_rate', 'sanity_mod', \
                 'random_seeds'
@@ -61,6 +61,7 @@ class Config:
                  data_parent_dir="../data/",
                  # Model:
                  bert_name="dbmdz/bert-base-german-cased",
+                 plm_type="BertForMaskedLM",
                  # TODO: continued pretraining
                  classifier_dropout=0.1,
                  # Training:
@@ -98,6 +99,9 @@ class Config:
         self.noise_lvl_max = noise_lvl_max
         self.data_parent_dir = data_parent_dir
         self.bert_name = bert_name
+        # plm_type options: BertForMaskedLM, BertForPreTraining,
+        # RobertaForMaskedLM, XLMRobertaForMaskedLM
+        self.plm_type = plm_type
         self.classifier_dropout = classifier_dropout
         self.n_epochs = n_epochs
         self.batch_size = batch_size

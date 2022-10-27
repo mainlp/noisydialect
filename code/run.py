@@ -74,7 +74,7 @@ def main(config_path, gpus=[0], dryrun=False,
         if test_per_epoch:
             val_data_names += [name for name in config.name_test.split(",")]
 
-        model = Classifier(config.bert_name, pos2idx,
+        model = Classifier(config.bert_name, config.plm_type, pos2idx,
                            config.classifier_dropout,
                            config.learning_rate, config.use_sca_tokenizer,
                            subtok2weight, val_data_names)

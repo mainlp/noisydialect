@@ -2,20 +2,23 @@ from data import DUMMY_POS
 from embeddings import CombinedEmbeddings
 
 import copy
+import sys
 
 import numpy as np
 import pytorch_lightning as pl
 from sklearn.metrics import accuracy_score, f1_score
 import torch
 from torch.nn import CrossEntropyLoss
-from transformers import BertForTokenClassification, BertModel
+from transformers import BertForTokenClassification, BertForMaskedLM, \
+    BertForPreTraining, BertModel, RobertaForMaskedLM, \
+    RobertaForTokenClassification, XLMRobertaForMaskedLM, \
+    XLMRobertaForTokenClassification
 from transformers.modeling_outputs import \
     BaseModelOutputWithPoolingAndCrossAttentions
-from transformers.models.bert.modeling_bert import BertForMaskedLM
 
 
 class Classifier(pl.LightningModule):
-    def __init__(self, pretrained_model_name_or_path,
+    def __init__(self, pretrained_model_name_or_path, plm_type,
                  pos2idx, classifier_dropout, learning_rate,
                  use_sca_embeddings=False, subtok2weight=None,
                  val_data_names=["dev"],
@@ -30,17 +33,42 @@ class Classifier(pl.LightningModule):
         )
         TODO This should be modified when/if I add a continued pretraining option
         """
-        self.pretraining_model = BertForMaskedLM.from_pretrained(
-            pretrained_model_name_or_path)
+        if plm_type == "BertForMaskedLM":
+            self.pretraining_model = BertForMaskedLM.from_pretrained(
+                pretrained_model_name_or_path)
+        elif plm_type == "BertForPreTraining":
+            self.pretraining_model = BertForPreTraining.from_pretrained(
+                pretrained_model_name_or_path)
+        elif plm_type == "RobertaForMaskedLM":
+            self.pretraining_model = RobertaForMaskedLM.from_pretrained(
+                pretrained_model_name_or_path)
+        elif plm_type == "XLMRobertaForMaskedLM":
+            self.pretraining_model = XLMRobertaForMaskedLM.from_pretrained(
+                pretrained_model_name_or_path)
+        else:
+            print("Could not recognize PLM type: " + plm_type)
+            print("Quitting.")
+            sys.exit(1)
         if print_model_structures:
             print("Pretraining model")
             print(self.pretraining_model)
         config = copy.deepcopy(self.pretraining_model.config)
         config.__setattr__("label2id", pos2idx)
         config.__setattr__("id2label", {pos2idx[pos]: pos for pos in pos2idx})
-        config.__setattr__("architectures", ["BertForTokenClassification"])
-        self.finetuning_model = BertForTokenClassification(config)
+        if plm_type in ("BertForMaskedLM", "BertForPreTraining"):
+            config.__setattr__("architectures",
+                               ["BertForTokenClassification"])
+            self.finetuning_model = BertForTokenClassification(config)
+        elif plm_type == "RobertaForMaskedLM":
+            config.__setattr__("architectures",
+                               ["RobertaForTokenClassification"])
+            self.finetuning_model = RobertaForTokenClassification(config)
+        elif plm_type == "XLMRobertaForMaskedLM":
+            config.__setattr__("architectures",
+                               ["XLMRobertaForTokenClassification"])
+            self.finetuning_model = XLMRobertaForTokenClassification(config)
         if use_sca_embeddings:
+            # Note this currently only works with BERT!
             sca_bert = BertForCombinedEmbeddings(self.pretraining_model.bert)
             self.pretraining_model.bert = sca_bert
             self.finetuning_model.bert = sca_bert
@@ -51,7 +79,12 @@ class Classifier(pl.LightningModule):
             self.finetuning_model.embeddings = sca_embeddings
             self.finetuning_model.bert.embeddings = sca_embeddings
         else:
-            self.finetuning_model.bert = self.pretraining_model.bert
+            if plm_type in ("BertForMaskedLM", "BertForPreTraining"):
+                self.finetuning_model.bert = self.pretraining_model.bert
+                self.is_roberta = False
+            else:
+                self.finetuning_model.roberta = self.pretraining_model.roberta
+                self.is_roberta = True
         if print_config or print_model_structures:
             print("Finetuning model")
             if print_config:
@@ -70,7 +103,10 @@ class Classifier(pl.LightningModule):
         self.epoch = 0
 
     def forward(self, input_ids, attention_mask):
-        outputs = self.finetuning_model.bert(input_ids, attention_mask)
+        if self.is_roberta:
+            outputs = self.finetuning_model.roberta(input_ids, attention_mask)
+        else:
+            outputs = self.finetuning_model.bert(input_ids, attention_mask)
         sequence_output = outputs[0]
         sequence_output = self.finetuning_model.dropout(sequence_output)
         logits = self.finetuning_model.classifier(sequence_output)
