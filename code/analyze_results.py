@@ -32,11 +32,16 @@ def average_scores(directory):
             break
 
     if table_compatible:
-        epoch2data2metric = {}
+        testset2epoch2data2metric = {}
         max_epoch = -1
         for key in scores_all:
             cells = key.split("_")
             data = cells[0]
+            testset = "-"
+            if "." in data:
+                data_details = data.split(".")
+                data = data_details[0]
+                testset = data_details[1]
             metric = cells[-2]
             epochstr = cells[-1]
             # TODO multi-UPOS scenarios
@@ -47,28 +52,42 @@ def average_scores(directory):
             epoch = int(epochstr[5:])
             if epoch > max_epoch:
                 max_epoch = epoch
-            if epoch not in epoch2data2metric:
-                epoch2data2metric[epoch] = {}
-            if data not in epoch2data2metric[epoch]:
-                epoch2data2metric[epoch][data] = {}
-            if metric not in epoch2data2metric[epoch][data]:
-                epoch2data2metric[epoch][data][metric] = {}
-            epoch2data2metric[epoch][data][metric] = scores_all[key]
+            if testset not in testset2epoch2data2metric:
+                testset2epoch2data2metric[testset] = {}
+            if epoch not in testset2epoch2data2metric[testset]:
+                testset2epoch2data2metric[testset][epoch] = {}
+            if data not in testset2epoch2data2metric[testset][epoch]:
+                testset2epoch2data2metric[testset][epoch][data] = {}
+            if metric not in testset2epoch2data2metric[testset][epoch][data]:
+                testset2epoch2data2metric[testset][epoch][data][metric] = {}
+            testset2epoch2data2metric[testset][epoch][data][metric] =\
+                scores_all[key]
         with open(summary_file, "w") as f_out:
             f_out.write("N_RUNS\tEPOCH\tF1 (TEST)\tSTDEV (F1 TEST)\t"
                         "ACC (TEST)\tSTDEV (ACC TEST)\t"
                         "F1 (VAL)\tSTDEV (F1 VAL)\t"
                         "ACC (VAL)\tSTDEV (ACC VAL)\n")
-            for epoch in range(1, 1 + max_epoch):
-                n_runs = len(epoch2data2metric[epoch]["test"]["f1"])
-                f_out.write(f"{n_runs}\t{epoch}")
-                for data in ("test", "val"):
-                    for metric in ("f1", "acc"):
-                        scores = epoch2data2metric[epoch][data][metric]
-                        n_runs = len(scores)
-                        avg = sum(scores) / n_runs
-                        stdev = np.std(scores)
-                        f_out.write(f"\t{avg}\t{stdev}")
+            for testset in testset2epoch2data2metric:
+                if testset != "-":
+                    f_out.write(testset)
+                    f_out.write("\n---------------------\n")
+                for epoch in range(1, 1 + max_epoch):
+                    try:
+                        n_runs = len(testset2epoch2data2metric[testset][epoch]["test"]["f1"])
+                    except KeyError:
+                        n_runs = len(testset2epoch2data2metric[testset][epoch]["val"]["f1"])
+                    f_out.write(f"{n_runs}\t{epoch}")
+                    for data in ("test", "val"):
+                        for metric in ("f1", "acc"):
+                            try:
+                                scores = testset2epoch2data2metric[testset][epoch][data][metric]
+                                n_runs = len(scores)
+                                avg = sum(scores) / n_runs
+                                stdev = np.std(scores)
+                                f_out.write(f"\t{avg}\t{stdev}")
+                            except KeyError:
+                                f_out.write("\t-\t-")
+                    f_out.write("\n")
                 f_out.write("\n")
 
     else:
