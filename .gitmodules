@@ -10,3 +10,6 @@
 [submodule "datasets/UD_Low_Saxon-LSDC"]
 	path = datasets/UD_Low_Saxon-LSDC
 	url = git@github.com:UniversalDependencies/UD_Low_Saxon-LSDC.git
+[submodule "datasets/UD_Dutch-Alpino"]
+	path = datasets/UD_Dutch-Alpino
+	url = git@github.com:UniversalDependencies/UD_Dutch-Alpino.git
