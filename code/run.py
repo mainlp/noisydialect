@@ -129,6 +129,8 @@ def main(config_path, gpus=[0], dryrun=False,
                         f.write("PREDICTED\tGOLD\n")
                         for p, g in zip(epoch_preds, epoch_gold):
                             f.write(f"{p}\t{g}\n")
+                            # If there is an unexpected 0th epoch, it is
+                            # due to model validation before training starts
         else:
             trainer.test(datamodule=dm)
             # trainer.logged_metrics got re-initialized during trainer.test()

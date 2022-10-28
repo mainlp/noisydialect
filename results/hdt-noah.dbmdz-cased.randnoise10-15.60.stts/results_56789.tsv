@@ -1,0 +1,8 @@
+dev.hdt.dbmdz-cased.randnoise10-15.60.stts_acc_epoch1	0.9768641531271973
+dev.hdt.dbmdz-cased.randnoise10-15.60.stts_f1_epoch1	0.8814017694795984
+test.noah.dbmdz-cased.orig.60.stts_acc_epoch1	0.7141600051871544
+test.noah.dbmdz-cased.orig.60.stts_f1_epoch1	0.4421112685823176
+dev.hdt.dbmdz-cased.randnoise10-15.60.stts_acc_epoch2	0.9769886063110209
+dev.hdt.dbmdz-cased.randnoise10-15.60.stts_f1_epoch2	0.9141494315011849
+test.noah.dbmdz-cased.orig.60.stts_acc_epoch2	0.7116127418742301
+test.noah.dbmdz-cased.orig.60.stts_f1_epoch2	0.44215856022247607

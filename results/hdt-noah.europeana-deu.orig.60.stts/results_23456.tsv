@@ -1,0 +1,8 @@
+dev.hdt.europeana-deu.orig.60.stts_acc_epoch1	0.9212470901022911
+dev.hdt.europeana-deu.orig.60.stts_f1_epoch1	0.7805022300866088
+test.noah.europeana-deu.orig.60.stts_acc_epoch1	0.39946234067207415
+test.noah.europeana-deu.orig.60.stts_f1_epoch1	0.23008529656267615
+dev.hdt.europeana-deu.orig.60.stts_acc_epoch2	0.9611743192555655
+dev.hdt.europeana-deu.orig.60.stts_f1_epoch2	0.8478671435173939
+test.noah.europeana-deu.orig.60.stts_acc_epoch2	0.4271796060254925
+test.noah.europeana-deu.orig.60.stts_f1_epoch2	0.24530980236784622

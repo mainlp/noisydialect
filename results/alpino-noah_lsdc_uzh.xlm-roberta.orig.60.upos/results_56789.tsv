@@ -1,0 +1,16 @@
+dev.alpino.xlm-roberta.orig.60.upos_acc_epoch1	0.9788106034182071
+dev.alpino.xlm-roberta.orig.60.upos_f1_epoch1	0.7862091697923965
+test.noah.xlm-roberta.orig.60.upos_acc_epoch1	0.521783729344623
+test.noah.xlm-roberta.orig.60.upos_f1_epoch1	0.39063959879107835
+test.lsdc.xlm-roberta.orig.60.upos_acc_epoch1	0.6276849642004774
+test.lsdc.xlm-roberta.orig.60.upos_f1_epoch1	0.42679543454005536
+test.uzh.xlm-roberta.orig.60.upos_acc_epoch1	0.45221606648199447
+test.uzh.xlm-roberta.orig.60.upos_f1_epoch1	0.3887214277281771
+dev.alpino.xlm-roberta.orig.60.upos_acc_epoch2	0.9821241716079525
+dev.alpino.xlm-roberta.orig.60.upos_f1_epoch2	0.832289015158854
+test.noah.xlm-roberta.orig.60.upos_acc_epoch2	0.5614252676340035
+test.noah.xlm-roberta.orig.60.upos_f1_epoch2	0.44351625826323215
+test.lsdc.xlm-roberta.orig.60.upos_acc_epoch2	0.6372315035799523
+test.lsdc.xlm-roberta.orig.60.upos_f1_epoch2	0.4861091725844624
+test.uzh.xlm-roberta.orig.60.upos_acc_epoch2	0.49722991689750695
+test.uzh.xlm-roberta.orig.60.upos_f1_epoch2	0.3896318896483093

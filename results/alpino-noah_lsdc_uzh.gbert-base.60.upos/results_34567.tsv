@@ -1,0 +1,16 @@
+dev.alpino.gbert-base.orig.60.upos_acc_epoch1	0.9319073083778966
+dev.alpino.gbert-base.orig.60.upos_f1_epoch1	0.7330533329664893
+test.noah.gbert-base.orig.60.upos_acc_epoch1	0.5915486434665012
+test.noah.gbert-base.orig.60.upos_f1_epoch1	0.41669038612379417
+test.lsdc.gbert-base.orig.60.upos_acc_epoch1	0.6752602875557759
+test.lsdc.gbert-base.orig.60.upos_f1_epoch1	0.46964472624759346
+test.uzh.gbert-base.orig.60.upos_acc_epoch1	0.5865650969529086
+test.uzh.gbert-base.orig.60.upos_f1_epoch1	0.4563484139174868
+dev.alpino.gbert-base.orig.60.upos_acc_epoch2	0.9506238859180036
+dev.alpino.gbert-base.orig.60.upos_f1_epoch2	0.7983259015927751
+test.noah.gbert-base.orig.60.upos_acc_epoch2	0.5817578895691883
+test.noah.gbert-base.orig.60.upos_f1_epoch2	0.44785678271195184
+test.lsdc.gbert-base.orig.60.upos_acc_epoch2	0.6747645017352504
+test.lsdc.gbert-base.orig.60.upos_f1_epoch2	0.4990080746800515
+test.uzh.gbert-base.orig.60.upos_acc_epoch2	0.5519390581717452
+test.uzh.gbert-base.orig.60.upos_f1_epoch2	0.41277429040143854

@@ -1,0 +1,16 @@
+dev.hdt.europeana-deu.orig.60.upos_acc_epoch1	0.921693326426552
+dev.hdt.europeana-deu.orig.60.upos_f1_epoch1	0.7944595001845866
+test.noah.europeana-deu.orig.60.upos_acc_epoch1	0.4136917728852839
+test.noah.europeana-deu.orig.60.upos_f1_epoch1	0.34853337773434995
+test.lsdc.europeana-deu.orig.60.upos_acc_epoch1	0.24001857010213556
+test.lsdc.europeana-deu.orig.60.upos_f1_epoch1	0.15391865789357945
+test.uzh.europeana-deu.orig.60.upos_acc_epoch1	0.3448753462603878
+test.uzh.europeana-deu.orig.60.upos_f1_epoch1	0.3320874422101285
+dev.hdt.europeana-deu.orig.60.upos_acc_epoch2	0.962506787160876
+dev.hdt.europeana-deu.orig.60.upos_f1_epoch2	0.8357023249929039
+test.noah.europeana-deu.orig.60.upos_acc_epoch2	0.4411309385863268
+test.noah.europeana-deu.orig.60.upos_f1_epoch2	0.35196706647917525
+test.lsdc.europeana-deu.orig.60.upos_acc_epoch2	0.25719591457753016
+test.lsdc.europeana-deu.orig.60.upos_f1_epoch2	0.1706457793137256
+test.uzh.europeana-deu.orig.60.upos_acc_epoch2	0.37534626038781166
+test.uzh.europeana-deu.orig.60.upos_f1_epoch2	0.3357770139252334

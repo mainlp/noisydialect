@@ -8,4 +8,3 @@ notes/
 datasets/*.tsv
 */lightning_logs/
 *BACKUP*
-results/
