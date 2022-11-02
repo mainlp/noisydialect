@@ -17,6 +17,27 @@ from transformers.modeling_outputs import \
     BaseModelOutputWithPoolingAndCrossAttentions
 
 
+def filter_predictions(y_pred, y_true, dummy_idx):
+    mask = np.nonzero(np.where(y_true == dummy_idx, 0, 1))
+    gold_filtered = np.asarray(y_true)[mask]
+    pred_filtered = np.asarray(y_pred)[mask]
+    return gold_filtered, pred_filtered
+
+
+def score(y_pred, y_true, dummy_idx):
+    # Simply using the mask as sample_weight is not sufficient for
+    # calculating the F1 score as the dummy class (which we want to
+    # completely ignore) would still be included in the calculation
+    # of the class-based averages. With zero_division=0, this would
+    # produce slightly too low F1 scores.
+    gold_filtered, pred_filtered = filter_predictions(y_pred, y_true,
+                                                      dummy_idx)
+    acc = accuracy_score(gold_filtered, pred_filtered)
+    f1_macro = f1_score(gold_filtered, pred_filtered,
+                        average='macro', zero_division=0)
+    return acc, f1_macro
+
+
 class Classifier(pl.LightningModule):
     def __init__(self, pretrained_model_name_or_path, plm_type,
                  pos2idx, classifier_dropout, learning_rate,
@@ -125,11 +146,7 @@ class Classifier(pl.LightningModule):
         return acc, f1_macro, y_pred, y_true
 
     def score(self, y_pred, y_true):
-        mask = np.where(y_true == self.dummy_idx, 0, 1)
-        acc = accuracy_score(y_true, y_pred, sample_weight=mask)
-        f1_macro = f1_score(y_true, y_pred, sample_weight=mask,
-                            average='macro', zero_division=0)
-        return acc, f1_macro
+        return score(y_pred, y_true, self.dummy_idx)
 
     def on_train_start(self):
         self.epoch = 0

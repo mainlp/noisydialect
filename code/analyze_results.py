@@ -3,6 +3,13 @@ import numpy as np
 import re
 import sys
 
+from data import DUMMY_POS
+import matplotlib.pyplot as plt
+from model import filter_predictions
+
+from sklearn.metrics import ConfusionMatrixDisplay, classification_report,\
+    confusion_matrix
+
 pattern = re.compile("(dev|val|test).*_(f1|acc)_epoch[0-9]+$")
 
 
@@ -100,6 +107,48 @@ def average_scores(directory):
                 stdev = np.std(scores)
                 f_out.write(f"{metric}\t{avg}\t{stdev}\t{n_runs}\n")
                 print(metric, avg, stdev, str(n_runs) + " run(s)")
+
+
+def tag_distributions_confusion_matrix(tagset_file, predictions_file,
+                                       pretty_confusion_matrix=False):
+    dummy_idx = None
+    idx2pos = []
+    with open(tagset_file) as in_file:
+        for line in in_file:
+            line = line.strip()
+            if line:
+                if line == DUMMY_POS:
+                    dummy_idx = len(idx2pos)
+                idx2pos.append(line)
+
+    preds, golds = [], []
+    header_found = False
+    with open(predictions_file) as in_file:
+        for line in in_file:
+            if not header_found:
+                header_found = True
+                continue
+            line = line.strip()
+            if not line:
+                continue
+            cells = line.split("\t")
+            golds.append(int(cells[1]))
+            preds.append(int(cells[0]))
+    gold_filtered, pred_filtered = filter_predictions(preds, golds, dummy_idx)
+    print(classification_report(gold_filtered, pred_filtered))
+    print("With DUMMY tag (ignored while training):")
+    print(confusion_matrix(golds, preds,
+                           labels=[i for i in range(len(idx2pos))]))
+    print("\nWithout DUMMY tag:")
+    cm = confusion_matrix(gold_filtered, pred_filtered,
+                          labels=[i for i in range(len(idx2pos))])
+    print(cm)
+    if pretty_confusion_matrix:
+        disp = ConfusionMatrixDisplay(confusion_matrix=cm,
+                                      display_labels=idx2pos)
+        disp.plot()
+        plt.xticks(rotation=90)
+        plt.show()
 
 
 if __name__ == "__main__":
