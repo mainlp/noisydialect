@@ -33,8 +33,6 @@ def read_raw_input(filename, max_sents=-1, verbose=True):
                     pos.append(cur_pos)
                     i += 1
                     cur_toks, cur_pos = [], []
-                    if max_sents == i:
-                        break
                     if verbose and i % 1000 == 0:
                         print(i)
                 continue
@@ -50,7 +48,13 @@ def read_raw_input(filename, max_sents=-1, verbose=True):
             toks.append(cur_toks)
             pos.append(cur_pos)
     assert len(toks) == len(pos), f"{len(toks)} == {len(pos)}"
-    return toks, pos
+    if max_sents >= i:
+        return toks, pos
+    toks_new, pos_new = [], []
+    for idx in random.sample(range(i), max_sents):
+        toks_new.append(toks[idx])
+        pos_new.append(pos[idx])
+    return toks_new, pos_new
 
 
 class Data:

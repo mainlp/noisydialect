@@ -41,12 +41,12 @@ class PosDataModule(pl.LightningDataModule):
                 if self.config.orig_file_traindev:
                     print("Extracting data from traindev corpus and splitting "
                           "them into train vs. dev")
+                    max_sents_traindev = self.config.max_sents_train + self.config.max_sents_dev
                     toks_td, pos_td = read_raw_input(
-                        self.config.orig_file_traindev,
-                        self.config.max_sents_traindev)
+                        self.config.orig_file_traindev, max_sents_traindev)
                     (toks_orig_train, toks_orig_dev,
                         pos_train, pos_dev) = train_test_split(
-                        toks_td, pos_td, test_size=self.config.dev_ratio)
+                        toks_td, pos_td, test_size=self.config.max_sents_dev / max_sents_traindev)
                     train = Data(self.train_name, toks_orig=toks_orig_train,
                                  pos_orig=pos_train, pos2idx=self.pos2idx)
                     dev = Data(self.dev_name, toks_orig=toks_orig_dev,
@@ -54,9 +54,11 @@ class PosDataModule(pl.LightningDataModule):
                 else:
                     print("Extracting data from train and dev corpora")
                     train = Data(self.train_name, pos2idx=self.pos2idx,
-                                 raw_data_path=self.config.orig_file_train)
+                                 raw_data_path=self.config.orig_file_train,
+                                 max_sents=self.config.max_sents_train)
                     dev = Data(self.dev_name, pos2idx=self.pos2idx,
-                               raw_data_path=self.config.orig_file_dev)
+                               raw_data_path=self.config.orig_file_dev,
+                                max_sents=self.config.max_sents_dev)
             # Prepare input matrices for finetuning
             alphabet = train.alphabet()
             train.add_noise(self.config.noise_type, self.config.noise_lvl_min,

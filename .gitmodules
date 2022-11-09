@@ -13,3 +13,10 @@
 [submodule "datasets/UD_Dutch-Alpino"]
 	path = datasets/UD_Dutch-Alpino
 	url = git@github.com:UniversalDependencies/UD_Dutch-Alpino.git
+[submodule "datasets/UD_Norwegian-NynorskLIA"]
+	path = datasets/UD_Norwegian-NynorskLIA
+	url = git@github.com:UniversalDependencies/UD_Norwegian-NynorskLIA.git
+[submodule "datasets/UD_Frisian-Frysk"]
+	path = datasets/UD_Frisian-Frysk
+	url = git@github.com:UniversalDependencies/UD_Frisian-Frysk.git
+	branch = dev

@@ -7,6 +7,7 @@ Sentence boundaries are indicated by empty lines.
 """
 
 from argparse import ArgumentParser
+from glob import glob
 
 
 def ud(input_files, out_file, tagfix, upos=True, verbose=True):
@@ -66,6 +67,8 @@ if __name__ == "__main__":
     parser.add_argument("--files", default="",
                         help="input file(s) within the data directory, "
                         "comma-separated")
+    parser.add_argument("--glob", default="",
+                        help="glob pattern (ignores --dir and --files)")
     parser.add_argument("--out", help="output file")
     parser.add_argument("--xpos", dest="upos", action="store_false",
                         default=True)
@@ -77,8 +80,11 @@ if __name__ == "__main__":
         tagfix["PAV"] = "PROAV"  # rename
         tagfix["PIDAT"] = "PIAT"  # merge
     if args.type == "ud":
-        input_files = [args.dir + "/" + f.strip()
-                       for f in args.files.split(",")]
+        if args.glob:
+            input_files = glob(args.glob)
+        else:
+            input_files = [args.dir + "/" + f.strip()
+                           for f in args.files.split(",")]
         ud(input_files, args.out, tagfix, args.upos)
     elif args.type == "noah":
         noah(args.dir + "/" + args.files, args.out)

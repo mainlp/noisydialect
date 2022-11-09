@@ -1,8 +1,7 @@
 class Config:
     __slots__ = 'config_name', 'name_train', 'name_dev', 'name_test', \
                 'tagset_path', \
-                'max_sents_traindev', 'max_sents_test', \
-                'dev_ratio', \
+                'max_sents_train', 'max_sents_dev', 'max_sents_test', \
                 'orig_dir_train', 'orig_dir_dev', 'T', \
                 'orig_file_traindev', 'orig_file_train', \
                 'orig_file_dev', 'orig_file_test', \
@@ -16,9 +15,9 @@ class Config:
                 'learning_rate', 'sanity_mod', \
                 'random_seeds'
 
-    ints = ['max_sents_traindev', 'max_sents_test', 'T', 'n_epochs',
-            'batch_size', 'sanity_mod']
-    floats = ['dev_ratio', 'noise_lvl_min', 'noise_lvl_max',
+    ints = ['max_sents_train', 'max_sents_dev', 'max_sents_test', 'T',
+            'n_epochs', 'batch_size', 'sanity_mod']
+    floats = ['noise_lvl_min', 'noise_lvl_max',
               'classifier_dropout', 'learning_rate']
     bools = ['prepare_input_traindev', 'prepare_input_test',
              'reinit_traindev_each_seed', 'reinit_test_each_seed',
@@ -35,9 +34,9 @@ class Config:
                  orig_file_train=None,  # ignored if orig_file_traindev
                  orig_file_dev=None,  # ignored if orig_file_traindev
                  orig_file_test=None,  # can be a comma-separated list
-                 max_sents_traindev=-1,  # -1: no max limit
+                 max_sents_train=-1,  # -1: no max limit
+                 max_sents_dev=-1,  # -1: no max limit
                  max_sents_test=-1,  # -1: no max limit
-                 dev_ratio=0.1,  # ignored unless orig_file_traindev
                  orig_dir_train=None,
                  orig_dir_dev=None,
                  tagset_path="../datasets/tagset_stts.txt",
@@ -79,9 +78,9 @@ class Config:
         self.orig_file_train = orig_file_train
         self.orig_file_dev = orig_file_dev
         self.orig_file_test = orig_file_test
-        self.max_sents_traindev = max_sents_traindev
+        self.max_sents_train = max_sents_train
+        self.max_sents_dev = max_sents_dev
         self.max_sents_test = max_sents_test
-        self.dev_ratio = dev_ratio
         self.orig_dir_train = orig_dir_train
         self.orig_dir_dev = orig_dir_dev
         self.tagset_path = tagset_path
