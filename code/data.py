@@ -15,12 +15,14 @@ DUMMY_POS = "<DUMMY>"
 
 
 # Preprocessing
-def read_raw_input(filename, max_sents=-1, choose_rand=False, verbose=True):
+def read_raw_input(filename, max_sents=-1, subset_selection="first",
+                   verbose=True):
     """
     Reads the original (non-BERT) tokens and their labels
     """
     if verbose:
         print("Reading data from " + filename)
+    choose_first = subset_selection == "first"
     toks, pos = [], []
     with open(filename, encoding="utf8") as f_in:
         cur_toks, cur_pos = [], []
@@ -35,7 +37,7 @@ def read_raw_input(filename, max_sents=-1, choose_rand=False, verbose=True):
                     cur_toks, cur_pos = [], []
                     if verbose and i % 1000 == 0:
                         print(i)
-                    if not choose_rand and i == max_sents:
+                    if choose_first and i == max_sents:
                         break
                 continue
             try:
@@ -49,9 +51,12 @@ def read_raw_input(filename, max_sents=-1, choose_rand=False, verbose=True):
         if cur_toks:
             toks.append(cur_toks)
             pos.append(cur_pos)
-    assert len(toks) == len(pos), f"{len(toks)} == {len(pos)}"
-    if not choose_rand or max_sents >= i or max_sents < 0:
+    length = len(toks)
+    assert length == len(pos), f"{len(toks)} == {len(pos)}"
+    if choose_first or max_sents >= i or max_sents < 0:
         return toks, pos
+    if subset_selection == "last":
+        return toks[length - max_sents:], pos[length - max_sents:]
     toks_new, pos_new = [], []
     for idx in random.sample(range(i), max_sents):
         toks_new.append(toks[idx])
@@ -70,7 +75,7 @@ class Data:
                  # If initializing from another dataset:
                  other_dir=None,
                  # If initializing from scratch:
-                 raw_data_path=None, max_sents=-1, choose_rand=False,
+                 raw_data_path=None, max_sents=-1, subset_selection="first",
                  ):
         self.name = name
         self.toks_orig = toks_orig
@@ -88,7 +93,7 @@ class Data:
             self.load_orig(other_dir)
         elif raw_data_path:
             print(f"Initializing {name} from scratch ({raw_data_path})")
-            self.read_raw_input(raw_data_path, max_sents, choose_rand)
+            self.read_raw_input(raw_data_path, max_sents, subset_selection)
         else:
             print(f"Initializing {name} from args only")
         print(self)
@@ -234,10 +239,10 @@ class Data:
 
     # ---- Adding noise ----
 
-    def read_raw_input(self, filename, max_sents, choose_rand=False,
+    def read_raw_input(self, filename, max_sents, subset_selection="first",
                        verbose=True):
         self.toks_orig, self.pos_orig = read_raw_input(
-            filename, max_sents, choose_rand, verbose)
+            filename, max_sents, subset_selection, verbose)
 
     def add_noise(self, noise_type, noise_lvl_min,
                   noise_lvl_max, target_alphabet):

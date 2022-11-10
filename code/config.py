@@ -2,7 +2,7 @@ class Config:
     __slots__ = 'config_name', 'name_train', 'name_dev', 'name_test', \
                 'tagset_path', \
                 'max_sents_train', 'max_sents_dev', 'max_sents_test', \
-                'choose_rand', \
+                'subset_selection', \
                 'orig_dir_train', 'orig_dir_dev', 'T', \
                 'orig_file_traindev', 'orig_file_train', \
                 'orig_file_dev', 'orig_file_test', \
@@ -22,7 +22,7 @@ class Config:
             'n_epochs', 'batch_size', 'sanity_mod')
     floats = ('noise_lvl_min', 'noise_lvl_max',
               'classifier_dropout', 'learning_rate')
-    bools = ('choose_rand', 'prepare_input_traindev', 'prepare_input_train',
+    bools = ('prepare_input_traindev', 'prepare_input_train',
              'prepare_input_dev', 'prepare_input_test',
              'reinit_traindev_each_seed', 'reinit_train_each_seed',
              'reinit_dev_each_seed', 'reinit_test_each_seed',
@@ -42,7 +42,7 @@ class Config:
                  max_sents_train=-1,  # -1: no max limit
                  max_sents_dev=-1,  # -1: no max limit
                  max_sents_test=-1,  # -1: no max limit
-                 choose_rand=False,
+                 subset_selection="first",  # {first, last, rand}
                  orig_dir_train=None,
                  orig_dir_dev=None,
                  tagset_path="../datasets/tagset_stts.txt",
@@ -61,13 +61,13 @@ class Config:
                  reinit_dev_each_seed=False,
                  reinit_test_each_seed=False,
                  T=60,
-                 subtoken_rep='last',  # 'first', 'last', 'all'
+                 subtoken_rep='last',  # {first, last, all}
                  tokenizer_name="dbmdz/bert-base-german-cased",
                  # If use_sca_tokenizer == True, tokenizer_name is
                  # the name of the base tokenizer from which the
                  # SCATokenizer is built.
                  use_sca_tokenizer=False,
-                 sca_sibling_weighting="relative",  # 'mean', 'relative'
+                 sca_sibling_weighting="relative",  # {mean, relative}
                  noise_type=None,  # None -> no noise
                  noise_lvl_min=0.1,
                  noise_lvl_max=0.15,
@@ -96,7 +96,7 @@ class Config:
         self.max_sents_train = max_sents_train
         self.max_sents_dev = max_sents_dev
         self.max_sents_test = max_sents_test
-        self.choose_rand = choose_rand
+        self.subset_selection = subset_selection
         self.orig_dir_train = orig_dir_train
         self.orig_dir_dev = orig_dir_dev
         self.tagset_path = tagset_path
