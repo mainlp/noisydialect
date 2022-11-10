@@ -28,8 +28,8 @@ def score(y_pred, y_true, dummy_idx):
     # Simply using the mask as sample_weight is not sufficient for
     # calculating the F1 score as the dummy class (which we want to
     # completely ignore) would still be included in the calculation
-    # of the class-based averages. With zero_division=0, this would
-    # produce slightly too low F1 scores.
+    # of the class-based averages. This would produce F1 macro scores
+    # that are slightly too low.
     gold_filtered, pred_filtered = filter_predictions(y_pred, y_true,
                                                       dummy_idx)
     acc = accuracy_score(gold_filtered, pred_filtered)

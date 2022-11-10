@@ -1,0 +1,16 @@
+test.uzh.dbmdz-cased.orig.60.upos_f1_epoch1	0.6703684119128662
+dev.hdt.dbmdz-cased.randnoise0-100.60.upos_acc_epoch1	0.9657848199531643
+test.uzh.dbmdz-cased.orig.60.upos_f1_epoch2	0.6608260427722651
+dev.hdt.dbmdz-cased.randnoise0-100.60.upos_f1_epoch1	0.8934176549752442
+test.uzh.dbmdz-cased.orig.60.upos_acc_epoch1	0.7382271468144044
+test.lsdc.dbmdz-cased.orig.60.upos_acc_epoch1	0.47198810114030737
+test.noah.dbmdz-cased.orig.60.upos_f1_epoch1	0.6664708984414189
+test.noah.dbmdz-cased.orig.60.upos_acc_epoch1	0.7757759890328736
+test.uzh.dbmdz-cased.orig.60.upos_acc_epoch2	0.7423822714681441
+test.lsdc.dbmdz-cased.orig.60.upos_f1_epoch2	0.5462537637781761
+test.noah.dbmdz-cased.orig.60.upos_acc_epoch2	0.7832325234579794
+test.lsdc.dbmdz-cased.orig.60.upos_f1_epoch1	0.429951655716892
+dev.hdt.dbmdz-cased.randnoise0-100.60.upos_f1_epoch2	0.9090707116381779
+test.lsdc.dbmdz-cased.orig.60.upos_acc_epoch2	0.5756073376301438
+dev.hdt.dbmdz-cased.randnoise0-100.60.upos_acc_epoch2	0.9686903078464278
+test.noah.dbmdz-cased.orig.60.upos_f1_epoch2	0.6970231753236307

@@ -1,0 +1,16 @@
+test.noah.dbmdz-uncased.orig.60.upos_f1_epoch2	0.4379627505981154
+test.noah.dbmdz-uncased.orig.60.upos_acc_epoch1	0.5845869477691154
+test.lsdc.dbmdz-uncased.orig.60.upos_acc_epoch2	0.6561065197428834
+dev.alpino.dbmdz-uncased.orig.60.upos_f1_epoch2	0.8456363475752071
+test.uzh.dbmdz-uncased.orig.60.upos_f1_epoch1	0.4336497063767279
+test.lsdc.dbmdz-uncased.orig.60.upos_f1_epoch2	0.4835157002336365
+test.noah.dbmdz-uncased.orig.60.upos_acc_epoch2	0.592721715896197
+test.noah.dbmdz-uncased.orig.60.upos_f1_epoch1	0.4024420327829901
+dev.alpino.dbmdz-uncased.orig.60.upos_acc_epoch1	0.9118140850048599
+dev.alpino.dbmdz-uncased.orig.60.upos_f1_epoch1	0.7675769630545551
+test.lsdc.dbmdz-uncased.orig.60.upos_f1_epoch1	0.4559777783204352
+test.lsdc.dbmdz-uncased.orig.60.upos_acc_epoch1	0.6538108356290174
+dev.alpino.dbmdz-uncased.orig.60.upos_acc_epoch2	0.935583635239021
+test.uzh.dbmdz-uncased.orig.60.upos_f1_epoch2	0.45611166676313913
+test.uzh.dbmdz-uncased.orig.60.upos_acc_epoch1	0.5637119113573407
+test.uzh.dbmdz-uncased.orig.60.upos_acc_epoch2	0.5581717451523546

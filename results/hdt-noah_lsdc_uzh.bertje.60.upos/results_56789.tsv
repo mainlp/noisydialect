@@ -1,0 +1,16 @@
+test.uzh.bertje.orig.60.upos_acc_epoch2	0.5777003484320558
+test.uzh.bertje.orig.60.upos_f1_epoch2	0.5232627507223022
+dev.hdt.bertje.orig.60.upos_acc_epoch1	0.9748590514080826
+dev.hdt.bertje.orig.60.upos_acc_epoch2	0.9764483410692797
+dev.hdt.bertje.orig.60.upos_f1_epoch1	0.9042647394268214
+test.noah.bertje.orig.60.upos_acc_epoch2	0.6393752957879791
+test.noah.bertje.orig.60.upos_acc_epoch1	0.635035393863721
+test.noah.bertje.orig.60.upos_f1_epoch1	0.5130868775766824
+test.uzh.bertje.orig.60.upos_f1_epoch1	0.5050339163710112
+test.lsdc.bertje.orig.60.upos_f1_epoch1	0.37890743024689877
+dev.hdt.bertje.orig.60.upos_f1_epoch2	0.919424968545035
+test.lsdc.bertje.orig.60.upos_acc_epoch2	0.4744114636642784
+test.lsdc.bertje.orig.60.upos_f1_epoch2	0.37760719533578047
+test.uzh.bertje.orig.60.upos_acc_epoch1	0.5672473867595819
+test.lsdc.bertje.orig.60.upos_acc_epoch1	0.4805527123848516
+test.noah.bertje.orig.60.upos_f1_epoch2	0.5292621540510497

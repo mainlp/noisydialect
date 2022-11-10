@@ -2,11 +2,14 @@ class Config:
     __slots__ = 'config_name', 'name_train', 'name_dev', 'name_test', \
                 'tagset_path', \
                 'max_sents_train', 'max_sents_dev', 'max_sents_test', \
+                'choose_rand', \
                 'orig_dir_train', 'orig_dir_dev', 'T', \
                 'orig_file_traindev', 'orig_file_train', \
                 'orig_file_dev', 'orig_file_test', \
-                'prepare_input_traindev', 'prepare_input_test', \
-                'reinit_traindev_each_seed', 'reinit_test_each_seed', \
+                'prepare_input_traindev', 'prepare_input_train', \
+                'prepare_input_dev', 'prepare_input_test', \
+                'reinit_traindev_each_seed', 'reinit_train_each_seed', \
+                'reinit_dev_each_seed', 'reinit_test_each_seed', \
                 'subtoken_rep', 'tokenizer_name', \
                 'use_sca_tokenizer', 'sca_sibling_weighting', \
                 'noise_type', 'noise_lvl_min', 'noise_lvl_max', \
@@ -15,14 +18,16 @@ class Config:
                 'learning_rate', 'sanity_mod', \
                 'random_seeds'
 
-    ints = ['max_sents_train', 'max_sents_dev', 'max_sents_test', 'T',
-            'n_epochs', 'batch_size', 'sanity_mod']
-    floats = ['noise_lvl_min', 'noise_lvl_max',
-              'classifier_dropout', 'learning_rate']
-    bools = ['prepare_input_traindev', 'prepare_input_test',
-             'reinit_traindev_each_seed', 'reinit_test_each_seed',
-             'use_sca_tokenizer']
-    lists_of_ints = ['random_seeds']
+    ints = ('max_sents_train', 'max_sents_dev', 'max_sents_test', 'T',
+            'n_epochs', 'batch_size', 'sanity_mod')
+    floats = ('noise_lvl_min', 'noise_lvl_max',
+              'classifier_dropout', 'learning_rate')
+    bools = ('choose_rand', 'prepare_input_traindev', 'prepare_input_train',
+             'prepare_input_dev', 'prepare_input_test',
+             'reinit_traindev_each_seed', 'reinit_train_each_seed',
+             'reinit_dev_each_seed', 'reinit_test_each_seed',
+             'use_sca_tokenizer')
+    lists_of_ints = ('random_seeds')
 
     def __init__(self,
                  config_name=None,
@@ -37,13 +42,23 @@ class Config:
                  max_sents_train=-1,  # -1: no max limit
                  max_sents_dev=-1,  # -1: no max limit
                  max_sents_test=-1,  # -1: no max limit
+                 choose_rand=False,
                  orig_dir_train=None,
                  orig_dir_dev=None,
                  tagset_path="../datasets/tagset_stts.txt",
                  # If the input matrices still need to be prepared:
+                 # If prepare_input_traindev == True, it overrides the
+                 # values of prepare_input_train and prepare_input_dev,
+                 # and if those two are True, the former is overriden
+                 # accordingly.
                  prepare_input_traindev=False,
+                 prepare_input_train=False,
+                 prepare_input_dev=False,
                  prepare_input_test=False,
+                 # Same for the reinit... values.
                  reinit_traindev_each_seed=False,
+                 reinit_train_each_seed=False,
+                 reinit_dev_each_seed=False,
                  reinit_test_each_seed=False,
                  T=60,
                  subtoken_rep='last',  # 'first', 'last', 'all'
@@ -81,13 +96,30 @@ class Config:
         self.max_sents_train = max_sents_train
         self.max_sents_dev = max_sents_dev
         self.max_sents_test = max_sents_test
+        self.choose_rand = choose_rand
         self.orig_dir_train = orig_dir_train
         self.orig_dir_dev = orig_dir_dev
         self.tagset_path = tagset_path
         self.T = T
         self.prepare_input_traindev = prepare_input_traindev
+        if prepare_input_traindev:
+            self.prepare_input_train = True
+            self.prepare_input_dev = True
+        else:
+            self.prepare_input_train = prepare_input_train
+            self.prepare_input_dev = prepare_input_dev
+            if prepare_input_train and prepare_input_dev:
+                self.prepare_input_traindev = True
         self.prepare_input_test = prepare_input_test
         self.reinit_traindev_each_seed = reinit_traindev_each_seed
+        if reinit_traindev_each_seed:
+            self.reinit_train_each_seed = True
+            self.reinit_dev_each_seed = True
+        else:
+            self.reinit_train_each_seed = reinit_train_each_seed
+            self.reinit_dev_each_seed = reinit_dev_each_seed
+            if reinit_train_each_seed and reinit_dev_each_seed:
+                self.reinit_traindev_each_seed = True
         self.reinit_test_each_seed = reinit_test_each_seed
         self.subtoken_rep = subtoken_rep
         self.tokenizer_name = tokenizer_name

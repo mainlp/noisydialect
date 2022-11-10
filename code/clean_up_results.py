@@ -1,6 +1,8 @@
 import glob
 import os
 
+import numpy as np
+
 from analyze_results import average_scores
 from model import score
 
@@ -20,9 +22,9 @@ def rescore_predictions(predictions_file, dummy_idx=0):
             if not line:
                 continue
             cells = line.split("\t")
-            golds.append(int(cells[1]))
             preds.append(int(cells[0]))
-    acc, f1_macro = score(golds, preds, dummy_idx)
+            golds.append(int(cells[1]))
+    acc, f1_macro = score(np.asarray(preds), np.asarray(golds), dummy_idx)
     return acc, f1_macro
 
 
@@ -38,22 +40,29 @@ def rescore_dir(directory):
             scores_for_seed = seed2scores.get(seed, set())
             scores_for_seed.add((f"{setup}_acc_epoch{epoch}", acc))
             scores_for_seed.add((f"{setup}_f1_epoch{epoch}", f1_macro))
+            seed2scores[seed] = scores_for_seed
         except IndexError:
             print("Skipping " + directory)
-            return
+            return False
     for seed in seed2scores:
-        with open(f"{directory}/results_{seed}.tsv") as f:
+        out_file = f"{directory}/results_{seed}.tsv"
+        print("- " + out_file)
+        with open(out_file, "w+") as f:
             for scenario, result in seed2scores[seed]:
                 f.write(f"{scenario}\t{result}\n")
     print("Re-scored " + directory)
+    return True
 
 
 if __name__ == "__main__":
-    for directory in glob.glob("../results/*"):
+    for path in glob.glob("../results/*"):
+        if os.path.isfile(path):
+            continue
         # Remove dummy predictions:
-        for filename in glob.glob(directory + "/*ep0.tsv"):
+        for filename in glob.glob(path + "/*ep0.tsv"):
             os.remove(filename)
         # Fix the old F1 scores:
-        rescore_dir(directory)
+        rescored = rescore_dir(path)
         # Use the new score summary script:
-        average_scores(directory)
+        if rescored:
+            average_scores(path)

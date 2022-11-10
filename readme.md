@@ -73,6 +73,9 @@ python 0.data-matrix_prep.py ../configs/0.hdt-noah_lsdc_uzh.xlm-roberta.orig.60.
 python 0.data-matrix_prep.py ../configs/0.hdt-noah_lsdc_uzh.bertje.orig.60.upos.cfg
 python 0.data-matrix_prep.py ../configs/0.hdt-noah_lsdc_uzh.bert-base-cased.orig.60.upos.cfg
 python 0.data-matrix_prep.py ../configs/0.hdt-noah_lsdc_uzh.bert-base-uncased.orig.60.upos.cfg
+python 0.data-matrix_prep.py ../configs/0.hdt-noah_lsdc_uzh.finnish-bert-cased.orig.60.upos.cfg
+
+python 0.data-matrix_prep.py ../configs/0.hdt_12k_f-noah_lsdc_uzh.dbmdz-cased.orig.60.upos.cfg
 
 python 0.data-matrix_prep.py ../configs/0.alpino-noah_lsdc_uzh.dbmdz-cased.orig.60.upos.cfg
 python 0.data-matrix_prep.py ../configs/0.alpino-noah_lsdc_uzh.dbmdz-uncased.orig.60.upos.cfg
@@ -82,6 +85,7 @@ python 0.data-matrix_prep.py ../configs/0.alpino-noah_lsdc_uzh.gbert-base.orig.6
 python 0.data-matrix_prep.py ../configs/0.alpino-noah_lsdc_uzh.xlm-roberta.orig.60.upos.cfg
 python 0.data-matrix_prep.py ../configs/0.alpino-noah_lsdc_uzh.bert-base-cased.orig.60.upos.cfg
 python 0.data-matrix_prep.py ../configs/0.alpino-noah_lsdc_uzh.bert-base-uncased.orig.60.upos.cfg
+python 0.data-matrix_prep.py ../configs/0.alpino-noah_lsdc_uzh.finnish-bert-cased.orig.60.upos.cfg
 ```
 
 4. Run baselines: (The results are saved in `results`, in folders named after the configs.)
@@ -119,6 +123,10 @@ python run.py -c ../configs/hdt-noah_lsdc_uzh.xlm-roberta.orig.60.upos.cfg --tes
 python run.py -c ../configs/hdt-noah_lsdc_uzh.bertje.orig.60.upos.cfg --test_per_epoch
 python run.py -c ../configs/hdt-noah_lsdc_uzh.bert-base-cased.orig.60.upos.cfg --test_per_epoch
 python run.py -c ../configs/hdt-noah_lsdc_uzh.bert-base-uncased.orig.60.upos.cfg --test_per_epoch
+python run.py -c ../configs/hdt-noah_lsdc_uzh.finnish-bert-cased.orig.60.upos.cfg --test_per_epoch
+
+python run.py -c ../configs/hdt_12k_f-noah_lsdc_uzh.dbmdz-cased.orig.60.upos.cfg --test_per_epoch
+python run.py -c ../configs/hdt_12k_r-noah_lsdc_uzh.dbmdz-cased.orig.60.upos.cfg --test_per_epoch
 
 python run.py -c ../configs/alpino-noah_lsdc_uzh.dbmdz-cased.orig.60.upos.cfg --test_per_epoch
 python run.py -c ../configs/alpino-noah_lsdc_uzh.dbmdz-uncased.orig.60.upos.cfg --test_per_epoch
@@ -128,6 +136,7 @@ python run.py -c ../configs/alpino-noah_lsdc_uzh.gbert-base.orig.60.upos.cfg --t
 python run.py -c ../configs/alpino-noah_lsdc_uzh.xlm-roberta.orig.60.upos.cfg --test_per_epoch
 python run.py -c ../configs/alpino-noah_lsdc_uzh.bert-base-cased.orig.60.upos.cfg --test_per_epoch
 python run.py -c ../configs/alpino-noah_lsdc_uzh.bert-base-uncased.orig.60.upos.cfg --test_per_epoch
+python run.py -c ../configs/alpino-noah_lsdc_uzh.finnish-bert-cased.orig.60.upos.cfg --test_per_epoch
 
 # dbmdz-cased with random noise (UPOS):
 python run.py -c ../configs/hdt-noah_lsdc_uzh.dbmdz-cased.randnoise10-15.60.upos.cfg --test_per_epoch
@@ -138,4 +147,9 @@ python run.py -c ../configs/hdt-noah_lsdc_uzh.dbmdz-cased.randnoise70-75.60.upos
 python run.py -c ../configs/hdt-noah_lsdc_uzh.dbmdz-cased.randnoise85-90.60.upos.cfg --test_per_epoch
 python run.py -c ../configs/hdt-noah_lsdc_uzh.dbmdz-cased.randnoise100.60.upos.cfg --test_per_epoch
 python run.py -c ../configs/hdt-noah_lsdc_uzh.dbmdz-cased.randnoise0-100.60.upos.cfg --test_per_epoch
+```
+
+5. Reformat results files:
+```
+python clean_up_results.py
 ```

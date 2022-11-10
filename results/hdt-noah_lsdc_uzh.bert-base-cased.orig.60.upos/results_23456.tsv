@@ -1,0 +1,16 @@
+test.uzh.bert-base-cased.orig.60.upos_acc_epoch2	0.5648854961832062
+test.lsdc.bert-base-cased.orig.60.upos_acc_epoch1	0.42141715503462973
+test.noah.bert-base-cased.orig.60.upos_f1_epoch2	0.5196142988029641
+dev.hdt.bert-base-cased.orig.60.upos_acc_epoch2	0.9783439664663125
+dev.hdt.bert-base-cased.orig.60.upos_f1_epoch2	0.9656166365657347
+test.lsdc.bert-base-cased.orig.60.upos_f1_epoch1	0.30094933538286894
+dev.hdt.bert-base-cased.orig.60.upos_f1_epoch1	0.9207954856076959
+test.noah.bert-base-cased.orig.60.upos_f1_epoch1	0.5071522790848711
+test.lsdc.bert-base-cased.orig.60.upos_acc_epoch2	0.42408098028769314
+test.uzh.bert-base-cased.orig.60.upos_acc_epoch1	0.563497571131159
+test.uzh.bert-base-cased.orig.60.upos_f1_epoch2	0.5042657269704675
+test.noah.bert-base-cased.orig.60.upos_acc_epoch1	0.620627339615335
+dev.hdt.bert-base-cased.orig.60.upos_acc_epoch1	0.9774686989284811
+test.noah.bert-base-cased.orig.60.upos_acc_epoch2	0.6153349683748548
+test.uzh.bert-base-cased.orig.60.upos_f1_epoch1	0.4911847146159721
+test.lsdc.bert-base-cased.orig.60.upos_f1_epoch2	0.3158617131070596

@@ -8,12 +8,12 @@ from transformers import AutoTokenizer
 
 
 class PosDataModule(pl.LightningDataModule):
-    def __init__(self, config, pos2idx, traindev_sfx="", test_sfx=""):
+    def __init__(self, config, pos2idx, train_sfx="", dev_sfx="", test_sfx=""):
         super().__init__()
         self.config = config
         self.pos2idx = pos2idx
-        self.train_name = config.name_train + traindev_sfx
-        self.dev_name = config.name_dev + traindev_sfx
+        self.train_name = config.name_train + train_sfx
+        self.dev_name = config.name_dev + dev_sfx
         self.test_names = [name_test + test_sfx
                            for name_test in config.name_test.split(",")]
         self.test_sfx = test_sfx
@@ -30,36 +30,50 @@ class PosDataModule(pl.LightningDataModule):
 
     def prepare_data(self):
         # Training/validation data: HRL tokens
-        if self.config.prepare_input_traindev:
-            if self.config.orig_dir_train and self.config.orig_dir_dev:
-                print("Constructing new data dirs based on existing dirs")
-                train = Data(self.train_name,
-                             other_dir=self.config.orig_dir_train)
-                dev = Data(self.dev_name,
-                           other_dir=self.config.orig_dir_dev)
-            else:
-                if self.config.orig_file_traindev:
-                    print("Extracting data from traindev corpus and splitting "
-                          "them into train vs. dev")
-                    max_sents_traindev = self.config.max_sents_train + self.config.max_sents_dev
-                    toks_td, pos_td = read_raw_input(
-                        self.config.orig_file_traindev, max_sents_traindev)
-                    (toks_orig_train, toks_orig_dev,
-                        pos_train, pos_dev) = train_test_split(
-                        toks_td, pos_td, test_size=self.config.max_sents_dev / max_sents_traindev)
-                    train = Data(self.train_name, toks_orig=toks_orig_train,
-                                 pos_orig=pos_train, pos2idx=self.pos2idx)
-                    dev = Data(self.dev_name, toks_orig=toks_orig_dev,
-                               pos_orig=pos_dev, pos2idx=self.pos2idx)
+        if self.config.prepare_input_traindev and \
+                self.config.orig_file_traindev:
+            print("Extracting data from traindev corpus and splitting "
+                  "them into train vs. dev")
+            max_sents_traindev = self.config.max_sents_train + \
+                self.config.max_sents_dev
+            dev_ratio = self.config.max_sents_dev / max_sents_traindev
+            toks_td, pos_td = read_raw_input(
+                self.config.orig_file_traindev, max_sents_traindev,
+                self.config.choose_rand)
+            (toks_orig_train, toks_orig_dev,
+                pos_train, pos_dev) = train_test_split(
+                toks_td, pos_td, test_size=dev_ratio)
+            train = Data(self.train_name, toks_orig=toks_orig_train,
+                         pos_orig=pos_train, pos2idx=self.pos2idx)
+            dev = Data(self.dev_name, toks_orig=toks_orig_dev,
+                       pos_orig=pos_dev, pos2idx=self.pos2idx)
+
+        else:
+            if self.config.prepare_input_train:
+                if self.config.orig_dir_train:
+                    print("Constructing new train data dir based on existing")
+                    train = Data(self.train_name,
+                                 other_dir=self.config.orig_dir_train)
                 else:
-                    print("Extracting data from train and dev corpora")
+                    print("Extracting data from train corpus")
                     train = Data(self.train_name, pos2idx=self.pos2idx,
                                  raw_data_path=self.config.orig_file_train,
-                                 max_sents=self.config.max_sents_train)
+                                 max_sents=self.config.max_sents_train,
+                                 choose_rand=self.config.choose_rand)
+            if self.config.prepare_input_dev:
+                if self.config.orig_dir_dev:
+                    print("Constructing new dev data dir based on existing")
+                    dev = Data(self.dev_name,
+                               other_dir=self.config.orig_dir_dev)
+                else:
+                    print("Extracting data from dev corpus")
                     dev = Data(self.dev_name, pos2idx=self.pos2idx,
                                raw_data_path=self.config.orig_file_dev,
-                                max_sents=self.config.max_sents_dev)
-            # Prepare input matrices for finetuning
+                               max_sents=self.config.max_sents_dev,
+                               choose_rand=self.config.choose_rand)
+
+        # Prepare input matrices for finetuning
+        if self.config.prepare_input_train:
             alphabet = train.alphabet()
             train.add_noise(self.config.noise_type, self.config.noise_lvl_min,
                             self.config.noise_lvl_max, alphabet)
@@ -70,6 +84,11 @@ class PosDataModule(pl.LightningDataModule):
             print(f"Subtoken ratio ({self.train_name}): {train.subtok_ratio(return_all=True)}")
             print(f"UNK ratio ({self.train_name}): {train.unk_ratio(return_all=True)}")
             print(f"Label distribution ({self.train_name}): {train.pos_y_distrib()}")
+        if self.config.prepare_input_dev:
+            if not alphabet:
+                train = Data(self.train_name,
+                             load_parent_dir=self.config.data_parent_dir)
+                alphabet = train.alphabet()
             dev.add_noise(self.config.noise_type, self.config.noise_lvl_min,
                           self.config.noise_lvl_max, alphabet)
             dev.prepare_xy(self.tokenizer, self.config.T,
@@ -87,8 +106,9 @@ class PosDataModule(pl.LightningDataModule):
                                    self.config.orig_file_test.split(","))]:
                 test = Data(test_name,
                             raw_data_path=orig_file_test,
+                            pos2idx=self.pos2idx,
                             max_sents=self.config.max_sents_test,
-                            pos2idx=self.pos2idx)
+                            choose_rand=self.config.choose_rand)
                 test.prepare_xy(self.tokenizer, self.config.T,
                                 self.config.subtoken_rep,
                                 alias_tokenizer=self.use_sca_tokenizer)

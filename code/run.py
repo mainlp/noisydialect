@@ -50,13 +50,16 @@ def main(config_path, gpus=[0], dryrun=False,
         else:
             deterministic = None
 
-        traindev_sfx, test_sfx = "", ""
-        if config.reinit_traindev_each_seed:
-            traindev_sfx = "_" + str(seed)
+        train_sfx, dev_sfx, test_sfx = "", "", ""
+        if config.reinit_train_each_seed:
+            train_sfx = "_" + str(seed)
+        if config.reinit_dev_each_seed:
+            dev_sfx = "_" + str(seed)
         if config.reinit_test_each_seed:
             test_sfx = "_" + str(seed)
         dm = PosDataModule(config, pos2idx,
-                           traindev_sfx=traindev_sfx, test_sfx=test_sfx)
+                           train_sfx=train_sfx, dev_sfx=dev_sfx,
+                           test_sfx=test_sfx)
         subtok2weight = None
         if config.use_sca_tokenizer and \
                 config.sca_sibling_weighting == 'relative':
