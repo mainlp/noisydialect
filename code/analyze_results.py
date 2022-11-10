@@ -1,116 +1,18 @@
-import glob
-import numpy as np
-import re
+from collections import Counter
 import sys
 
 from data import DUMMY_POS
 import matplotlib.pyplot as plt
 from model import filter_predictions
 
+import numpy as np
 from sklearn.metrics import ConfusionMatrixDisplay, classification_report,\
-    confusion_matrix
-
-pattern = re.compile("(dev|val|test).*_(f1|acc)_epoch[0-9]+$")
+    confusion_matrix, accuracy_score, f1_score
 
 
-def average_scores(directory):
-    # Average scores across initializations
-    scores_all = {}
-    for res_file in glob.glob(f"{directory}/results*.tsv"):
-        if res_file.endswith("AVG.tsv"):
-            continue
-        with open(res_file) as f:
-            for line in f:
-                line = line.strip()
-                if (line.startswith("test") or line.startswith("dev")
-                    or line.startswith("val")) \
-                        and not line.endswith("loss"):
-                    metric, score = line.split("\t")
-                    scores_for_metric = scores_all.get(metric, [])
-                    scores_for_metric.append(float(score))
-                    scores_all[metric] = scores_for_metric
-    summary_file = f"{directory}/results_AVG.tsv"
-    print("Writing average scores to " + summary_file)
-
-    table_compatible = True
-    for key in scores_all:
-        if not pattern.match(key):
-            table_compatible = False
-            break
-
-    if table_compatible:
-        testset2epoch2data2metric = {}
-        max_epoch = -1
-        for key in scores_all:
-            cells = key.split("_")
-            data = cells[0]
-            testset = "-"
-            if "." in data:
-                data_details = data.split(".")
-                data = data_details[0]
-                testset = data_details[1]
-            metric = cells[-2]
-            epochstr = cells[-1]
-            # TODO multi-UPOS scenarios
-            if data[:3] in ("dev", "val"):
-                data = "val"
-            elif data[:4] == "test":
-                data = "test"
-            epoch = int(epochstr[5:])
-            if epoch > max_epoch:
-                max_epoch = epoch
-            if testset not in testset2epoch2data2metric:
-                testset2epoch2data2metric[testset] = {}
-            if epoch not in testset2epoch2data2metric[testset]:
-                testset2epoch2data2metric[testset][epoch] = {}
-            if data not in testset2epoch2data2metric[testset][epoch]:
-                testset2epoch2data2metric[testset][epoch][data] = {}
-            if metric not in testset2epoch2data2metric[testset][epoch][data]:
-                testset2epoch2data2metric[testset][epoch][data][metric] = {}
-            testset2epoch2data2metric[testset][epoch][data][metric] =\
-                scores_all[key]
-        with open(summary_file, "w") as f_out:
-            f_out.write("N_RUNS\tEPOCH\tF1 (TEST)\tSTDEV (F1 TEST)\t"
-                        "ACC (TEST)\tSTDEV (ACC TEST)\t"
-                        "F1 (VAL)\tSTDEV (F1 VAL)\t"
-                        "ACC (VAL)\tSTDEV (ACC VAL)\n")
-            for testset in testset2epoch2data2metric:
-                if testset != "-":
-                    f_out.write(testset)
-                    f_out.write("\n---------------------\n")
-                for epoch in range(1, 1 + max_epoch):
-                    try:
-                        n_runs = len(testset2epoch2data2metric[testset][epoch]["test"]["f1"])
-                    except KeyError:
-                        n_runs = len(testset2epoch2data2metric[testset][epoch]["val"]["f1"])
-                    f_out.write(f"{n_runs}\t{epoch}")
-                    for data in ("test", "val"):
-                        for metric in ("f1", "acc"):
-                            try:
-                                scores = testset2epoch2data2metric[testset][epoch][data][metric]
-                                n_runs = len(scores)
-                                avg = sum(scores) / n_runs
-                                stdev = np.std(scores)
-                                f_out.write(f"\t{avg}\t{stdev}")
-                            except KeyError:
-                                f_out.write("\t-\t-")
-                    f_out.write("\n")
-                f_out.write("\n")
-
-    else:
-        with open(summary_file, "w") as f_out:
-            f_out.write("METRIC\tAVERAGE\tSTD_DEV\tN_RUNS\n")
-            for metric in scores_all:
-                scores = scores_all[metric]
-                n_runs = len(scores)
-                avg = sum(scores) / n_runs
-                stdev = np.std(scores)
-                f_out.write(f"{metric}\t{avg}\t{stdev}\t{n_runs}\n")
-                print(metric, avg, stdev, str(n_runs) + " run(s)")
-
-
-def tag_distributions_confusion_matrix(tagset_file, predictions_file,
-                                       pretty_confusion_matrix=False):
+def tag_distributions_confusion_matrix(predictions_file, tagset_file,
+                                       pretty_confusion_matrix=True,
+                                       ignore_dummies_in_cm=True):
     dummy_idx = None
     idx2pos = []
     with open(tagset_file) as in_file:
@@ -132,16 +34,35 @@ def tag_distributions_confusion_matrix(tagset_file, predictions_file,
             if not line:
                 continue
             cells = line.split("\t")
-            golds.append(int(cells[1]))
             preds.append(int(cells[0]))
-    gold_filtered, pred_filtered = filter_predictions(preds, golds, dummy_idx)
-    print(classification_report(gold_filtered, pred_filtered))
-    print("With DUMMY tag (ignored while training):")
-    print(confusion_matrix(golds, preds,
-                           labels=[i for i in range(len(idx2pos))]))
-    print("\nWithout DUMMY tag:")
-    cm = confusion_matrix(gold_filtered, pred_filtered,
-                          labels=[i for i in range(len(idx2pos))])
+            golds.append(int(cells[1]))
+
+    counter_g = Counter(golds)
+    counter_p = Counter(preds)
+    total = sum(counter_g.values())
+    print("TAG_IDX\tTAG\tGOLD_ABS\tGOLD_REL\tPRED_ABS\tPRED_REL")
+    for i in range(len(idx2pos)):
+        print(f"{i}\t{idx2pos[i]}\t{counter_g[i]}\t{counter_g[i] / total:.2f}\t{counter_p[i]}\t{counter_p[i] / total:.2f}")
+    golds_filtered, preds_filtered = filter_predictions(
+        np.asarray(preds), np.asarray(golds), dummy_idx)
+    print(len(golds), len(golds_filtered))
+    print(len(preds), len(preds_filtered))
+    acc = accuracy_score(golds_filtered, preds_filtered)
+    f1 = f1_score(golds_filtered, preds_filtered, average="macro",
+                  zero_division=0)
+    print(f"\nAccuracy: {acc:.4f}")
+    print(f"F1_macro: {f1:.4f}\n")
+
+    print(classification_report(golds_filtered, preds_filtered))
+
+    if ignore_dummies_in_cm:
+        print("\nWithout DUMMY tag:")
+        cm = confusion_matrix(golds_filtered, preds_filtered,
+                              labels=[i for i in range(len(idx2pos))])
+    else:
+        print("With DUMMY tag (ignored while training):")
+        cm = confusion_matrix(golds, preds,
+                              labels=[i for i in range(len(idx2pos))])
     print(cm)
     if pretty_confusion_matrix:
         disp = ConfusionMatrixDisplay(confusion_matrix=cm,
@@ -152,7 +73,24 @@ def tag_distributions_confusion_matrix(tagset_file, predictions_file,
 
 
 if __name__ == "__main__":
-    if len(sys.argv) == 1:
-        print("Usage: analyze.py FILENAME")
+    if len(sys.argv) < 3:
+        print("Usage: analyze.py PRED_FILE TAGSET_FILE [--nop] [--incl]")
+        print("(--nop = don't visualize the confusion matrix)")
+        print("(--incl = include DUMMY_POS in the confusion matrix)")
         sys.exit(1)
-    average_scores(sys.argv[1])
+
+    pretty_confusion_matrix = True
+    ignore_dummies_in_cm = True
+    if len(sys.argv) > 3:
+        if sys.argv[3] == "--nop":
+            pretty_confusion_matrix = False
+        elif sys.argv[3] == "--incl":
+            ignore_dummies_in_cm = False
+        if len(sys.argv) > 4:
+            if sys.argv[4] == "--nop":
+                pretty_confusion_matrix = False
+            elif sys.argv[4] == "--incl":
+                ignore_dummies_in_cm = False
+    tag_distributions_confusion_matrix(sys.argv[1], sys.argv[2],
+                                       pretty_confusion_matrix,
+                                       ignore_dummies_in_cm)

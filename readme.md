@@ -75,7 +75,16 @@ python 0.data-matrix_prep.py ../configs/0.hdt-noah_lsdc_uzh.bert-base-cased.orig
 python 0.data-matrix_prep.py ../configs/0.hdt-noah_lsdc_uzh.bert-base-uncased.orig.60.upos.cfg
 python 0.data-matrix_prep.py ../configs/0.hdt-noah_lsdc_uzh.finnish-bert-cased.orig.60.upos.cfg
 
+python 0.data-matrix_prep.py ../configs/0.hdt_6k_f-noah_lsdc_uzh.dbmdz-cased.orig.60.upos.cfg
 python 0.data-matrix_prep.py ../configs/0.hdt_12k_f-noah_lsdc_uzh.dbmdz-cased.orig.60.upos.cfg
+python 0.data-matrix_prep.py ../configs/0.hdt_12k_l-noah_lsdc_uzh.dbmdz-cased.orig.60.upos.cfg
+python 0.data-matrix_prep.py ../configs/0.hdt_24k_f-noah_lsdc_uzh.dbmdz-cased.orig.60.upos.cfg
+python 0.data-matrix_prep.py ../configs/0.hdt_48k_f-noah_lsdc_uzh.dbmdz-cased.orig.60.upos.cfg
+
+python 0.data-matrix_prep.py ../configs/0.hdt_6k_f-noah_lsdc_uzh.bert-base-cased.orig.60.upos.cfg
+python 0.data-matrix_prep.py ../configs/0.hdt_12k_f-noah_lsdc_uzh.bert-base-cased.orig.60.upos.cfg
+python 0.data-matrix_prep.py ../configs/0.hdt_24k_f-noah_lsdc_uzh.bert-base-cased.orig.60.upos.cfg
+python 0.data-matrix_prep.py ../configs/0.hdt_48k_f-noah_lsdc_uzh.bert-base-cased.orig.60.upos.cfg
 
 python 0.data-matrix_prep.py ../configs/0.alpino-noah_lsdc_uzh.dbmdz-cased.orig.60.upos.cfg
 python 0.data-matrix_prep.py ../configs/0.alpino-noah_lsdc_uzh.dbmdz-uncased.orig.60.upos.cfg
@@ -125,8 +134,25 @@ python run.py -c ../configs/hdt-noah_lsdc_uzh.bert-base-cased.orig.60.upos.cfg -
 python run.py -c ../configs/hdt-noah_lsdc_uzh.bert-base-uncased.orig.60.upos.cfg --test_per_epoch
 python run.py -c ../configs/hdt-noah_lsdc_uzh.finnish-bert-cased.orig.60.upos.cfg --test_per_epoch
 
+python run.py -c ../configs/hdt_6k_f-noah_lsdc_uzh.dbmdz-cased.orig.60.upos.cfg --test_per_epoch
+python run.py -c ../configs/hdt_6r_f-noah_lsdc_uzh.dbmdz-cased.orig.60.upos.cfg --test_per_epoch
 python run.py -c ../configs/hdt_12k_f-noah_lsdc_uzh.dbmdz-cased.orig.60.upos.cfg --test_per_epoch
+python run.py -c ../configs/hdt_12k_l-noah_lsdc_uzh.dbmdz-cased.orig.60.upos.cfg --test_per_epoch
 python run.py -c ../configs/hdt_12k_r-noah_lsdc_uzh.dbmdz-cased.orig.60.upos.cfg --test_per_epoch
+python run.py -c ../configs/hdt_24k_f-noah_lsdc_uzh.dbmdz-cased.orig.60.upos.cfg --test_per_epoch
+python run.py -c ../configs/hdt_24k_r-noah_lsdc_uzh.dbmdz-cased.orig.60.upos.cfg --test_per_epoch
+python run.py -c ../configs/hdt_48k_f-noah_lsdc_uzh.dbmdz-cased.orig.60.upos.cfg --test_per_epoch
+python run.py -c ../configs/hdt_48k_r-noah_lsdc_uzh.dbmdz-cased.orig.60.upos.cfg --test_per_epoch
+
+python run.py -c ../configs/hdt_6k_f-noah_lsdc_uzh.bert-base-cased.orig.60.upos.cfg --test_per_epoch
+python run.py -c ../configs/hdt_6r_f-noah_lsdc_uzh.bert-base-cased.orig.60.upos.cfg --test_per_epoch
+python run.py -c ../configs/hdt_12k_f-noah_lsdc_uzh.bert-base-cased.orig.60.upos.cfg --test_per_epoch
+python run.py -c ../configs/hdt_12k_l-noah_lsdc_uzh.bert-base-cased.orig.60.upos.cfg --test_per_epoch
+python run.py -c ../configs/hdt_12k_r-noah_lsdc_uzh.bert-base-cased.orig.60.upos.cfg --test_per_epoch
+python run.py -c ../configs/hdt_24k_f-noah_lsdc_uzh.bert-base-cased.orig.60.upos.cfg --test_per_epoch
+python run.py -c ../configs/hdt_24k_r-noah_lsdc_uzh.bert-base-cased.orig.60.upos.cfg --test_per_epoch
+python run.py -c ../configs/hdt_48k_f-noah_lsdc_uzh.bert-base-cased.orig.60.upos.cfg --test_per_epoch
+python run.py -c ../configs/hdt_48k_r-noah_lsdc_uzh.bert-base-cased.orig.60.upos.cfg --test_per_epoch
 
 python run.py -c ../configs/alpino-noah_lsdc_uzh.dbmdz-cased.orig.60.upos.cfg --test_per_epoch
 python run.py -c ../configs/alpino-noah_lsdc_uzh.dbmdz-uncased.orig.60.upos.cfg --test_per_epoch

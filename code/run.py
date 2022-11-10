@@ -1,4 +1,4 @@
-from analyze_results import average_scores
+from clean_up_results import average_scores
 from config import Config
 from datamodule import PosDataModule
 from model import Classifier
