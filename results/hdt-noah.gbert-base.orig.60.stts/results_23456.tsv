@@ -1,8 +1,8 @@
 dev.hdt.gbert-base.orig.60.stts_acc_epoch1	0.981012481846979
-dev.hdt.gbert-base.orig.60.stts_f1_epoch1	0.9172347442667554
+dev.hdt.gbert-base.orig.60.stts_f1_epoch1	0.9355794391520905
 test.noah.gbert-base.orig.60.stts_acc_epoch1	0.48465621208051207
-test.noah.gbert-base.orig.60.stts_f1_epoch1	0.31728656623933726
+test.noah.gbert-base.orig.60.stts_f1_epoch1	0.3232731052249852
 dev.hdt.gbert-base.orig.60.stts_acc_epoch2	0.9813933469371325
-dev.hdt.gbert-base.orig.60.stts_f1_epoch2	0.9280061210487557
+dev.hdt.gbert-base.orig.60.stts_f1_epoch2	0.9465662434697307
 test.noah.gbert-base.orig.60.stts_acc_epoch2	0.49498420696745987
-test.noah.gbert-base.orig.60.stts_f1_epoch2	0.3269116168374003
+test.noah.gbert-base.orig.60.stts_f1_epoch2	0.3330797605513135

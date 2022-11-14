@@ -1,8 +1,8 @@
 dev.hdt.mbert-cased.orig.60.stts_acc_epoch1	0.9798086610955665
-dev.hdt.mbert-cased.orig.60.stts_f1_epoch1	0.8841613838299021
+dev.hdt.mbert-cased.orig.60.stts_f1_epoch1	0.9018446115065002
 test.noah.mbert-cased.orig.60.stts_acc_epoch1	0.5714112783075089
-test.noah.mbert-cased.orig.60.stts_f1_epoch1	0.35454364019518114
+test.noah.mbert-cased.orig.60.stts_f1_epoch1	0.3612331428403732
 dev.hdt.mbert-cased.orig.60.stts_acc_epoch2	0.9804418824454197
-dev.hdt.mbert-cased.orig.60.stts_f1_epoch2	0.905700113102575
+dev.hdt.mbert-cased.orig.60.stts_f1_epoch2	0.9238141153646263
 test.noah.mbert-cased.orig.60.stts_acc_epoch2	0.583814436829559
-test.noah.mbert-cased.orig.60.stts_f1_epoch2	0.35644134670783917
+test.noah.mbert-cased.orig.60.stts_f1_epoch2	0.36316665513628904
