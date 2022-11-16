@@ -55,8 +55,10 @@ python 0.corpus_prep.py --type ud --dir ../datasets/UD_Low_Saxon-LSDC/ --files n
 python 0.corpus_prep.py --type ud --dir ../datasets/UD_Frisian-Frysk/ --files fy-frysk-ud-all.conllu --out ../datasets/test_Frysk_UPOS.tsv
 
 # UD_Norwegian-NynorskLIA_dialect -- UPOS tags
-python 0.corpus_prep.py --type ud --dir ../datasets/UD_Norwegian-NynorskLIA_dialect/ --files no_nynorsklia_dialect-ud-test.conllu --out ../datasets/test_LIA_UPOS.tsv --phono
-python 0.corpus_prep.py --type ud --dir ../datasets/UD_Norwegian-NynorskLIA_dialect/ --files no_nynorsklia_dialect-ud-dev.conllu --out ../datasets/dev_LIA_UPOS.tsv --phono
+python 0.corpus_prep.py --type ud --dir ../datasets/UD_Norwegian-NynorskLIA_dialect/ --files no_nynorsklia_dialect-ud-test.conllu --out ../datasets/test_LIAdial_UPOS.tsv --phono
+python 0.corpus_prep.py --type ud --dir ../datasets/UD_Norwegian-NynorskLIA_dialect/ --files no_nynorsklia_dialect-ud-dev.conllu --out ../datasets/dev_LIAdial_UPOS.tsv --phono
+python 0.corpus_prep.py --type ud --dir ../datasets/UD_Norwegian-NynorskLIA_dialect/ --files no_nynorsklia_dialect-ud-test.conllu --out ../datasets/test_LIAnno_UPOS.tsv --phono --ortho
+python 0.corpus_prep.py --type ud --dir ../datasets/UD_Norwegian-NynorskLIA_dialect/ --files no_nynorsklia_dialect-ud-dev.conllu --out ../datasets/dev_LIAnno_UPOS.tsv --phono --ortho
 ```
 
 3. Extract feature matrices for those experiments where the input representations aren't modified: (This creates subfolders in `data`, containing the input representations.)

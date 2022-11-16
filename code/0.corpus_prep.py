@@ -1,8 +1,7 @@
 """
-Converts annotated corpus files into the format used here:
-https://github.com/noe-eva/NOAH-Corpus/blob/master/test_GSW_STTS.txt
-Each line contains a token and its POS tag, separated by a single
-blank space (this assumes no POS tags include blank spaces).
+Converts annotated corpus files with the format:
+TOKEN	TAG
+(tab-separated).
 Sentence boundaries are indicated by empty lines.
 """
 
@@ -10,7 +9,45 @@ from argparse import ArgumentParser
 from glob import glob
 
 
-def ud(input_files, out_file, tagfix, upos=True, phono=False, verbose=True):
+def ud(input_files, out_file, tagfix, upos=True, verbose=True):
+    if upos:
+        pos_idx = 3
+    else:  # XPOS
+        pos_idx = 4
+    with open(out_file, 'w', encoding="utf8") as f_out:
+        for in_file in input_files:
+            if verbose:
+                print("Reading " + in_file)
+            with open(in_file, encoding="utf8") as f_in:
+                first_sent = True
+                for line in f_in:
+                    line = line.strip()
+                    if not line:
+                        if not first_sent:
+                            f_out.write("\n")
+                        continue
+                    if line[0] == "#":
+                        # comment
+                        continue
+                    first_sent = False
+                    cells = line.split("\t")
+                    try:
+                        form = cells[1]
+                        pos = cells[pos_idx]
+                        pos = tagfix.get(pos, pos)
+                        if pos == "_":
+                            continue
+                        f_out.write(f"{form}\t{pos}\n")
+                    except IndexError:
+                        print("!!! malformed line:")
+                        print(line)
+                        print(in_file)
+                        print("(exiting)")
+                        return
+
+
+def ud_phono(input_files, out_file, tagfix, upos=True, ortho=False,
+             verbose=True):
     if upos:
         pos_idx = 3
     else:  # XPOS
@@ -37,12 +74,14 @@ def ud(input_files, out_file, tagfix, upos=True, phono=False, verbose=True):
                             n_sents += 1
                         continue
                     first_sent = False
-                    if phono and not next_has_phono:
+                    if not next_has_phono:
                         continue
                     cells = line.split("\t")
                     try:
-                        form = None
-                        if phono:
+                        if ortho:
+                            form = cells[1]
+                        else:
+                            form = None
                             misc_entries = cells[-1].split("|")
                             for entry in misc_entries:
                                 if entry.startswith("Phono="):
@@ -54,8 +93,6 @@ def ud(input_files, out_file, tagfix, upos=True, phono=False, verbose=True):
                                 print(in_file)
                                 print("(exiting)")
                                 return
-                        else:
-                            form = cells[1]
                         pos = cells[pos_idx]
                         pos = tagfix.get(pos, pos)
                         if pos == "_":
@@ -97,6 +134,7 @@ if __name__ == "__main__":
     parser.add_argument("--xpos", dest="upos", action="store_false",
                         default=True)
     parser.add_argument("--phono", action="store_true", default=False)
+    parser.add_argument("--ortho", action="store_true", default=False)
     parser.add_argument("--tigerize", action="store_true", default=False)
     args = parser.parse_args()
     tagfix = {}
@@ -110,6 +148,9 @@ if __name__ == "__main__":
         else:
             input_files = [args.dir + "/" + f.strip()
                            for f in args.files.split(",")]
-        ud(input_files, args.out, tagfix, args.upos, args.phono)
+        if args.phono:
+            ud_phono(input_files, args.out, tagfix, args.upos, args.ortho)
+        else:
+            ud(input_files, args.out, tagfix, args.upos)
     elif args.type == "noah":
         noah(args.dir + "/" + args.files, args.out)
