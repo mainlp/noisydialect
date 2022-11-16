@@ -120,6 +120,49 @@ def noah(in_file, out_file):
                 f_out.write(f"{word}\t{word_pos}\n")
 
 
+def noah_excl(in_file, out_file, excl_file):
+    excl = []
+    with open(excl_file) as f:
+        sent = ""
+        for line in f:
+            if not line.strip():
+                if sent:
+                    excl.append(sent)
+                    sent = ""
+                continue
+            if sent:
+                sent += " "
+            sent += line.split("\t")[0]
+    n_skipped = 0
+    with open(out_file, 'w', encoding="utf8") as f_out:
+        with open(in_file, encoding="utf8") as f_in:
+            sent = []
+            sent_pos = []
+            for line in f_in:
+                line = line.strip()
+                if not line:
+                    joined_sent = " ".join(sent)
+                    if joined_sent in excl:
+                        print("Skipping sentence: " + joined_sent)
+                        n_skipped += 1
+                    else:
+                        for word, word_pos in zip(sent, sent_pos):
+                            f_out.write(f"{word}\t{word_pos}\n")
+                        f_out.write("\n")
+                    sent = []
+                    sent_pos = []
+                    continue
+                line = line.replace("\xa0", " ").replace("\t", " ")
+                word, _, word_pos = line.rpartition(" ")
+                sent.append(word)
+                sent_pos.append(word_pos)
+            if sent:
+                for word, word_pos in zip(sent, sent_pos):
+                    f_out.write(f"{word}\t{word_pos}\n")
+                f_out.write("\n")
+    print(f"Skipped {n_skipped} sentences.")
+
+
 if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("--type", choices=["ud", "noah"])
@@ -131,10 +174,16 @@ if __name__ == "__main__":
     parser.add_argument("--glob", default="",
                         help="glob pattern (ignores --dir and --files)")
     parser.add_argument("--out", help="output file")
+    parser.add_argument("--excl", default="",
+                        help="exclude sentences from the following file "
+                             "(only relevant for NOAH)")
     parser.add_argument("--xpos", dest="upos", action="store_false",
                         default=True)
-    parser.add_argument("--phono", action="store_true", default=False)
-    parser.add_argument("--ortho", action="store_true", default=False)
+    parser.add_argument("--phono", action="store_true", default=False,
+                        help="Use only sentences with phonetic annotations")
+    parser.add_argument("--ortho", action="store_true", default=False,
+                        help="Use orthographic versions of "
+                             "words with phonetic annotations")
     parser.add_argument("--tigerize", action="store_true", default=False)
     args = parser.parse_args()
     tagfix = {}
@@ -153,4 +202,7 @@ if __name__ == "__main__":
         else:
             ud(input_files, args.out, tagfix, args.upos)
     elif args.type == "noah":
-        noah(args.dir + "/" + args.files, args.out)
+        if args.excl:
+            noah_excl(args.dir + "/" + args.files, args.out, args.excl)
+        else:
+            noah(args.dir + "/" + args.files, args.out)
