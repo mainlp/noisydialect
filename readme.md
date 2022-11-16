@@ -7,9 +7,15 @@ git clone git@github.com:mainlp/noisydialect.git -recursive
 1. Retrieve the datasets that weren't included in git submodules.
 
 ```
+# RESTAURE Alsatian
 wget https://zenodo.org/record/2536041/files/Corpus_Release2_090119.zip
 unzip -d datasets/Restaure_Alsatian/ Corpus_Release2_090119.zip
 rm Corpus_Release2_090119.zip
+
+# UD NynorskLIA with dialect transcriptions
+cd datasets/UD_Norwegian-NynorskLIA_dialect
+./run.sh
+cd ../..
 ```
 
 2. Convert the corpora into a common format: (This creates files named `{train,dev,test}_CORPUS-NAME_TAG-TYPE.tsv` in the `datasets` folder.)
@@ -47,6 +53,10 @@ python 0.corpus_prep.py --type ud --dir ../datasets/UD_Low_Saxon-LSDC/ --files n
 
 # UD_Frisian-Frysk (FRY) -- UPOS tags
 python 0.corpus_prep.py --type ud --dir ../datasets/UD_Frisian-Frysk/ --files fy-frysk-ud-all.conllu --out ../datasets/test_Frysk_UPOS.tsv
+
+# UD_Norwegian-NynorskLIA_dialect -- UPOS tags
+python 0.corpus_prep.py --type ud --dir ../datasets/UD_Norwegian-NynorskLIA_dialect/ --files no_nynorsklia_dialect-ud-test.conllu --out ../datasets/test_LIA_UPOS.tsv --phono
+python 0.corpus_prep.py --type ud --dir ../datasets/UD_Norwegian-NynorskLIA_dialect/ --files no_nynorsklia_dialect-ud-dev.conllu --out ../datasets/dev_LIA_UPOS.tsv --phono
 ```
 
 3. Extract feature matrices for those experiments where the input representations aren't modified: (This creates subfolders in `data`, containing the input representations.)

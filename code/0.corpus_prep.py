@@ -10,11 +10,13 @@ from argparse import ArgumentParser
 from glob import glob
 
 
-def ud(input_files, out_file, tagfix, upos=True, verbose=True):
+def ud(input_files, out_file, tagfix, upos=True, phono=False, verbose=True):
     if upos:
         pos_idx = 3
     else:  # XPOS
         pos_idx = 4
+    next_has_phono = False
+    n_sents = 0
     with open(out_file, 'w', encoding="utf8") as f_out:
         for in_file in input_files:
             if verbose:
@@ -25,15 +27,35 @@ def ud(input_files, out_file, tagfix, upos=True, verbose=True):
                     line = line.strip()
                     if not line:
                         if not first_sent:
+                            next_has_phono = False
                             f_out.write("\n")
                         continue
                     if line[0] == "#":
-                        # comment
+                        if line.startswith("# text_orig"):
+                            next_has_phono = True
+                        elif line.startswith("# sent_id"):
+                            n_sents += 1
                         continue
                     first_sent = False
+                    if phono and not next_has_phono:
+                        continue
                     cells = line.split("\t")
                     try:
-                        form = cells[1]
+                        form = None
+                        if phono:
+                            misc_entries = cells[-1].split("|")
+                            for entry in misc_entries:
+                                if entry.startswith("Phono="):
+                                    form = entry[6:]
+                                    break
+                            if not form:
+                                print("!!! Phonetic information missing:")
+                                print(line)
+                                print(in_file)
+                                print("(exiting)")
+                                return
+                        else:
+                            form = cells[1]
                         pos = cells[pos_idx]
                         pos = tagfix.get(pos, pos)
                         if pos == "_":
@@ -44,6 +66,8 @@ def ud(input_files, out_file, tagfix, upos=True, verbose=True):
                         print(line)
                         print(in_file)
                         print("(exiting)")
+                        return
+    print(f"Wrote {n_sents} sentences to {out_file}.")
 
 
 def noah(in_file, out_file):
@@ -72,6 +96,7 @@ if __name__ == "__main__":
     parser.add_argument("--out", help="output file")
     parser.add_argument("--xpos", dest="upos", action="store_false",
                         default=True)
+    parser.add_argument("--phono", action="store_true", default=False)
     parser.add_argument("--tigerize", action="store_true", default=False)
     args = parser.parse_args()
     tagfix = {}
@@ -85,6 +110,6 @@ if __name__ == "__main__":
         else:
             input_files = [args.dir + "/" + f.strip()
                            for f in args.files.split(",")]
-        ud(input_files, args.out, tagfix, args.upos)
+        ud(input_files, args.out, tagfix, args.upos, args.phono)
     elif args.type == "noah":
         noah(args.dir + "/" + args.files, args.out)
