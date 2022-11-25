@@ -18,7 +18,7 @@ cd datasets/UD_Norwegian-NynorskLIA_dialect
 cd ../..
 ```
 
-2. Convert the corpora into a common format: (This creates files named `{train,dev,test}_CORPUS-NAME_TAG-TYPE.tsv` in the `datasets` folder.)
+2. Convert the corpora into a common format: (This creates files named `{train,dev,test}_CORPUS_TAGSET.tsv` in the `datasets` folder.)
 
 ```
 cd code
@@ -195,4 +195,9 @@ python3 run.py -c ../configs/hdt-noah_lsdc_uzh.dbmdz-cased.randnoise0-100.60.upo
 5. Reformat results files:
 ```
 python3 clean_up_results.py
+```
+
+6.
+```
+python3 dataset_stats.py
 ```

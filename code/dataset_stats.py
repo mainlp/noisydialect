@@ -1,9 +1,12 @@
 from glob import glob
 
-import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import seaborn
+from scipy.stats import entropy
 
 from config import Config
-from data import Data
+from data import Data, DUMMY_POS
 
 
 def write_dataset_stats(tagset, out_file, data_folder="../data/"):
@@ -43,7 +46,20 @@ def write_dataset_stats(tagset, out_file, data_folder="../data/"):
             f_out.write("\n")
 
 
-def read_dataset_stats(stats_file, name2subtoks, name2unks):
+def tagset_order(tagset_file):
+    tagset_order = []
+    with open(tagset_file) as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            tagset_order.append(line)
+    tagset_order.remove(DUMMY_POS)
+    return tagset_order
+
+
+def read_dataset_stats(stats_file, name2subtoks, name2unks,
+                       name2label_distrib, tagset_order):
     with open(stats_file) as f_in:
         header_skipped = False
         for line in f_in:
@@ -59,7 +75,13 @@ def read_dataset_stats(stats_file, name2subtoks, name2unks):
             unks_per_subtok = float(cells[4])
             name2subtoks[name] = subtoks_per_tok
             name2unks[name] = unks_per_subtok
-    return name2subtoks, name2unks
+            label_distrib = {}
+            for e in cells[5][2:-2].split("), ("):
+                key_val = e[1:].replace("'", "").split(", ")
+                label_distrib[key_val[0]] = float(key_val[1])
+            name2label_distrib[name] = [
+                label_distrib.get(tag, 0.0) for tag in tagset_order]
+    return name2subtoks, name2unks, name2label_distrib
 
 
 def average_scores(directory, data2metric2scores):
@@ -101,42 +123,17 @@ def data2col(target_data):
     return 4
 
 
-def plot(metric, x_axis_dict, data2metric2avg, x_label, diff=False):
-    x, y, c = [], [], []
-    for data in data2metric2avg:
-        # TODO randnoise runs
-        src_data, target_data = data.split("+")
-        try:
-            if diff:
-                x_i = x_axis_dict[target_data] - x_axis_dict[src_data]
-            else:
-                x_i = x_axis_dict[target_data]
-            y_i = data2metric2avg[data][metric]
-            x.append(x_i)
-            y.append(y_i)
-            c.append(data2col(target_data))
-        except KeyError:
-            print("Skipping " + data)
-
-    scatter = plt.scatter(x, y, c=c, alpha=0.8)
-    plt.legend(handles=scatter.legend_elements()[0],
-               labels=["HDT (dev)", "Alpino (dev)", "NOAH/UZH", "LSDC"])
-    if diff:
-        x_label = "Difference in " + x_label[0].lower() + x_label[1:] +\
-                  " (target - src)"
-    plt.xlabel(x_label)
-    plt.ylabel("Accuracy" if metric == "acc" else "F1 macro")
-    plt.show()
-
-
 if __name__ == "__main__":
     write_dataset_stats("stts", "../results/data_statistics_stts.tsv")
     write_dataset_stats("upos", "../results/data_statistics_upos.tsv")
 
-    name2subtoks, name2unks = read_dataset_stats(
-        "../results/data_statistics_stts.tsv", {}, {})
-    name2subtoks, name2unks = read_dataset_stats(
-        "../results/data_statistics_upos.tsv", name2subtoks, name2unks)
+    upos_order = tagset_order("../datasets/tagset_upos.txt")
+    stts_order = tagset_order("../datasets/tagset_stts.txt")
+    name2subtoks, name2unks, name2label_distrib = read_dataset_stats(
+        "../results/data_statistics_stts.tsv", {}, {}, {}, stts_order)
+    name2subtoks, name2unks, name2label_distrib = read_dataset_stats(
+        "../results/data_statistics_upos.tsv", name2subtoks, name2unks,
+        name2label_distrib, upos_order)
 
     data2metric2scores = {}
     for d in glob("../results/*upos"):
@@ -151,8 +148,79 @@ if __name__ == "__main__":
             scores = data2metric2scores[data][metric]
             data2metric2avg[data][metric] = sum(scores) / len(scores)
 
-    for metric in ("acc", "f1"):
-        for x_label in ("Subtokens per token", "UNKs per subtoken"):
-            for diff in (True, False):
-                x_axis_dict = name2subtoks if x_label[0] == "S" else name2unks
-                plot(metric, x_axis_dict, data2metric2avg, x_label, diff)
+    setups = [data for data in data2metric2avg]
+    target_data = []
+    source_data = []
+    target_type = []
+    target_corpus = []
+    tagset = []
+    for setup in setups:
+        src, tgt = setup.split("+")
+        source_data.append(src)
+        target_data.append(tgt)
+        tgt_splits = tgt.split(".")
+        target_type.append(tgt_splits[0])
+        target_corpus.append(tgt_splits[1])
+        tagset.append(tgt_splits[-1])
+    # TODO where do these NaNs come from
+    subtoks_per_tok = [name2subtoks[tgt] if tgt in name2subtoks
+                       else np.nan for tgt in target_data]
+    unks_per_subtok = [name2unks[tgt] if tgt in name2subtoks
+                       else np.nan for tgt in target_data]
+    acc = [data2metric2avg[setup]["acc"] if setup in data2metric2avg
+           else np.nan for setup in setups]
+    f1_macro = [data2metric2avg[setup]["f1"] if setup in data2metric2avg
+                else np.nan for setup in setups]
+    run_df = pd.DataFrame(
+        {"source_data": source_data,
+         "target_data": target_data, "target_corpus": target_corpus,
+         "target_type": target_type, "tagset": tagset,
+         "subtoks_per_tok": subtoks_per_tok,
+         "unks_per_subtok": unks_per_subtok,
+         "acc": acc, "f1_macro": f1_macro,
+         },
+        index=setups)
+
+    datasets = list({src for src in source_data}.union(
+        {tgt for tgt in target_data}))
+    data_df = pd.DataFrame(
+        {"noise": [d.split(".", 4)[3] for d in datasets],
+         "subtoks_per_tok": [name2subtoks[d] if d in name2subtoks
+                             else np.nan for d in datasets],
+         "unks_per_subtok": [name2unks[d] if d in name2unks
+                             else np.nan for d in datasets],
+         "label_distrib": [name2label_distrib[d] if d in name2label_distrib
+                           else None for d in datasets],
+         },
+        index=datasets)
+
+    run_df["source_noise"] = run_df.apply(
+        lambda row: data_df.loc[row["source_data"]]["noise"],
+        axis=1)
+
+    run_df["dev"] = run_df.apply(
+        lambda row: None if row["target_type"] == "dev"
+        else row["source_data"] + "+" + row["source_data"].replace(
+            "train", "dev"),
+        axis=1)
+
+    for indep_var in ("subtoks_per_tok", "unks_per_subtok"):
+        run_df[indep_var + "_diff"] = run_df.apply(
+            lambda row:
+            row[indep_var] - data_df.loc[row["source_data"]][indep_var],
+            axis=1)
+
+    for metric in ("acc", "f1_macro"):
+        run_df[metric + "_diff"] = run_df.apply(
+            lambda row:
+            row[metric] - run_df.loc[row["dev"]][metric]
+            if row["dev"] in run_df.index else np.nan,
+            axis=1)
+
+    run_df["kullback_leibner"] = run_df.apply(
+        lambda row:
+        entropy(data_df.loc[row["source_data"]]["label_distrib"],
+                data_df.loc[row["target_data"]]["label_distrib"]), axis=1)
+
+    seaborn.scatterplot(run_df, x="subtoks_per_tok_diff", y="acc_diff",
+                        hue="source_noise", style="target_corpus")
