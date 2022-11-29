@@ -7,6 +7,11 @@ git clone git@github.com:mainlp/noisydialect.git -recursive
 1. Retrieve the datasets that weren't included in git submodules.
 
 ```
+# NArabizi
+wget https://parsiti.github.io/NArabizi/NArabizi_Treebank.tar.gz
+tar -xzf NArabizi_Treebank.tar.gz -C datasets/
+rm NArabizi_Treebank.tar.gz 
+
 # RESTAURE Alsatian
 wget https://zenodo.org/record/2536041/files/Corpus_Release2_090119.zip
 unzip -d datasets/Restaure_Alsatian/ Corpus_Release2_090119.zip
@@ -64,6 +69,10 @@ python3 0.corpus_prep.py --type ud --dir ../datasets/UD_Norwegian-NynorskLIA_dia
 # UD_Norwegian-Nynorsk (NOR) -- UPOS tags
 python3 0.corpus_prep.py --type ud --dir ../datasets/UD_Norwegian-Nynorsk/ --files no_nynorsk-ud-train.conllu --out ../datasets/train_Nynorsk_UPOS.tsv
 python3 0.corpus_prep.py --type ud --dir ../datasets/UD_Norwegian-Nynorsk/ --files no_nynorsk-ud-dev.conllu --out ../datasets/dev_Nynorsk_UPOS.tsv
+
+# NArabizi treebank (ARQ) -- UPOS tags
+python3 0.corpus_prep.py --type narabizi --dir ../datasets/NArabizi_Treebank/Release_ACL2020/Gold_annotation --files test.NArabizi_treebank.conllu --out ../datasets/NArabizi_Treebank/test.NArabizi_treebank_cleaned.conllu --tagset ../datasets/tagset_upos.txt
+python3 0.corpus_prep.py --type ud --dir ../datasets/NArabizi_Treebank/ --files test.NArabizi_treebank_cleaned.conllu --out ../datasets/test_NArabizi_UPOS.tsv
 ```
 
 3. Extract feature matrices for those experiments where the input representations aren't modified: (This creates subfolders in `data`, containing the input representations.)

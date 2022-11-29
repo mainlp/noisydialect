@@ -7,6 +7,7 @@ Sentence boundaries are indicated by empty lines.
 
 from argparse import ArgumentParser
 from glob import glob
+import re
 
 
 def ud(input_files, out_file, tagfix, upos=True, verbose=True):
@@ -14,7 +15,7 @@ def ud(input_files, out_file, tagfix, upos=True, verbose=True):
         pos_idx = 3
     else:  # XPOS
         pos_idx = 4
-    with open(out_file, 'w', encoding="utf8") as f_out:
+    with open(out_file, 'w+', encoding="utf8") as f_out:
         for in_file in input_files:
             if verbose:
                 print("Reading " + in_file)
@@ -163,9 +164,47 @@ def noah_excl(in_file, out_file, excl_file):
     print(f"Skipped {n_skipped} sentences.")
 
 
+def preprocess_narabizi(in_file, out_file, tagset_file):
+    # Fix mixed UTF-8/MacRoman encoding and whitespace issues
+    tags = set()
+    with open(tagset_file, encoding="utf8") as f:
+        for line in f:
+            tag = line.strip()
+            if tag:
+                tags.add(tag)
+    with open(out_file, 'w+', encoding="utf8") as f_out:
+        with open(in_file, encoding="mac-roman") as f_in:
+            for line in f_in:
+                if not line.startswith("#") and len(line) > 1:
+                    line = re.sub("\\s\\s+", "\t", line)
+                    for tag in tags:
+                        line = line.replace(" " + tag, "\t" + tag)
+                    cells = line.split("\t")
+                    if not cells[3] in tags:
+                        if len(cells) < 10:
+                            lemma_pos = "\t".join(cells[1].rsplit(" ", 1))
+                            line = cells[0] + "\t" + lemma_pos + "\t" +\
+                                "\t".join(cells[2:])
+                            print("Split '" + cells[1] + "'")
+                        elif len(cells) > 10:
+                            line = "\t".join(cells[0:2]) + "\t" +\
+                                cells[2] + " " + cells[3] + "\t" +\
+                                "\t".join(cells[4:])
+                            print("Merged '" + cells[2] + "' and '"
+                                  + cells[3] + "'")
+                        cells = line.split("\t")
+                    if len(cells) != 10:
+                        print(line)
+                try:
+                    line = line.encode("mac-roman").decode()
+                except UnicodeDecodeError:
+                    pass
+                f_out.write(line)
+
+
 if __name__ == "__main__":
     parser = ArgumentParser()
-    parser.add_argument("--type", choices=["ud", "noah"])
+    parser.add_argument("--type", choices=["ud", "noah", "narabizi"])
     parser.add_argument("--dir", default="",
                         help="data directory root")
     parser.add_argument("--files", default="",
@@ -185,6 +224,8 @@ if __name__ == "__main__":
                         help="Use orthographic versions of "
                              "words with phonetic annotations")
     parser.add_argument("--tigerize", action="store_true", default=False)
+    parser.add_argument("--tagset", default="",
+                        help="tagset file (only relevant for NArabizi)")
     args = parser.parse_args()
     tagfix = {}
     if args.tigerize:
@@ -206,3 +247,5 @@ if __name__ == "__main__":
             noah_excl(args.dir + "/" + args.files, args.out, args.excl)
         else:
             noah(args.dir + "/" + args.files, args.out)
+    elif args.type == "narabizi":
+        preprocess_narabizi(args.dir + "/" + args.files, args.out, args.tagset)
