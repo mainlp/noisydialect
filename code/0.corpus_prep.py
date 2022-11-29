@@ -10,7 +10,7 @@ from glob import glob
 import re
 
 
-def ud(input_files, out_file, tagfix, upos=True, verbose=True):
+def ud(input_files, out_file, tagfix, upos=True, translit=True, verbose=True):
     if upos:
         pos_idx = 3
     else:  # XPOS
@@ -33,11 +33,25 @@ def ud(input_files, out_file, tagfix, upos=True, verbose=True):
                     first_sent = False
                     cells = line.split("\t")
                     try:
-                        form = cells[1]
+                        if translit:
+                            form = ""
+                            miscs = cells[-1].split("|")
+                            for misc in miscs:
+                                if misc.startswith("Translit="):
+                                    form = misc.split("=", 1)[1]
+                                    break
+                        else:
+                            form = cells[1]
                         pos = cells[pos_idx]
                         pos = tagfix.get(pos, pos)
                         if pos == "_":
                             continue
+                        if not form:
+                            print("Transliteration missing!")
+                            print(line)
+                            print(in_file)
+                            print("(exiting)")
+                            return
                         f_out.write(f"{form}\t{pos}\n")
                     except IndexError:
                         print("!!! malformed line:")
@@ -224,6 +238,7 @@ if __name__ == "__main__":
                         help="Use orthographic versions of "
                              "words with phonetic annotations")
     parser.add_argument("--tigerize", action="store_true", default=False)
+    parser.add_argument("--translit", action="store_true", default=False)
     parser.add_argument("--tagset", default="",
                         help="tagset file (only relevant for NArabizi)")
     args = parser.parse_args()
@@ -241,7 +256,7 @@ if __name__ == "__main__":
         if args.phono:
             ud_phono(input_files, args.out, tagfix, args.upos, args.ortho)
         else:
-            ud(input_files, args.out, tagfix, args.upos)
+            ud(input_files, args.out, tagfix, args.upos, args.translit)
     elif args.type == "noah":
         if args.excl:
             noah_excl(args.dir + "/" + args.files, args.out, args.excl)

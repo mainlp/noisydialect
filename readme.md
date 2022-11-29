@@ -73,6 +73,9 @@ python3 0.corpus_prep.py --type ud --dir ../datasets/UD_Norwegian-Nynorsk/ --fil
 # NArabizi treebank (ARQ) -- UPOS tags
 python3 0.corpus_prep.py --type narabizi --dir ../datasets/NArabizi_Treebank/Release_ACL2020/Gold_annotation --files test.NArabizi_treebank.conllu --out ../datasets/NArabizi_Treebank/test.NArabizi_treebank_cleaned.conllu --tagset ../datasets/tagset_upos.txt
 python3 0.corpus_prep.py --type ud --dir ../datasets/NArabizi_Treebank/ --files test.NArabizi_treebank_cleaned.conllu --out ../datasets/test_NArabizi_UPOS.tsv
+
+# UD_Arabic-PADT (ARB) -- UPOS tags
+python3 0.corpus_prep.py --type ud --dir ../datasets/UD_Arabic-PADT/ --files ar_padt-ud-train.conllu --out ../datasets/train_PADT_UPOS.tsv
 ```
 
 3. Extract feature matrices for those experiments where the input representations aren't modified: (This creates subfolders in `data`, containing the input representations.)

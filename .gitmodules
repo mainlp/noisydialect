@@ -23,3 +23,6 @@
 [submodule "datasets/UD_Norwegian-Nynorsk"]
 	path = datasets/UD_Norwegian-Nynorsk
 	url = https://github.com/UniversalDependencies/UD_Norwegian-Nynorsk
+[submodule "datasets/UD_Arabic-PADT"]
+	path = datasets/UD_Arabic-PADT
+	url = git@github.com:UniversalDependencies/UD_Arabic-PADT.git
