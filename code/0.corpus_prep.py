@@ -216,9 +216,107 @@ def preprocess_narabizi(in_file, out_file, tagset_file):
                 f_out.write(line)
 
 
+def ara(in_file, out_file):
+    replace3 = {
+        "DET+ADJ+CASE": "ADJ+__+__",
+        "DET+ADJ+NSUFF": "ADJ+__+__",
+        "DET+NOUN+CASE": "NOUN+__+__",
+        "DET+NOUN+NSUFF": "NOUN+__+__",
+    }
+    replace2 = {
+        "+CASE": "+__",
+        "+NSUFF": "+__",
+        "DET+ADJ": "ADJ+__",
+        "DET+NOUN": "NOUN+__",
+        "PROG_PART+V": "V+__",
+    }
+    replace1 = {
+        "CONJ": "CCONJ",
+        "EMOT": "SYM",
+        "FOREIGN": "X",
+        "FUT_PART": "AUX",
+        "HASH": "X",
+        "MENTION": "PROPN",
+        "NEG_PART": "PART",
+        "PREP": "ADP",
+        "PUNC": "PUNCT",
+        "URL": "SYM",
+        "V": "VERB",
+    }
+    replace_last = {
+        "ADVERB": "ADV",  # introduced by V->VERB change
+    }
+
+    part2sconj_forms = ("إن", "ان،", "أن،")
+    tag_map = {}
+    with open(out_file, 'w+', encoding="utf8") as f_out:
+        with open(in_file, encoding="utf8") as f_in:
+            first_line = True
+            for line in f_in:
+                line = line.strip()
+                if not line:
+                    continue
+                if first_line:
+                    first_line = False
+                    continue
+                cells = line.split("\t")
+                form = cells[4]
+                pos = cells[6]
+                if pos == "EOS":
+                    f_out.write("\n")
+                    continue
+                for re3 in replace3:
+                    if re3 in pos:
+                        pos = pos.replace(re3, replace3[re3])
+                for re2 in replace2:
+                    if re2 in pos:
+                        pos = pos.replace(re2, replace2[re2])
+                for re1 in replace1:
+                    if re1 in pos:
+                        pos = pos.replace(re1, replace1[re1])
+                for re_last in replace_last:
+                    if re_last in pos:
+                        pos = pos.replace(re_last, replace_last[re_last])
+                tag_map[cells[6]] = pos
+                use_segments = False
+                tags = pos.split("+")
+                if len(tags) > 1:
+                    for tag in tags[1:]:
+                        if tag != "__":
+                            use_segments = True
+                            break
+                    if not use_segments:
+                        f_out.write(f"{form}\t{tags[0]}\t{cells[6]}\t{0}:{len(tags)}\n")
+                        continue
+                if use_segments:
+                    segments = cells[5].split("+")
+                    n = len(tags)
+                    assert n == len(segments)
+                    i = 0
+                    while i < n:
+                        j = i + 1
+                        while j < n:
+                            if tags[j] == "__":
+                                j += 1
+                            else:
+                                break
+                        joined_form = "".join(segments[i:j])  # TODO check if this works w/ Arabic glyphs
+                        joined_tag = tags[i]
+                        # f_out.write(f"{joined_form}\t{joined_tag}\n")
+                        f_out.write(f"{joined_form}\t{joined_tag}\t{cells[6]}\t{i}:{j}\n")
+                        i = j
+                    continue
+                if pos == "PART" and form in part2sconj_forms:
+                    pos = "SCONJ"
+                f_out.write(f"{form}\t{pos}\n")
+    print("Mapped the original tags as follows:")
+    for orig_tag in tag_map:
+        print(f"{orig_tag}\t{tag_map[orig_tag]}")
+
+
 if __name__ == "__main__":
     parser = ArgumentParser()
-    parser.add_argument("--type", choices=["ud", "noah", "narabizi"])
+    parser.add_argument("--type", choices=["ud", "noah", "narabizi", "ara"])
     parser.add_argument("--dir", default="",
                         help="data directory root")
     parser.add_argument("--files", default="",
@@ -264,3 +362,5 @@ if __name__ == "__main__":
             noah(args.dir + "/" + args.files, args.out)
     elif args.type == "narabizi":
         preprocess_narabizi(args.dir + "/" + args.files, args.out, args.tagset)
+    elif args.type == "ara":
+        ara(args.dir + "/" + args.files, args.out)

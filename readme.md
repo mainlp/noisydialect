@@ -76,6 +76,14 @@ python3 0.corpus_prep.py --type ud --dir ../datasets/NArabizi_Treebank/ --files 
 
 # UD_Arabic-PADT (ARB) -- UPOS tags
 python3 0.corpus_prep.py --type ud --dir ../datasets/UD_Arabic-PADT/ --files ar_padt-ud-train.conllu --out ../datasets/train_PADT_UPOS.tsv
+python3 0.corpus_prep.py --type ud --dir ../datasets/UD_Arabic-PADT/ --files ar_padt-ud-train.conllu --out ../datasets/train_PADT-translit_UPOS.tsv --translit
+
+# UD_Maltese-MUDT (MLT) -- UPOS tags
+python3 0.corpus_prep.py --type ud --dir ../datasets/UD_Maltese-MUDT/ --files mt_mudt-ud-train.conllu --out ../datasets/train_MUDT_UPOS.tsv
+
+# dialectal_arabic_resources
+python3 0.corpus_prep.py --type ara --dir ../datasets/dialectal_arabic_resources/ --files seg_plus_pos_egy.txt --out ../datasets/train_dar-egy.tsv
+# python3 0.validate_input_file.py ../datasets/train_dar-egy.tsv ../datasets/tagset_upos.txt
 ```
 
 3. Extract feature matrices for those experiments where the input representations aren't modified: (This creates subfolders in `data`, containing the input representations.)
