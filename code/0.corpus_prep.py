@@ -216,7 +216,8 @@ def preprocess_narabizi(in_file, out_file, tagset_file):
                 f_out.write(line)
 
 
-def ara(in_file, out_file, include_tag_details=True, print_mapping=False):
+def ara(in_file, out_file, include_tag_details=True, print_mapping=False,
+        print_segment_details=True):
     replace3 = {
         "DET+ADJ+CASE": "ADJ+__+__",
         "DET+ADJ+NSUFF": "ADJ+__+__",
@@ -261,6 +262,9 @@ def ara(in_file, out_file, include_tag_details=True, print_mapping=False):
 
     part2sconj_forms = ("إن", "ان،", "أن،")
     tag_map = {}
+    n_not_split = 0
+    n_segments_ok = 0
+    segment_issues = []
     with open(out_file, 'w+', encoding="utf8") as f_out:
         with open(in_file, encoding="utf8") as f_in:
             first_line = True
@@ -309,6 +313,7 @@ def ara(in_file, out_file, include_tag_details=True, print_mapping=False):
                             sent += f"{form}\t{tags[0]}\t{cells[6]}\t{0}:{len(tags)}\n"
                         else:
                             sent += f"{form}\t{tags[0]}\n"
+                        n_not_split += 1
                         continue
                 if use_segments:
                     segments = cells[5].split("+")
@@ -322,7 +327,13 @@ def ara(in_file, out_file, include_tag_details=True, print_mapping=False):
                                 j += 1
                             else:
                                 break
-                        joined_form = "".join(segments[i:j])  # TODO check if this works w/ Arabic glyphs
+                        joined_form = "".join(segments[i:j])
+                        all_joined = "".join(segments)
+                        if all_joined == form:
+                            n_segments_ok += 1
+                        else:
+                            segment_issues.append(
+                                (form, all_joined, cells[5]))
                         joined_tag = tags[i]
                         if include_tag_details:
                             sent += f"{joined_form}\t{joined_tag}\t{cells[6]}\t{i}:{j}\n"
@@ -333,10 +344,18 @@ def ara(in_file, out_file, include_tag_details=True, print_mapping=False):
                 if pos == "PART" and form in part2sconj_forms:
                     pos = "SCONJ"
                 sent += f"{form}\t{pos}\n"
+                n_not_split += 1
     if print_mapping:
         print("Mapped the original tags as follows:")
         for orig_tag in tag_map:
             print(f"{orig_tag}\t{tag_map[orig_tag]}")
+    if print_segment_details:
+        print("Full token used:", n_not_split)
+        print("Segmentation used -- segmentation OK:", n_segments_ok)
+        print("Segmentation used -- issues with segmentation:",
+              len(segment_issues))
+        for issue in segment_issues:
+            print(f"tok {issue[0]} merged {issue[1]} segments {issue[2]}")
 
 
 if __name__ == "__main__":

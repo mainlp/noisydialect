@@ -2,7 +2,6 @@
 *.ipynb*
 code/env/
 figs/
-logs/
 data/
 notes/
 datasets/*.tsv

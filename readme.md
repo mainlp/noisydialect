@@ -82,13 +82,17 @@ python3 0.corpus_prep.py --type ud --dir ../datasets/UD_Arabic-PADT/ --files ar_
 python3 0.corpus_prep.py --type ud --dir ../datasets/UD_Maltese-MUDT/ --files mt_mudt-ud-train.conllu --out ../datasets/train_MUDT_UPOS.tsv
 
 # dialectal_arabic_resources
+# Optional check:
+python3 0.check_arabic_segmentation.py ../datasets/dialectal_arabic_resources/seg_plus_pos_egy.txt ../datasets/dialectal_arabic_resources/seg_plus_pos_lev.txt ../datasets/dialectal_arabic_resources/seg_plus_pos_glf.txt ../datasets/dialectal_arabic_resources/seg_plus_pos_mgr.txt
+# The actual data conversions:
 python3 0.corpus_prep.py --type ara --dir ../datasets/dialectal_arabic_resources/ --files seg_plus_pos_egy.txt --out ../datasets/train_dar-egy.tsv
-python3 0.validate_input_file.py ../datasets/train_dar-egy.tsv ../datasets/tagset_upos.txt
 python3 0.corpus_prep.py --type ara --dir ../datasets/dialectal_arabic_resources/ --files seg_plus_pos_glf.txt --out ../datasets/train_dar-glf.tsv
-python3 0.validate_input_file.py ../datasets/train_dar-glf.tsv ../datasets/tagset_upos.txt
 python3 0.corpus_prep.py --type ara --dir ../datasets/dialectal_arabic_resources/ --files seg_plus_pos_lev.txt --out ../datasets/train_dar-lev.tsv
-python3 0.validate_input_file.py ../datasets/train_dar-lev.tsv ../datasets/tagset_upos.txt
 python3 0.corpus_prep.py --type ara --dir ../datasets/dialectal_arabic_resources/ --files seg_plus_pos_mgr.txt --out ../datasets/train_dar-mgr.tsv
+# Optional checks:
+python3 0.validate_input_file.py ../datasets/train_dar-egy.tsv ../datasets/tagset_upos.txt
+python3 0.validate_input_file.py ../datasets/train_dar-glf.tsv ../datasets/tagset_upos.txt
+python3 0.validate_input_file.py ../datasets/train_dar-lev.tsv ../datasets/tagset_upos.txt
 python3 0.validate_input_file.py ../datasets/train_dar-mgr.tsv ../datasets/tagset_upos.txt
 ```
 
