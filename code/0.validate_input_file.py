@@ -18,10 +18,10 @@ def validate(in_file, tagset_file):
             if not line:
                 continue
             cells = line.split("\t")
-            # if len(cells) != 2:
-            #     print("Expected two cells, but found " + str(len(cells)))
-            #     print(line)
-            #     return False
+            if len(cells) < 2:
+                print("Expected (at least) two cells, but found only one:")
+                print(line)
+                return False
             if cells[1] not in tags:
                 print("Not a valid tag: " + cells[1])
                 print(line)

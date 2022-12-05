@@ -216,7 +216,7 @@ def preprocess_narabizi(in_file, out_file, tagset_file):
                 f_out.write(line)
 
 
-def ara(in_file, out_file):
+def ara(in_file, out_file, include_tag_details=True, print_mapping=False):
     replace3 = {
         "DET+ADJ+CASE": "ADJ+__+__",
         "DET+ADJ+NSUFF": "ADJ+__+__",
@@ -246,12 +246,26 @@ def ara(in_file, out_file):
     replace_last = {
         "ADVERB": "ADV",  # introduced by V->VERB change
     }
+    replacement_dicts = (replace3, replace2, replace1, replace_last)
+    replace_fulltok = {
+        # On their own:
+        # https://universaldependencies.org/u/dep/all.html#al-u-dep/goeswith
+        "CASE": "X",
+        "NSUFF": "X",
+        "PROG_PART": "X",
+        # Annotation mistake?
+        "PROG_PART+NOUN": "X+NOUN",
+        # Segmentation mistake?
+        "PART+PROG_PART": "PART+X",
+    }
 
     part2sconj_forms = ("إن", "ان،", "أن،")
     tag_map = {}
     with open(out_file, 'w+', encoding="utf8") as f_out:
         with open(in_file, encoding="utf8") as f_in:
             first_line = True
+            sent = ""
+            skip_sent = False
             for line in f_in:
                 line = line.strip()
                 if not line:
@@ -263,20 +277,25 @@ def ara(in_file, out_file):
                 form = cells[4]
                 pos = cells[6]
                 if pos == "EOS":
-                    f_out.write("\n")
+                    if not skip_sent:
+                        f_out.write(sent + "\n")
+                    sent = ""
+                    skip_sent = False
                     continue
-                for re3 in replace3:
-                    if re3 in pos:
-                        pos = pos.replace(re3, replace3[re3])
-                for re2 in replace2:
-                    if re2 in pos:
-                        pos = pos.replace(re2, replace2[re2])
-                for re1 in replace1:
-                    if re1 in pos:
-                        pos = pos.replace(re1, replace1[re1])
-                for re_last in replace_last:
-                    if re_last in pos:
-                        pos = pos.replace(re_last, replace_last[re_last])
+                if skip_sent:
+                    continue
+                if not form:
+                    print("Line with empty token (skipping sentence):")
+                    print(line)
+                    skip_sent = True
+                    continue
+                for repl_dict in replacement_dicts:
+                    for repl in repl_dict:
+                        if repl in pos:
+                            pos = pos.replace(repl, repl_dict[repl])
+                for re_full in replace_fulltok:
+                    if re_full == pos:
+                        pos = replace_fulltok[re_full]
                 tag_map[cells[6]] = pos
                 use_segments = False
                 tags = pos.split("+")
@@ -286,7 +305,10 @@ def ara(in_file, out_file):
                             use_segments = True
                             break
                     if not use_segments:
-                        f_out.write(f"{form}\t{tags[0]}\t{cells[6]}\t{0}:{len(tags)}\n")
+                        if include_tag_details:
+                            sent += f"{form}\t{tags[0]}\t{cells[6]}\t{0}:{len(tags)}\n"
+                        else:
+                            sent += f"{form}\t{tags[0]}\n"
                         continue
                 if use_segments:
                     segments = cells[5].split("+")
@@ -302,16 +324,19 @@ def ara(in_file, out_file):
                                 break
                         joined_form = "".join(segments[i:j])  # TODO check if this works w/ Arabic glyphs
                         joined_tag = tags[i]
-                        # f_out.write(f"{joined_form}\t{joined_tag}\n")
-                        f_out.write(f"{joined_form}\t{joined_tag}\t{cells[6]}\t{i}:{j}\n")
+                        if include_tag_details:
+                            sent += f"{joined_form}\t{joined_tag}\t{cells[6]}\t{i}:{j}\n"
+                        else:
+                            sent += f"{joined_form}\t{joined_tag}\n"
                         i = j
                     continue
                 if pos == "PART" and form in part2sconj_forms:
                     pos = "SCONJ"
-                f_out.write(f"{form}\t{pos}\n")
-    print("Mapped the original tags as follows:")
-    for orig_tag in tag_map:
-        print(f"{orig_tag}\t{tag_map[orig_tag]}")
+                sent += f"{form}\t{pos}\n"
+    if print_mapping:
+        print("Mapped the original tags as follows:")
+        for orig_tag in tag_map:
+            print(f"{orig_tag}\t{tag_map[orig_tag]}")
 
 
 if __name__ == "__main__":

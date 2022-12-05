@@ -83,7 +83,13 @@ python3 0.corpus_prep.py --type ud --dir ../datasets/UD_Maltese-MUDT/ --files mt
 
 # dialectal_arabic_resources
 python3 0.corpus_prep.py --type ara --dir ../datasets/dialectal_arabic_resources/ --files seg_plus_pos_egy.txt --out ../datasets/train_dar-egy.tsv
-# python3 0.validate_input_file.py ../datasets/train_dar-egy.tsv ../datasets/tagset_upos.txt
+python3 0.validate_input_file.py ../datasets/train_dar-egy.tsv ../datasets/tagset_upos.txt
+python3 0.corpus_prep.py --type ara --dir ../datasets/dialectal_arabic_resources/ --files seg_plus_pos_glf.txt --out ../datasets/train_dar-glf.tsv
+python3 0.validate_input_file.py ../datasets/train_dar-glf.tsv ../datasets/tagset_upos.txt
+python3 0.corpus_prep.py --type ara --dir ../datasets/dialectal_arabic_resources/ --files seg_plus_pos_lev.txt --out ../datasets/train_dar-lev.tsv
+python3 0.validate_input_file.py ../datasets/train_dar-lev.tsv ../datasets/tagset_upos.txt
+python3 0.corpus_prep.py --type ara --dir ../datasets/dialectal_arabic_resources/ --files seg_plus_pos_mgr.txt --out ../datasets/train_dar-mgr.tsv
+python3 0.validate_input_file.py ../datasets/train_dar-mgr.tsv ../datasets/tagset_upos.txt
 ```
 
 3. Extract feature matrices for those experiments where the input representations aren't modified: (This creates subfolders in `data`, containing the input representations.)
