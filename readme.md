@@ -1,10 +1,10 @@
-Use the `-recursive` flag while cloning (the `datasets` folder contains submodules):
+Use the `-recursive` flag while cloning (the `datasets` folder contains git submodules):
 
 ```
 git clone git@github.com:mainlp/noisydialect.git -recursive
 ```
 
-1. Retrieve the datasets that weren't included in git submodules.
+1. Retrieve the datasets that weren't included in any submodules.
 
 ```
 # NArabizi
@@ -22,6 +22,8 @@ cd datasets/UD_Norwegian-NynorskLIA_dialect
 ./run.sh
 cd ../..
 ```
+
+Also download the KenPos subcorpora, as detailed [here](/datasets/KenPos/).
 
 2. Convert the corpora into a common format: (This creates files named `{train,dev,test}_CORPUS_TAGSET.tsv` in the `datasets` folder.)
 
@@ -85,15 +87,18 @@ python3 0.corpus_prep.py --type ud --dir ../datasets/UD_Maltese-MUDT/ --files mt
 # Optional check:
 python3 0.check_arabic_segmentation.py ../datasets/dialectal_arabic_resources/seg_plus_pos_egy.txt ../datasets/dialectal_arabic_resources/seg_plus_pos_lev.txt ../datasets/dialectal_arabic_resources/seg_plus_pos_glf.txt ../datasets/dialectal_arabic_resources/seg_plus_pos_mgr.txt
 # The actual data conversions:
-python3 0.corpus_prep.py --type ara --dir ../datasets/dialectal_arabic_resources/ --files seg_plus_pos_egy.txt --out ../datasets/train_dar-egy.tsv
-python3 0.corpus_prep.py --type ara --dir ../datasets/dialectal_arabic_resources/ --files seg_plus_pos_glf.txt --out ../datasets/train_dar-glf.tsv
-python3 0.corpus_prep.py --type ara --dir ../datasets/dialectal_arabic_resources/ --files seg_plus_pos_lev.txt --out ../datasets/train_dar-lev.tsv
-python3 0.corpus_prep.py --type ara --dir ../datasets/dialectal_arabic_resources/ --files seg_plus_pos_mgr.txt --out ../datasets/train_dar-mgr.tsv
+python3 0.corpus_prep.py --type ara --dir ../datasets/dialectal_arabic_resources/ --files seg_plus_pos_egy.txt --out ../datasets/dev_dar-egy.tsv
+python3 0.corpus_prep.py --type ara --dir ../datasets/dialectal_arabic_resources/ --files seg_plus_pos_glf.txt --out ../datasets/test_dar-glf.tsv
+python3 0.corpus_prep.py --type ara --dir ../datasets/dialectal_arabic_resources/ --files seg_plus_pos_lev.txt --out ../datasets/test_dar-lev.tsv
+python3 0.corpus_prep.py --type ara --dir ../datasets/dialectal_arabic_resources/ --files seg_plus_pos_mgr.txt --out ../datasets/test_dar-mgr.tsv
 # Optional checks:
 python3 0.validate_input_file.py ../datasets/train_dar-egy.tsv ../datasets/tagset_upos.txt
 python3 0.validate_input_file.py ../datasets/train_dar-glf.tsv ../datasets/tagset_upos.txt
 python3 0.validate_input_file.py ../datasets/train_dar-lev.tsv ../datasets/tagset_upos.txt
 python3 0.validate_input_file.py ../datasets/train_dar-mgr.tsv ../datasets/tagset_upos.txt
+
+# KenPos
+python3 0.corpus_prep.py --type kenpos --dir ../datasets/KenPos/pos_lhybk --out ../datasets/dev_kenpos-bxk_upos.tsv
 ```
 
 3. Extract feature matrices for those experiments where the input representations aren't modified: (This creates subfolders in `data`, containing the input representations.)

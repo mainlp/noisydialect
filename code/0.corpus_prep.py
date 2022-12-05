@@ -309,10 +309,11 @@ def ara(in_file, out_file, include_tag_details=True, print_mapping=False,
                             use_segments = True
                             break
                     if not use_segments:
+                        sent += f"{form}\t{tags[0]}"
                         if include_tag_details:
-                            sent += f"{form}\t{tags[0]}\t{cells[6]}\t{0}:{len(tags)}\n"
+                            sent += f"\t{cells[6]}\t{0}:{len(tags)}\n"
                         else:
-                            sent += f"{form}\t{tags[0]}\n"
+                            sent += "\n"
                         n_not_split += 1
                         continue
                 if use_segments:
@@ -335,10 +336,11 @@ def ara(in_file, out_file, include_tag_details=True, print_mapping=False,
                             segment_issues.append(
                                 (form, all_joined, cells[5]))
                         joined_tag = tags[i]
+                        sent += f"{joined_form}\t{joined_tag}"
                         if include_tag_details:
-                            sent += f"{joined_form}\t{joined_tag}\t{cells[6]}\t{i}:{j}\n"
+                            sent += f"\t{cells[6]}\t{i}:{j}\n"
                         else:
-                            sent += f"{joined_form}\t{joined_tag}\n"
+                            sent += "\n"
                         i = j
                     continue
                 if pos == "PART" and form in part2sconj_forms:
@@ -358,9 +360,63 @@ def ara(in_file, out_file, include_tag_details=True, print_mapping=False,
             print(f"tok {issue[0]} merged {issue[1]} segments {issue[2]}")
 
 
+def kenpos(directory, out_file, filewise_updates=False):
+    n_sents_total, n_sents_skipped_total = 0, 0
+    n_toks_total, n_toks_skipped_total = 0, 0
+    with open(out_file, 'w+', encoding="utf8") as f_out:
+        for path in glob(directory + "/*csv"):
+            n_sents, n_sents_skipped = 0, 0
+            n_toks, n_toks_skipped = 0, 0
+            with open(path, encoding="utf8") as f:
+                first_line = True
+                sent = []
+                skip_sent = False
+                for line in f:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    if first_line:
+                        first_line = False
+                        continue
+                    try:
+                        cells = line.split("\t")
+                        form = cells[0]
+                        pos = cells[1].upper()
+                        sent.append((form, pos))
+                        if form in (".", "?", "!"):
+                            if skip_sent:
+                                n_sents_skipped += 1
+                                n_toks_skipped += len(sent)
+                            else:
+                                n_sents += 1
+                                n_toks += len(sent)
+                                for (form, pos) in sent:
+                                    f_out.write(f"{form}\t{pos}\n")
+                                f_out.write("\n")
+                            sent = []
+                    except IndexError:
+                        # print("Missing POS tag:")
+                        # print(line)
+                        # print("(Skipping sentence.)")
+                        n_toks_skipped += 1
+                        skip_sent = True
+            if filewise_updates:
+                print(path)
+                print(f"Added {n_sents} sentences ({n_toks} tokens)")
+                print(f"Skipped {n_sents_skipped} sentences ({n_toks_skipped} tokens)")
+            n_sents_total += n_sents
+            n_sents_skipped_total += n_sents_skipped
+            n_toks_total += n_toks
+            n_toks_skipped_total += n_toks_skipped
+    print("TOTAL")
+    print(f"Added {n_sents_total} sentences ({n_toks_total} tokens)")
+    print(f"Skipped {n_sents_skipped_total} sentences ({n_toks_skipped_total} tokens)")
+
+
 if __name__ == "__main__":
     parser = ArgumentParser()
-    parser.add_argument("--type", choices=["ud", "noah", "narabizi", "ara"])
+    parser.add_argument("--type",
+                        choices=["ud", "noah", "narabizi", "ara", "kenpos"])
     parser.add_argument("--dir", default="",
                         help="data directory root")
     parser.add_argument("--files", default="",
@@ -408,3 +464,5 @@ if __name__ == "__main__":
         preprocess_narabizi(args.dir + "/" + args.files, args.out, args.tagset)
     elif args.type == "ara":
         ara(args.dir + "/" + args.files, args.out)
+    elif args.type == "kenpos":
+        kenpos(args.dir, args.out)
