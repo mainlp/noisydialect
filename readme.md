@@ -17,6 +17,11 @@ wget https://zenodo.org/record/2536041/files/Corpus_Release2_090119.zip
 unzip -d datasets/Restaure_Alsatian/ Corpus_Release2_090119.zip
 rm Corpus_Release2_090119.zip
 
+# LA-Murre
+wget https://korp.csc.fi/download/la-murre/vrt/la-murre-vrt.zip
+unzip -d datasets/ la-murre-vrt.zip
+rm la-murre-vrt.zip
+
 # UD NynorskLIA with dialect transcriptions
 cd datasets/UD_Norwegian-NynorskLIA_dialect
 ./run.sh
@@ -108,6 +113,9 @@ python3 0.corpus_prep.py --type kenpos --dir ../datasets/KenPos/pos_lhybk --out 
 python3 0.corpus_prep.py --type kenpos --dir ../datasets/KenPos/pos_lhych --out ../datasets/test_kenpos-lri_upos.tsv
 python3 0.corpus_prep.py --type kenpos --dir ../datasets/KenPos/pos_lhylg --out ../datasets/test_kenpos-rag_upos.tsv
 python3 0.validate_input_file.py ../datasets/dev_kenpos-bxk_upos.tsv ../datasets/tagset_upos.txt
+
+# Lauseopin arkiston murrekorpus
+python3 0.corpus_prep.py --type murre --glob "../datasets/LA-murre-vrt/lam_*.vrt" --out ../datasets/dev_murre_upos.tsv
 ```
 
 3. Extract feature matrices for those experiments where the input representations aren't modified: (This creates subfolders in `data`, containing the input representations.)

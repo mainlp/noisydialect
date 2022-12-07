@@ -8,3 +8,4 @@ datasets/*.tsv
 datasets/KenPos/pos_*
 */lightning_logs/
 *BACKUP*
+*.vrt

@@ -450,10 +450,66 @@ def kenpos(directory, out_file, keep_original_tags=True,
     print(f"Skipped {n_sents_skipped_total} sentences ({n_toks_skipped_total} tokens)")
 
 
+def murre(outfile, infiles,print_src_file=False):
+    skip_lines = ("<clause", "</clause",
+                  "<paragraph", "</paragraph",
+                  "<text", "</text",
+                  "<!--")
+    sentences_skipped = 0
+    sentences_added = 0
+    with open(outfile, "w+", encoding="utf8") as f_out:
+        for filename in infiles:
+            with open(filename, encoding="utf8") as f_in:
+                sent = None
+                skip_sent = False
+                for line in f_in:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    if line.startswith("<sentence"):
+                        sent = []
+                        skip_sent = False
+                        continue
+                    if line.startswith("</sentence>"):
+                        if skip_sent:
+                            sentences_skipped += 1
+                        else:
+                            sentences_added += 1
+                            for word, tag in sent:
+                                f_out.write(f"{word}\t{tag}")
+                                if print_src_file:
+                                    f_out.write("\t" + filename)
+                                f_out.write("\n")
+                            f_out.write("\n")
+                        sent = None
+                        continue
+                    if skip_sent:
+                        continue
+                    skip_line = False
+                    for skip_start in skip_lines:
+                        if line.startswith(skip_start):
+                            skip_line = True
+                            break
+                    if skip_line:
+                        continue
+                    if line.startswith("<"):
+                        print(line)
+                    cells = line.split("\t")
+                    form = cells[1]
+                    pos = cells[3]
+                    if pos == "__UNDEF__":
+                        skip_sent = True
+                    sent.append((form, pos))
+                    # TODO skip slashes?
+    print(f"Added {sentences_added} sentences.")
+    print(f"Skipped {sentences_skipped} sentences.")
+
+
 if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("--type",
-                        choices=["ud", "noah", "narabizi", "ara", "kenpos"])
+                        choices=["ud", "noah", "narabizi", "ara", "kenpos",
+                                 "murre"])
     parser.add_argument("--dir", default="",
                         help="data directory root")
     parser.add_argument("--files", default="",
@@ -504,3 +560,5 @@ if __name__ == "__main__":
         ara(args.dir + "/" + args.files, args.out)
     elif args.type == "kenpos":
         kenpos(args.dir, args.out, args.kenpostags)
+    elif args.type == "murre":
+        murre(args.out, glob(args.glob))
