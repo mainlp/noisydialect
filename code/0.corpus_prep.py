@@ -360,17 +360,39 @@ def ara(in_file, out_file, include_tag_details=True, print_mapping=False,
             print(f"tok {issue[0]} merged {issue[1]} segments {issue[2]}")
 
 
-def kenpos(directory, out_file, filewise_updates=False,
-           include_file_details=True):
+def kenpos(directory, out_file, keep_original_tags=True,
+           filewise_updates=False, include_file_details=True):
     n_sents_total, n_sents_skipped_total = 0, 0
     n_toks_total, n_toks_skipped_total = 0, 0
-    tag_map = {
-        "CONJ": "CCONJ",
-        "INTER": "INTJ",
-        "NN": "NOUN",
-        "PUNC": "PUNCT",
-        "V": "VERB",
-    }
+    if keep_original_tags:
+        tag_map = {}
+    else:
+        tag_map = {
+            "A": "ADP",
+            "ADO": "ADP",
+            "ADJE": "ADJ",
+            "ADVB": "ADV",
+            "C": "CCONJ",
+            "C0NJ": "CCONJ",
+            "COJ": "CCONJ",
+            "CONJ": "CCONJ",
+            "DP": "ADP",
+            "INTER": "INTJ",
+            "N": "NOUN",
+            "NN": "NOUN",
+            "NNN": "NOUN",
+            "PART": "PRT",
+            "PI": "PUNCT",
+            "PR": "PRON",
+            "PR0N": "PRON",
+            "PRO": "PRON",
+            "PROUN": "PRON",
+            "PUN": "PUNCT",
+            "PUNC": "PUNCT",
+            "PUNT": "PUNCT",
+            "V": "VERB",
+            "VRB": "VERB",
+        }
     with open(out_file, 'w+', encoding="utf8") as f_out:
         for path in glob(directory + "/*csv"):
             n_sents, n_sents_skipped = 0, 0
@@ -454,6 +476,7 @@ if __name__ == "__main__":
     parser.add_argument("--translit", action="store_true", default=False)
     parser.add_argument("--tagset", default="",
                         help="tagset file (only relevant for NArabizi)")
+    parser.add_argument("--kenpostags", action="store_true", default=False)
     args = parser.parse_args()
     tagfix = {}
     if args.tigerize:
@@ -480,4 +503,4 @@ if __name__ == "__main__":
     elif args.type == "ara":
         ara(args.dir + "/" + args.files, args.out)
     elif args.type == "kenpos":
-        kenpos(args.dir, args.out)
+        kenpos(args.dir, args.out, args.kenpostags)

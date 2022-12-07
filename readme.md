@@ -84,9 +84,9 @@ python3 0.corpus_prep.py --type ud --dir ../datasets/UD_Arabic-PADT/ --files ar_
 python3 0.corpus_prep.py --type ud --dir ../datasets/UD_Maltese-MUDT/ --files mt_mudt-ud-train.conllu --out ../datasets/train_MUDT_UPOS.tsv
 
 # dialectal_arabic_resources
-# Optional check:
+# Optional preliminary check (see logs/arabic_preprocessing.log):
 python3 0.check_arabic_segmentation.py ../datasets/dialectal_arabic_resources/seg_plus_pos_egy.txt ../datasets/dialectal_arabic_resources/seg_plus_pos_lev.txt ../datasets/dialectal_arabic_resources/seg_plus_pos_glf.txt ../datasets/dialectal_arabic_resources/seg_plus_pos_mgr.txt
-# The actual data conversions:
+# The actual data conversion:
 python3 0.corpus_prep.py --type ara --dir ../datasets/dialectal_arabic_resources/ --files seg_plus_pos_egy.txt --out ../datasets/dev_dar-egy.tsv
 python3 0.corpus_prep.py --type ara --dir ../datasets/dialectal_arabic_resources/ --files seg_plus_pos_glf.txt --out ../datasets/test_dar-glf.tsv
 python3 0.corpus_prep.py --type ara --dir ../datasets/dialectal_arabic_resources/ --files seg_plus_pos_lev.txt --out ../datasets/test_dar-lev.tsv
@@ -98,11 +98,15 @@ python3 0.validate_input_file.py ../datasets/test_dar-lev.tsv ../datasets/tagset
 python3 0.validate_input_file.py ../datasets/test_dar-mgr.tsv ../datasets/tagset_upos.txt
 
 # KenPos
+# Optional preliminary checks (see logs/original_kenpos_tags.tsv):
+python3 0.corpus_prep.py --type kenpos --dir ../datasets/KenPos/pos_lhybk --out ../datasets/dev_kenpos-bxk_upos.tsv --kenpostags
+python3 0.corpus_prep.py --type kenpos --dir ../datasets/KenPos/pos_lhych --out ../datasets/test_kenpos-lri_upos.tsv --kenpostags
+python3 0.corpus_prep.py --type kenpos --dir ../datasets/KenPos/pos_lhylg --out ../datasets/test_kenpos-rag_upos.tsv --kenpostags
+python3 0.check_kenpos_tags.py
+# The actual data conversion:
 python3 0.corpus_prep.py --type kenpos --dir ../datasets/KenPos/pos_lhybk --out ../datasets/dev_kenpos-bxk_upos.tsv
 python3 0.corpus_prep.py --type kenpos --dir ../datasets/KenPos/pos_lhych --out ../datasets/test_kenpos-lri_upos.tsv
 python3 0.corpus_prep.py --type kenpos --dir ../datasets/KenPos/pos_lhylg --out ../datasets/test_kenpos-rag_upos.tsv
-# Optional
-python3 0.check_kenpos_tags.py
 python3 0.validate_input_file.py ../datasets/dev_kenpos-bxk_upos.tsv ../datasets/tagset_upos.txt
 ```
 
