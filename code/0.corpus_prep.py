@@ -360,14 +360,23 @@ def ara(in_file, out_file, include_tag_details=True, print_mapping=False,
             print(f"tok {issue[0]} merged {issue[1]} segments {issue[2]}")
 
 
-def kenpos(directory, out_file, filewise_updates=False):
+def kenpos(directory, out_file, filewise_updates=False,
+           include_file_details=True):
     n_sents_total, n_sents_skipped_total = 0, 0
     n_toks_total, n_toks_skipped_total = 0, 0
+    tag_map = {
+        "CONJ": "CCONJ",
+        "INTER": "INTJ",
+        "NN": "NOUN",
+        "PUNC": "PUNCT",
+        "V": "VERB",
+    }
     with open(out_file, 'w+', encoding="utf8") as f_out:
         for path in glob(directory + "/*csv"):
             n_sents, n_sents_skipped = 0, 0
             n_toks, n_toks_skipped = 0, 0
             with open(path, encoding="utf8") as f:
+                filename = path.split("/")[-1].split("\\")[-1]
                 first_line = True
                 sent = []
                 skip_sent = False
@@ -378,12 +387,15 @@ def kenpos(directory, out_file, filewise_updates=False):
                     if first_line:
                         first_line = False
                         continue
+                    if line == "WORD\tPOS":
+                        continue
                     try:
                         cells = line.split("\t")
                         form = cells[0]
-                        pos = cells[1].upper()
+                        pos = cells[1].strip().upper()
+                        pos = tag_map.get(pos, pos)
                         sent.append((form, pos))
-                        if form in (".", "?", "!"):
+                        if form in (".", "?", "!"):  # TODO quotation marks
                             if skip_sent:
                                 n_sents_skipped += 1
                                 n_toks_skipped += len(sent)
@@ -391,7 +403,10 @@ def kenpos(directory, out_file, filewise_updates=False):
                                 n_sents += 1
                                 n_toks += len(sent)
                                 for (form, pos) in sent:
-                                    f_out.write(f"{form}\t{pos}\n")
+                                    f_out.write(f"{form}\t{pos}")
+                                    if include_file_details:
+                                        f_out.write("\t" + filename)
+                                    f_out.write("\n")
                                 f_out.write("\n")
                             sent = []
                     except IndexError:

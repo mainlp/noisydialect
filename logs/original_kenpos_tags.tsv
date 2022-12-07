@@ -1,0 +1,141 @@
+../datasets/dev_kenpos-bxk_upos.tsv
+POS TAG	# TOKENS	# TYPES	TOP 5 TYPES	# FILES	5 OF THE FILES
+NOUN	4199	1203	wele babaandu omwami bioosi omunyali	35	9lbk36_lhybk_pos.csv 9lbk07_lhybk_pos.csv 1823p02_lhybk_pos.csv 9lbk28_lhybk_pos.csv 9lbk06_lhybk_pos.csv
+VERB	2847	1676	aaba aloma acha aboolela aba	36	9lbk36_lhybk_pos.csv 9lbk07_lhybk_pos.csv 1823p02_lhybk_pos.csv 9lbk28_lhybk_pos.csv 9lbk06_lhybk_pos.csv
+ADP	2284	184	mu khu mala owa ali	32	9lbk36_lhybk_pos.csv 9lbk07_lhybk_pos.csv 1823p02_lhybk_pos.csv 9lbk28_lhybk_pos.csv 9lbk06_lhybk_pos.csv
+PUNCT	2027	28	, . """" ? !	36	9lbk36_lhybk_pos.csv 9lbk07_lhybk_pos.csv 1823p02_lhybk_pos.csv 9lbk28_lhybk_pos.csv 9lbk06_lhybk_pos.csv
+CCONJ	1093	93	ne mala nga lundi nende	35	9lbk36_lhybk_pos.csv 9lbk07_lhybk_pos.csv 1823p02_lhybk_pos.csv 9lbk28_lhybk_pos.csv 9lbk06_lhybk_pos.csv
+DET	715	203	tawe wewe kano ali yino	34	9lbk36_lhybk_pos.csv 9lbk07_lhybk_pos.csv 1823p02_lhybk_pos.csv 9lbk28_lhybk_pos.csv 9lbk06_lhybk_pos.csv
+PRON	575	149	enywe ese ewe efwe wewe	26	9lbk36_lhybk_pos.csv 1823p02_lhybk_pos.csv 9lbk27_lhybk_pos.csv 1823p16_lhybk_pos.csv 9lbk30_lhybk_pos.csv
+ADJ	428	217	omunyali saba okhwa lukali kamakhumi	32	9lbk36_lhybk_pos.csv 9lbk07_lhybk_pos.csv 1823p02_lhybk_pos.csv 9lbk28_lhybk_pos.csv 9lbk06_lhybk_pos.csv
+ADV	333	109	tawe alala bioosi yesi lukali	33	9lbk36_lhybk_pos.csv 1823p02_lhybk_pos.csv 9lbk28_lhybk_pos.csv 9lbk06_lhybk_pos.csv 9lbk27_lhybk_pos.csv
+PREP	157	50	ne nende khukhwama sie eya	5	1823p01_lhybk_pos.csv 9lbk10_lhybk_pos.csv 9lbk21_lhybk_pos.csv 9lbk23_lhybk_pos.csv 9lbk33_lhybk_pos.csv
+NUM	98	62	mulala khataru kamakhumi chine silala	16	9lbk36_lhybk_pos.csv 9lbk08_lhybk_pos.csv 9lbk35_lhybk_pos.csv 1823p01_lhybk_pos.csv 9lbk42_lhybk_pos.csv
+X	22	16	mene cdf korona tekeli parisini	8	9lbk36_lhybk_pos.csv 9lbk08_lhybk_pos.csv 9lbk35_lhybk_pos.csv 1823p01_lhybk_pos.csv 1823p11_lhybk_pos.csv
+ADJE	9	8	chosi linyalikha bukhongo bakhulu chikhenyala	2	9lbk27_lhybk_pos.csv 9lbk33_lhybk_pos.csv
+N	5	5	mala bunyali bulwale aana lilaka	5	9lbk36_lhybk_pos.csv 9lbk28_lhybk_pos.csv 9lbk40_lhybk_pos.csv 9lbk21_lhybk_pos.csv 9lbk35_lhybk_pos.csv
+PART	4	3	osi mwe kili	1	9lbk28_lhybk_pos.csv
+INTJ	4	3	po tawe yee	2	9lbk36_lhybk_pos.csv 9lbk28_lhybk_pos.csv
+ART	3	3	si e a	1	9lbk16_lhybk_pos.csv
+PRO	3	3	ese khwise noliwe	2	9lbk26_lhybk_pos.csv 0312_lhybk_pos.csv
+CON	2	2	owa ba	1	1823p09_lhybk_pos.csv
+C0NJ	2	2	ne nga	1	9lbk27_lhybk_pos.csv
+ADO	2	2	ke bali	2	9lbk13_lhybk_pos.csv 9lbk04_lhybk_pos.csv
+A	2	2	be khu	1	9lbk16_lhybk_pos.csv
+PUNT	2	2	, .	1	1823p01_lhybk_pos.csv
+P	2	2	, khwiwe	1	9lbk36_lhybk_pos.csv
+PR0N	1	1	ewe	1	9lbk23_lhybk_pos.csv
+COJ	1	1	se	1	9lbk04_lhybk_pos.csv
+NNN	1	1	bioosi	1	9lbk04_lhybk_pos.csv
+PR	1	1	enywe	1	1823p11_lhybk_pos.csv
+PI	1	1	;	1	9lbk15_lhybk_pos.csv
+PROUN	1	1	nisio	1	1823p01_lhybk_pos.csv
+C	1	1	ne	1	9lbk21_lhybk_pos.csv
+DP	1	1	khu	1	9lbk36_lhybk_pos.csv
+
+../datasets/test_kenpos-lri_upos.tsv
+POS TAG	# TOKENS	# TYPES	TOP 5 TYPES	# FILES	5 OF THE FILES
+NOUN	6556	1879	ifula sikuli korona vandu mundu	199	9lch157_lhych_pos.csv 9lch037_lhych_pos.csv 9lch013_lhych_pos.csv 9lch056_lhych_pos.csv 4226_lhych_pos.csv
+VERB	4708	2325	ni yaari dawe siri mbu	128	9lch157_lhych_pos.csv 9lch037_lhych_pos.csv 4226_lhych_pos.csv 9lch141_lhych_pos.csv 9lch138_lhych_pos.csv
+CCONJ	2385	239	nende mbu nga handi ni	196	9lch157_lhych_pos.csv 9lch037_lhych_pos.csv 9lch013_lhych_pos.csv 9lch056_lhych_pos.csv 4226_lhych_pos.csv
+VRB	2279	1603	ni ihonyanga mbari onyala yari	72	9lch073_lhych_pos.csv 9lch013_lhych_pos.csv 9lch008_lhych_pos.csv 9lch056_lhych_pos.csv 9lch029_lhych_pos.csv
+ADJ	1800	579	wange buno waye ya kwa	182	9lch157_lhych_pos.csv 9lch037_lhych_pos.csv 9lch013_lhych_pos.csv 9lch056_lhych_pos.csv 4226_lhych_pos.csv
+PUN	1247	15	. , x2 - …	105	9lch037_lhych_pos.csv 9lch013_lhych_pos.csv 9lch056_lhych_pos.csv 4226_lhych_pos.csv 9lch060_lhych_pos.csv
+PUNCT	1166	8	. , """" ! ?	94	9lch157_lhych_pos.csv 9lch141_lhych_pos.csv 9lch138_lhych_pos.csv 4291_lhych_pos.csv 9lch111_lhych_pos.csv
+ADV	995	335	sana mudala lukari mno muno	175	9lch157_lhych_pos.csv 9lch037_lhych_pos.csv 9lch013_lhych_pos.csv 9lch056_lhych_pos.csv 4226_lhych_pos.csv
+DET	406	107	oyo ao eyo ni uno	64	9lch157_lhych_pos.csv 9lch144_lhych_pos.csv 9lch191_lhych_pos.csv 9lch149_lhych_pos.csv 9lch094_lhych_pos.csv
+ADP	254	62	mu hu khu ambi asi	95	9lch037_lhych_pos.csv 4226_lhych_pos.csv 9lch141_lhych_pos.csv 9lch138_lhych_pos.csv 9lch111_lhych_pos.csv
+NUM	243	58	ndala ehumi vaviri mulala varano	65	9lch157_lhych_pos.csv 9lch144_lhych_pos.csv 9lch191_lhych_pos.csv 9lch145_lhych_pos.csv 9lch094_lhych_pos.csv
+PRE	237	64	bwa ka mu ya vwa	56	9lch037_lhych_pos.csv 9lch013_lhych_pos.csv 9lch008_lhych_pos.csv 9lch015_lhych_pos.csv 9lch029_lhych_pos.csv
+PRO	211	126	siefwe vefwe ewe wange vandi	56	9lch073_lhych_pos.csv 9lch013_lhych_pos.csv 9lch037_lhych_pos.csv 9lch008_lhych_pos.csv 9lch029_lhych_pos.csv
+PRON	191	78	esie niye naye ndi newe	62	9lch157_lhych_pos.csv 9lch144_lhych_pos.csv 9lch149_lhych_pos.csv 9lch057_lhych_pos.csv 9lch060_lhych_pos.csv
+PREP	163	57	lwa ya sia eya khu	41	9lch073_lhych_pos.csv 9lch056_lhych_pos.csv 9lch057_lhych_pos.csv 9lch060_lhych_pos.csv 9lch058_lhych_pos.csv
+N	40	27	omwitsa omwana mapesa ingoho itivi	9	9lch191_lhych_pos.csv 9lch144_lhych_pos.csv 9lch152_lhych_pos.csv 9lch153_lhych_pos.csv 9lch154_lhych_pos.csv
+ADJE	27	24	muno mwene ndala bane badiidi	7	9lch076_lhych_pos.csv 9lch073_lhych_pos.csv 9lch077_lhych_pos.csv 9lch125_lhych_pos.csv 9lch075_lhych_pos.csv
+ADVB	21	19	muno ao nibafwana eyo owa	6	9lch076_lhych_pos.csv 9lch073_lhych_pos.csv 9lch077_lhych_pos.csv 9lch125_lhych_pos.csv 9lch129_lhych_pos.csv
+INTJ	18	8	sa te poo eeh khayayee	12	9lch171_lhych_pos.csv 9lch113_lhych_pos.csv 9lch042_lhych_pos.csv 9lch109_lhych_pos.csv 9lch117_lhych_pos.csv
+.	13	2	. ?	11	9lch019_lhych_pos.csv 9lch124_lhych_pos.csv 9lch046_lhych_pos.csv 9lch029_lhych_pos.csv 9lch043_lhych_pos.csv
+PART	10	5	ndi ni amukulu hulondahana imberi	6	9lch149_lhych_pos.csv 9lch173_lhych_pos.csv 9lch154_lhych_pos.csv 9lch148_lhych_pos.csv 9lch172_lhych_pos.csv
+AUX VRB	9	8	yari khwali no ni vari	5	9lch125_lhych_pos.csv 9lch119_lhych_pos.csv 9lch167_lhych_pos.csv 9lch165_lhych_pos.csv 9lch166_lhych_pos.csv
+PUN CT	9	2	. ,	1	9lch099_lhych_pos.csv
+INTERJ	7	4	sa pwa “nyonyonyo! nyonyonyo!”	4	9lch082_lhych_pos.csv 9lch189_lhych_pos.csv 9lch080_lhych_pos.csv 9lch188_lhych_pos.csv
+SPEC	7	6	yene abo ino uria awendio	4	9lch075_lhych_pos.csv 9lch073_lhych_pos.csv 9lch078_lhych_pos.csv 9lch077_lhych_pos.csv
+B	6	5	abandu kokhukhukhonya abebusi nzibarakua oluimbo	5	9lch046_lhych_pos.csv 9lch093_lhych_pos.csv 9lch027_lhych_pos.csv 9lch035_lhych_pos.csv 9lch038_lhych_pos.csv
+X	5	3	headmaster christmas school fees	5	9lch157_lhych_pos.csv 9lch094_lhych_pos.csv 9lch143_lhych_pos.csv 9lch156_lhych_pos.csv 9lch142_lhych_pos.csv
+C	5	1	nende	2	9lch022_lhych_pos.csv 9lch046_lhych_pos.csv
+CON	3	3	ni hulwa nende	1	9lch032_lhych_pos.csv
+PUNT	2	1	.	2	9lch145_lhych_pos.csv 9lch134_lhych_pos.csv
+AD	2	2	khuki bundi	2	9lch123_lhych_pos.csv 9lch132_lhych_pos.csv
+CONJT	2	1	.	2	9lch144_lhych_pos.csv 9lch141_lhych_pos.csv
+INTEJ	2	2	marachi 'uuuwi	2	9lch166_lhych_pos.csv 9lch167_lhych_pos.csv
+M	2	2	mumdala ifula	2	9lch046_lhych_pos.csv 9lch048_lhych_pos.csv
+CNJ	2	2	ni mbu	1	9lch132_lhych_pos.csv
+AVB	1	1	da	1	9lch004_lhych_pos.csv
+P	1	1	.	1	9lch013_lhych_pos.csv
+RB	1	1	khuli	1	9lch124_lhych_pos.csv
+NP	1	1	bube	1	9lch124_lhych_pos.csv
+PREP.P	1	1	ninabwo	1	9lch120_lhych_pos.csv
+ADVP	1	1	nilisili	1	9lch119_lhych_pos.csv
+DEM.PRO	1	1	omo	1	9lch123_lhych_pos.csv
+NN*	1	1	avula	1	9lch163_lhych_pos.csv
+PREP PHRASE	1	1	mubwitsufumbi	1	9lch167_lhych_pos.csv
+PU	1	1	.	1	9lch018_lhych_pos.csv
+INTJE	1	1	munae!!!	1	9lch165_lhych_pos.csv
+VV	1	1	yola	1	9lch165_lhych_pos.csv
+AJ	1	1	bwa	1	9lch031_lhych_pos.csv
+PUNV	1	1	baborerwa	1	4246_lhych_pos.csv
+SAA	1	1	saa	1	9lch015_lhych_pos.csv
+W	1	1	bandu	1	9lch028_lhych_pos.csv
+VN	1	1	vandu	1	9lch048_lhych_pos.csv
+PRON.DEM	1	1	buruo	1	9lch132_lhych_pos.csv
+AUX.V	1	1	mbu	1	9lch132_lhych_pos.csv
+
+../datasets/test_kenpos-rag_upos.tsv
+POS TAG	# TOKENS	# TYPES	TOP 5 TYPES	# FILES	5 OF THE FILES
+NOUN	4616	1656	mundu mwana nyasaye mukali avandu	114	1410_lhylg_pos.csv 0269_lhylg_pos.csv 0379_lhylg_pos.csv 2929p5_lhylg_pos.csv 0265_lhylg_pos.csv
+VERB	4609	2926	ni yali kutsia vali mbeye	113	1410_lhylg_pos.csv 0269_lhylg_pos.csv 0379_lhylg_pos.csv 2929p5_lhylg_pos.csv 0265_lhylg_pos.csv
+PUNCT	2938	50	. , - ( )	113	1410_lhylg_pos.csv 0269_lhylg_pos.csv 0379_lhylg_pos.csv 2929p5_lhylg_pos.csv 0265_lhylg_pos.csv
+ADJ	2072	792	uyu mba wange vosi mwene	111	1410_lhylg_pos.csv 0269_lhylg_pos.csv 0379_lhylg_pos.csv 2929p5_lhylg_pos.csv 0265_lhylg_pos.csv
+CCONJ	1456	142	na ne no kandi ku	100	1410_lhylg_pos.csv 0269_lhylg_pos.csv 0379_lhylg_pos.csv 2929p5_lhylg_pos.csv 0265_lhylg_pos.csv
+ADV	1086	442	ligali dave mba vutswa vulahi	109	1410_lhylg_pos.csv 0269_lhylg_pos.csv 0379_lhylg_pos.csv 2929p5_lhylg_pos.csv 0265_lhylg_pos.csv
+NUM	577	176	b a x2 2 3	71	0633_lhylg_pos.csv 2929p3_lhylg_pos.csv 0618_lhylg_pos.csv 1410_lhylg_pos.csv 0624_lhylg_pos.csv
+ADP	577	115	ku mu kuli bwa wo	76	2929p3_lhylg_pos.csv 0618_lhylg_pos.csv 0624_lhylg_pos.csv 0269_lhylg_pos.csv 1164_lhylg_pos.csv
+INTJ	130	43	mba dave ma ku ligali	43	1410_lhylg_pos.csv 0269_lhylg_pos.csv 1164_lhylg_pos.csv 1411_lhylg_pos.csv 1163_lhylg_pos.csv
+PRO	99	70	inze ave uyu naye kulwa	18	1158_lhylg_pos.csv 0404_lhylg_pos.csv 0618_lhylg_pos.csv 0629_lhylg_pos.csv 0624_lhylg_pos.csv
+PRON	94	55	naye vandi eveeye inze valala	24	2929p3_lhylg_pos.csv 1410_lhylg_pos.csv 2929p5_lhylg_pos.csv 0369_lhylg_pos.csv 0387_lhylg_pos.csv
+PREP	82	50	ive naye yaga kuye uyu	28	0269_lhylg_pos.csv 0649_lhylg_pos.csv 0647_lhylg_pos.csv 0654_lhylg_pos.csv 0363_lhylg_pos.csv
+N	23	21	iyasuli logembe lyeta lugano c	13	0404_lhylg_pos.csv 0622_lhylg_pos.csv 0269_lhylg_pos.csv 0390_lhylg_pos.csv 0270_lhylg_pos.csv
+PUCT	23	6	. , """" ( )	3	2929p1_lhylg_pos.csv 2929p2_lhylg_pos.csv 0265_lhylg_pos.csv
+CONJ + NN	18	17	nekiduuda no mwima nivigumba yoluveere nemiima	3	0356_lhylg_pos.csv 1410_lhylg_pos.csv 2929_lhylg_pos.csv
+PUNT	10	2	. ?	2	9llg_lhylg_pos.csv 0265_lhylg_pos.csv
+X	8	8	great physician here’s a saviour	2	2932p2_lhylg_pos.csv 1405_lhylg_pos.csv
+VV	6	6	uvudamanu yaavoha yaviika eveeye mbula	4	1164_lhylg_pos.csv 0353_lhylg_pos.csv 0628_lhylg_pos.csv 0621_lhylg_pos.csv
+PRON+V	5	5	chasingila vakolanga kamanya yateva nelitsia	2	1405_lhylg_pos.csv 1406_lhylg_pos.csv
+DET	4	4	yiyi ha tsie ho	2	0357_lhylg_pos.csv 1405_lhylg_pos.csv
+CONJ + V	4	4	chokuhilira tsiokusamba afuvula naliseka	2	1410_lhylg_pos.csv 2929_lhylg_pos.csv
+PROP	4	4	avanyalanga avene munyi vyosi	2	0273_lhylg_pos.csv 0277_lhylg_pos.csv
+,	3	1	,	3	1409_lhylg_pos.csv 2929p1_lhylg_pos.csv 2929p2_lhylg_pos.csv
+C	3	1	ne	2	1165_lhylg_pos.csv 1156_lhylg_pos.csv
+CONJ + ADJ	3	3	nuvulahi navandi nirikekeke	2	1410_lhylg_pos.csv 2929_lhylg_pos.csv
+CONJ + ADV	3	3	hukusambila nahoho nahaavo	2	1410_lhylg_pos.csv 2929_lhylg_pos.csv
+CON	3	2	no lio	2	0270_lhylg_pos.csv 0267_lhylg_pos.csv
+CONJ +NN	2	2	mubicha imbiimbu	1	0357_lhylg_pos.csv
+XXX	2	2	lifirira n	2	1410_lhylg_pos.csv 0392_lhylg_pos.csv
+T	2	2	ni uveeye	2	0270_lhylg_pos.csv 0356_lhylg_pos.csv
+.	2	1	.	1	0267_lhylg_pos.csv
+PRON + V	2	2	chalola chafunyilitsa	1	1405_lhylg_pos.csv
+CONJ+ NN	2	2	nomukaana numwoyo	1	0356_lhylg_pos.csv
+ART	2	2	the a	2	0640_lhylg_pos.csv 0639_lhylg_pos.csv
+PUNCH	2	1	.	1	0388_lhylg_pos.csv
+DJ	1	1	lwire	1	0383_lhylg_pos.csv
+AADJ	1	1	niyo	1	0387_lhylg_pos.csv
+NN +ADJ	1	1	nimiyinziki	1	0357_lhylg_pos.csv
+CONJ +V +ADJ	1	1	navuguliki	1	0357_lhylg_pos.csv
+ADJ + V	1	1	liveeye	1	2929_lhylg_pos.csv
+CONJJ	1	1	navutswa	1	0274_lhylg_pos.csv
+CONH	1	1	na	1	0267_lhylg_pos.csv
+DET.POSS	1	1	ya	1	0354_lhylg_pos.csv
+A	1	1	kuli	1	0271_lhylg_pos.csv
+NV	1	1	nagadukana	1	0262_lhylg_pos.csv
+ADO	1	1	mu	1	0386_lhylg_pos.csv
+B	1	1	naanyagula	1	0365_lhylg_pos.csv

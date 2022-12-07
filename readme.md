@@ -92,13 +92,18 @@ python3 0.corpus_prep.py --type ara --dir ../datasets/dialectal_arabic_resources
 python3 0.corpus_prep.py --type ara --dir ../datasets/dialectal_arabic_resources/ --files seg_plus_pos_lev.txt --out ../datasets/test_dar-lev.tsv
 python3 0.corpus_prep.py --type ara --dir ../datasets/dialectal_arabic_resources/ --files seg_plus_pos_mgr.txt --out ../datasets/test_dar-mgr.tsv
 # Optional checks:
-python3 0.validate_input_file.py ../datasets/train_dar-egy.tsv ../datasets/tagset_upos.txt
-python3 0.validate_input_file.py ../datasets/train_dar-glf.tsv ../datasets/tagset_upos.txt
-python3 0.validate_input_file.py ../datasets/train_dar-lev.tsv ../datasets/tagset_upos.txt
-python3 0.validate_input_file.py ../datasets/train_dar-mgr.tsv ../datasets/tagset_upos.txt
+python3 0.validate_input_file.py ../datasets/dev_dar-egy.tsv ../datasets/tagset_upos.txt
+python3 0.validate_input_file.py ../datasets/test_dar-glf.tsv ../datasets/tagset_upos.txt
+python3 0.validate_input_file.py ../datasets/test_dar-lev.tsv ../datasets/tagset_upos.txt
+python3 0.validate_input_file.py ../datasets/test_dar-mgr.tsv ../datasets/tagset_upos.txt
 
 # KenPos
 python3 0.corpus_prep.py --type kenpos --dir ../datasets/KenPos/pos_lhybk --out ../datasets/dev_kenpos-bxk_upos.tsv
+python3 0.corpus_prep.py --type kenpos --dir ../datasets/KenPos/pos_lhych --out ../datasets/test_kenpos-lri_upos.tsv
+python3 0.corpus_prep.py --type kenpos --dir ../datasets/KenPos/pos_lhylg --out ../datasets/test_kenpos-rag_upos.tsv
+# Optional
+python3 0.check_kenpos_tags.py
+python3 0.validate_input_file.py ../datasets/dev_kenpos-bxk_upos.tsv ../datasets/tagset_upos.txt
 ```
 
 3. Extract feature matrices for those experiments where the input representations aren't modified: (This creates subfolders in `data`, containing the input representations.)
