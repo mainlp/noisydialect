@@ -32,3 +32,6 @@
 [submodule "datasets/dialectal_arabic_resources"]
 	path = datasets/dialectal_arabic_resources
 	url = git@github.com:qcri/dialectal_arabic_resources.git
+[submodule "datasets/UD_Finnish-TDT"]
+	path = datasets/UD_Finnish-TDT
+	url = git@github.com:UniversalDependencies/UD_Finnish-TDT.git

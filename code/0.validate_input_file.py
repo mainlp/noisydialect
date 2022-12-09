@@ -7,6 +7,7 @@ import sys
 
 def validate(in_file, tagset_file):
     tags = set()
+    okay = True
     with open(tagset_file, encoding="utf8") as f:
         for line in f:
             tag = line.strip()
@@ -21,12 +22,12 @@ def validate(in_file, tagset_file):
             if len(cells) < 2:
                 print("Expected (at least) two cells, but found only one:")
                 print(line)
-                return False
+                okay = False
             if cells[1] not in tags:
                 print("Not a valid tag: " + cells[1])
                 print(line)
-                return False
-    return True
+                okay = False
+    return okay
 
 
 if __name__ == "__main__":
