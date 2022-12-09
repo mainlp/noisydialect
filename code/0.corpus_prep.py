@@ -28,7 +28,6 @@ def ud(input_files, out_file, tagfix, upos=True, translit=True, verbose=True):
                             f_out.write("\n")
                         continue
                     if line[0] == "#":
-                        # comment
                         continue
                     first_sent = False
                     cells = line.split("\t")
@@ -59,67 +58,6 @@ def ud(input_files, out_file, tagfix, upos=True, translit=True, verbose=True):
                         print(in_file)
                         print("(exiting)")
                         return
-
-
-def ud_phono(input_files, out_file, tagfix, upos=True, ortho=False,
-             verbose=True):
-    if upos:
-        pos_idx = 3
-    else:  # XPOS
-        pos_idx = 4
-    next_has_phono = False
-    n_sents = 0
-    with open(out_file, 'w', encoding="utf8") as f_out:
-        for in_file in input_files:
-            if verbose:
-                print("Reading " + in_file)
-            with open(in_file, encoding="utf8") as f_in:
-                first_sent = True
-                for line in f_in:
-                    line = line.strip()
-                    if not line:
-                        if not first_sent:
-                            next_has_phono = False
-                            f_out.write("\n")
-                        continue
-                    if line[0] == "#":
-                        if line.startswith("# text_orig"):
-                            next_has_phono = True
-                        elif line.startswith("# sent_id"):
-                            n_sents += 1
-                        continue
-                    first_sent = False
-                    if not next_has_phono:
-                        continue
-                    cells = line.split("\t")
-                    try:
-                        if ortho:
-                            form = cells[1]
-                        else:
-                            form = None
-                            misc_entries = cells[-1].split("|")
-                            for entry in misc_entries:
-                                if entry.startswith("Phono="):
-                                    form = entry[6:]
-                                    break
-                            if not form:
-                                print("!!! Phonetic information missing:")
-                                print(line)
-                                print(in_file)
-                                print("(exiting)")
-                                return
-                        pos = cells[pos_idx]
-                        pos = tagfix.get(pos, pos)
-                        if pos == "_":
-                            continue
-                        f_out.write(f"{form}\t{pos}\n")
-                    except IndexError:
-                        print("!!! malformed line:")
-                        print(line)
-                        print(in_file)
-                        print("(exiting)")
-                        return
-    print(f"Wrote {n_sents} sentences to {out_file}.")
 
 
 def noah(in_file, out_file):
@@ -609,8 +547,6 @@ if __name__ == "__main__":
                              "(only relevant for NOAH)")
     parser.add_argument("--xpos", dest="upos", action="store_false",
                         default=True)
-    parser.add_argument("--phono", action="store_true", default=False,
-                        help="Use only sentences with phonetic annotations")
     parser.add_argument("--ortho", action="store_true", default=False,
                         help="Use orthographic versions of "
                              "words with phonetic annotations")
@@ -631,10 +567,7 @@ if __name__ == "__main__":
         else:
             input_files = [args.dir + "/" + f.strip()
                            for f in args.files.split(",")]
-        if args.phono:
-            ud_phono(input_files, args.out, tagfix, args.upos, args.ortho)
-        else:
-            ud(input_files, args.out, tagfix, args.upos, args.translit)
+        ud(input_files, args.out, tagfix, args.upos, args.translit)
     elif args.type == "noah":
         if args.excl:
             noah_excl(args.dir + "/" + args.files, args.out, args.excl)
