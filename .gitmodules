@@ -13,10 +13,6 @@
 [submodule "datasets/UD_Dutch-Alpino"]
 	path = datasets/UD_Dutch-Alpino
 	url = git@github.com:UniversalDependencies/UD_Dutch-Alpino.git
-[submodule "datasets/UD_Frisian-Frysk"]
-	path = datasets/UD_Frisian-Frysk
-	url = git@github.com:UniversalDependencies/UD_Frisian-Frysk.git
-	branch = dev
 [submodule "datasets/UD_Norwegian-NynorskLIA_dialect"]
 	path = datasets/UD_Norwegian-NynorskLIA_dialect
 	url = git@github.com:verenablaschke/UD_Norwegian-NynorskLIA_dialect.git
@@ -35,3 +31,24 @@
 [submodule "datasets/UD_Finnish-TDT"]
 	path = datasets/UD_Finnish-TDT
 	url = git@github.com:UniversalDependencies/UD_Finnish-TDT.git
+[submodule "datasets/UD_Norwegian-Bokmaal"]
+	path = datasets/UD_Norwegian-Bokmaal
+	url = git@github.com:UniversalDependencies/UD_Norwegian-Bokmaal.git
+[submodule "datasets/UD_Catalan-AnCora"]
+	path = datasets/UD_Catalan-AnCora
+	url = git@github.com:UniversalDependencies/UD_Catalan-AnCora.git
+[submodule "datasets/UD_Estonian-EDT"]
+	path = datasets/UD_Estonian-EDT
+	url = git@github.com:UniversalDependencies/UD_Estonian-EDT.git
+[submodule "datasets/UD_Spanish-AnCora"]
+	path = datasets/UD_Spanish-AnCora
+	url = git@github.com:UniversalDependencies/UD_Spanish-AnCora.git
+[submodule "datasets/UD_French-GSD"]
+	path = datasets/UD_French-GSD
+	url = git@github.com:UniversalDependencies/UD_French-GSD.git
+[submodule "datasets/UD_Italian-ISDT"]
+	path = datasets/UD_Italian-ISDT
+	url = git@github.com:UniversalDependencies/UD_Italian-ISDT.git
+[submodule "datasets/UD_Old_French-SRCMF"]
+	path = datasets/UD_Old_French-SRCMF
+	url = git@github.com:UniversalDependencies/UD_Old_French-SRCMF.git

@@ -10,20 +10,36 @@ from glob import glob
 import re
 
 
-def ud(input_files, out_file, tagfix, upos=True, translit=True, verbose=True):
+def ud(input_files, out_file, tagfix, upos=True, translit=False,
+       gloss_comp=False, verbose=True):
     if upos:
         pos_idx = 3
     else:  # XPOS
         pos_idx = 4
+    sents_added = 0
+    sents_skipped = 0
     with open(out_file, 'w+', encoding="utf8") as f_out:
         for in_file in input_files:
             if verbose:
                 print("Reading " + in_file)
             with open(in_file, encoding="utf8") as f_in:
                 first_sent = True
+                sent = []
+                gloss_diff = False
                 for line in f_in:
                     line = line.strip()
                     if not line:
+                        if gloss_comp and sent:
+                            if gloss_diff:
+                                sents_added += 1
+                                for form, pos in sent:
+                                    f_out.write(f"{form}\t{pos}\n")
+                            else:
+                                sents_skipped += 1
+                                print("Sentence identical to gloss (skipping)")
+                                print(" ".join((x[0] for x in sent)))
+                            gloss_diff = False
+                            sent = []
                         if not first_sent:
                             f_out.write("\n")
                         continue
@@ -46,18 +62,37 @@ def ud(input_files, out_file, tagfix, upos=True, translit=True, verbose=True):
                         if pos == "_":
                             continue
                         if not form:
-                            print("Transliteration missing!")
-                            print(line)
-                            print(in_file)
-                            print("(exiting)")
-                            return
-                        f_out.write(f"{form}\t{pos}\n")
+                            if translit:
+                                print("Transliteration missing!")
+                                print(line)
+                                print(in_file)
+                                print("(exiting)")
+                                return
+                            else:
+                                print("Form missing:")
+                                print(line)
+                                continue
+                        if gloss_comp:
+                            miscs = cells[-1].split("|")
+                            gloss = ""
+                            for misc in miscs:
+                                if misc.startswith("Gloss="):
+                                    gloss = misc.split("=", 1)[1]
+                                    break
+                            if gloss != form:
+                                gloss_diff = True
+                            sent.append((form, pos))
+                        else:
+                            f_out.write(f"{form}\t{pos}\n")
+                            sents_added += 1
                     except IndexError:
                         print("!!! malformed line:")
                         print(line)
                         print(in_file)
                         print("(exiting)")
                         return
+    print(f"Added {sents_added} sentences.")
+    print(f"Skipped {sents_skipped} sentences.")
 
 
 def noah(in_file, out_file):
@@ -413,6 +448,7 @@ if __name__ == "__main__":
     parser.add_argument("--tagset", default="",
                         help="tagset file (only relevant for NArabizi)")
     parser.add_argument("--kenpostags", action="store_true", default=False)
+    parser.add_argument("--glosscomp", action="store_true", default=False)
     args = parser.parse_args()
     tagfix = {}
     if args.tigerize:
@@ -425,7 +461,8 @@ if __name__ == "__main__":
         else:
             input_files = [args.dir + "/" + f.strip()
                            for f in args.files.split(",")]
-        ud(input_files, args.out, tagfix, args.upos, args.translit)
+        ud(input_files, args.out, tagfix, args.upos, args.translit,
+           args.glosscomp)
     elif args.type == "noah":
         if args.excl:
             noah_excl(args.dir + "/" + args.files, args.out, args.excl)

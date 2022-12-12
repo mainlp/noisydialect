@@ -4,7 +4,7 @@ import re
 
 def murre(infiles, out_folder,
           group_by="region",  # group [25]; eight; region [6]; two; no_groups
-          dev={"east", "SAV", "6sav", "VarP"},
+          dev=("east", "SAV", "6sav", "VarP"),
           print_details=False,
           ):
     if group_by not in ("group", "eight", "region", "two", "no_groups"):

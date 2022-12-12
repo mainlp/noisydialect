@@ -5,7 +5,8 @@ figs/
 data/
 notes/
 datasets/*.tsv
-datasets/KenPos/pos_*
+datasets/Restaure*
+datasets/KenPos
 */lightning_logs/
 *BACKUP*
 *.vrt
