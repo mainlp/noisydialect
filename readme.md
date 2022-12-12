@@ -111,8 +111,7 @@ python3 0.corpus_prep.py --type kenpos --dir ../datasets/KenPos/pos_lhylg --out 
 python3 0.validate_input_file.py ../datasets/dev_kenpos-bxk_upos.tsv ../datasets/tagset_upos.txt
 
 # Lauseopin arkiston murrekorpus
-python3 0.corpus_prep.py --type murre --glob "../datasets/LA-murre-vrt/lam_*.vrt" --out ../datasets/dev_murre_upos.tsv
-python3 0.validate_input_file.py ../datasets/dev_murre_upos.tsv ../datasets/tagset_upos.txt
+python3 0.prep_lamurre.py
 ```
 
 3. Extract feature matrices for those experiments where the input representations aren't modified: (This creates subfolders in `data`, containing the input representations.)
