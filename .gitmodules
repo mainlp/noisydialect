@@ -15,7 +15,7 @@
 	url = git@github.com:UniversalDependencies/UD_Dutch-Alpino.git
 [submodule "datasets/UD_Norwegian-NynorskLIA_dialect"]
 	path = datasets/UD_Norwegian-NynorskLIA_dialect
-	url = git@github.com:verenablaschke/UD_Norwegian-NynorskLIA_dialect.git
+	url = git@github.com:mainlp/UD_Norwegian-NynorskLIA_dialect.git
 [submodule "datasets/UD_Norwegian-Nynorsk"]
 	path = datasets/UD_Norwegian-Nynorsk
 	url = https://github.com/UniversalDependencies/UD_Norwegian-Nynorsk
