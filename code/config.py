@@ -42,10 +42,10 @@ class Config:
                  max_sents_train=-1,  # -1: no max limit
                  max_sents_dev=-1,  # -1: no max limit
                  max_sents_test=-1,  # -1: no max limit
-                 subset_selection="first",  # {first, last, rand}
+                 subset_selection=None,  # {first, last, rand}
                  orig_dir_train=None,
                  orig_dir_dev=None,
-                 tagset_path="../datasets/tagset_stts.txt",
+                 tagset_path=None,
                  # If the input matrices still need to be prepared:
                  # If prepare_input_traindev == True, it overrides the
                  # values of prepare_input_train and prepare_input_dev,
@@ -60,22 +60,22 @@ class Config:
                  reinit_train_each_seed=False,
                  reinit_dev_each_seed=False,
                  reinit_test_each_seed=False,
-                 T=60,
-                 subtoken_rep='last',  # {first, last, all}
-                 tokenizer_name="dbmdz/bert-base-german-cased",
+                 T=-1,
+                 subtoken_rep=None,  # {first, last, all}
+                 tokenizer_name=None,
                  # If use_sca_tokenizer == True, tokenizer_name is
                  # the name of the base tokenizer from which the
                  # SCATokenizer is built.
                  use_sca_tokenizer=False,
-                 sca_sibling_weighting="relative",  # {mean, relative}
+                 sca_sibling_weighting=None,  # {mean, relative}
                  noise_type=None,  # None -> no noise
-                 noise_lvl_min=0.1,
-                 noise_lvl_max=0.15,
+                 noise_lvl_min=-1,
+                 noise_lvl_max=-1,
                  # If the input matrices just need to be loaded:
-                 data_parent_dir="../data/",
+                 data_parent_dir=None,
                  # Model:
-                 bert_name="dbmdz/bert-base-german-cased",
-                 plm_type="BertForMaskedLM",
+                 bert_name=None,
+                 plm_type=None,
                  # TODO: continued pretraining
                  classifier_dropout=0.1,
                  # Training:

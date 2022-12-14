@@ -11,7 +11,7 @@ import re
 
 
 def ud(input_files, out_file, tagfix, upos=True, translit=False,
-       gloss_comp=False, verbose=True):
+       gloss_comp=False, incl_source_file=False, verbose=True):
     if upos:
         pos_idx = 3
     else:  # XPOS
@@ -23,6 +23,10 @@ def ud(input_files, out_file, tagfix, upos=True, translit=False,
             if verbose:
                 print("Reading " + in_file)
             with open(in_file, encoding="utf8") as f_in:
+                if incl_source_file:
+                    filename = in_file.split("/")[-1].split("\\")[-1]
+                else:
+                    filename = None
                 first_sent = True
                 sent = []
                 gloss_diff = False
@@ -32,8 +36,12 @@ def ud(input_files, out_file, tagfix, upos=True, translit=False,
                         if gloss_comp and sent:
                             if gloss_diff:
                                 sents_added += 1
-                                for form, pos in sent:
-                                    f_out.write(f"{form}\t{pos}\n")
+                                for form, pos, filename in sent:
+                                    if filename:
+                                        f_out.write(
+                                            f"{form}\t{pos}\t{filename}\n")
+                                    else:
+                                        f_out.write(f"{form}\t{pos}\n")
                             else:
                                 sents_skipped += 1
                                 print("Sentence identical to gloss (skipping)")
@@ -81,9 +89,12 @@ def ud(input_files, out_file, tagfix, upos=True, translit=False,
                                     break
                             if gloss != form:
                                 gloss_diff = True
-                            sent.append((form, pos))
+                            sent.append((form, pos, filename))
                         else:
-                            f_out.write(f"{form}\t{pos}\n")
+                            if incl_source_file:
+                                f_out.write(f"{form}\t{pos}\t{filename}\n")
+                            else:
+                                f_out.write(f"{form}\t{pos}\n")
                             sents_added += 1
                     except IndexError:
                         print("!!! malformed line:")
@@ -333,96 +344,6 @@ def ara(in_file, out_file, include_tag_details=True, print_mapping=False,
             print(f"tok {issue[0]} merged {issue[1]} segments {issue[2]}")
 
 
-def kenpos(directory, out_file, keep_original_tags=True,
-           filewise_updates=False, include_file_details=True):
-    n_sents_total, n_sents_skipped_total = 0, 0
-    n_toks_total, n_toks_skipped_total = 0, 0
-    if keep_original_tags:
-        tag_map = {}
-    else:
-        tag_map = {
-            "A": "ADP",
-            "ADO": "ADP",
-            "ADJE": "ADJ",
-            "ADVB": "ADV",
-            "C": "CCONJ",
-            "C0NJ": "CCONJ",
-            "COJ": "CCONJ",
-            "CONJ": "CCONJ",
-            "DP": "ADP",
-            "INTER": "INTJ",
-            "N": "NOUN",
-            "NN": "NOUN",
-            "NNN": "NOUN",
-            "PART": "PRT",
-            "PI": "PUNCT",
-            "PR": "PRON",
-            "PR0N": "PRON",
-            "PRO": "PRON",
-            "PROUN": "PRON",
-            "PUN": "PUNCT",
-            "PUNC": "PUNCT",
-            "PUNT": "PUNCT",
-            "V": "VERB",
-            "VRB": "VERB",
-        }
-    with open(out_file, 'w+', encoding="utf8") as f_out:
-        for path in glob(directory + "/*csv"):
-            n_sents, n_sents_skipped = 0, 0
-            n_toks, n_toks_skipped = 0, 0
-            with open(path, encoding="utf8") as f:
-                filename = path.split("/")[-1].split("\\")[-1]
-                first_line = True
-                sent = []
-                skip_sent = False
-                for line in f:
-                    line = line.strip()
-                    if not line:
-                        continue
-                    if first_line:
-                        first_line = False
-                        continue
-                    if line == "WORD\tPOS":
-                        continue
-                    try:
-                        cells = line.split("\t")
-                        form = cells[0]
-                        pos = cells[1].strip().upper()
-                        pos = tag_map.get(pos, pos)
-                        sent.append((form, pos))
-                        if form in (".", "?", "!"):  # TODO quotation marks
-                            if skip_sent:
-                                n_sents_skipped += 1
-                                n_toks_skipped += len(sent)
-                            else:
-                                n_sents += 1
-                                n_toks += len(sent)
-                                for (form, pos) in sent:
-                                    f_out.write(f"{form}\t{pos}")
-                                    if include_file_details:
-                                        f_out.write("\t" + filename)
-                                    f_out.write("\n")
-                                f_out.write("\n")
-                            sent = []
-                    except IndexError:
-                        # print("Missing POS tag:")
-                        # print(line)
-                        # print("(Skipping sentence.)")
-                        n_toks_skipped += 1
-                        skip_sent = True
-            if filewise_updates:
-                print(path)
-                print(f"Added {n_sents} sentences ({n_toks} tokens)")
-                print(f"Skipped {n_sents_skipped} sentences ({n_toks_skipped} tokens)")
-            n_sents_total += n_sents
-            n_sents_skipped_total += n_sents_skipped
-            n_toks_total += n_toks
-            n_toks_skipped_total += n_toks_skipped
-    print("TOTAL")
-    print(f"Added {n_sents_total} sentences ({n_toks_total} tokens)")
-    print(f"Skipped {n_sents_skipped_total} sentences ({n_toks_skipped_total} tokens)")
-
-
 if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("--type",
@@ -447,8 +368,9 @@ if __name__ == "__main__":
     parser.add_argument("--translit", action="store_true", default=False)
     parser.add_argument("--tagset", default="",
                         help="tagset file (only relevant for NArabizi)")
-    parser.add_argument("--kenpostags", action="store_true", default=False)
     parser.add_argument("--glosscomp", action="store_true", default=False)
+    parser.add_argument("--incl_source_file", action="store_true",
+                        default=False)
     args = parser.parse_args()
     tagfix = {}
     if args.tigerize:
@@ -462,7 +384,7 @@ if __name__ == "__main__":
             input_files = [args.dir + "/" + f.strip()
                            for f in args.files.split(",")]
         ud(input_files, args.out, tagfix, args.upos, args.translit,
-           args.glosscomp)
+           args.glosscomp, args.incl_source_file)
     elif args.type == "noah":
         if args.excl:
             noah_excl(args.dir + "/" + args.files, args.out, args.excl)
@@ -472,5 +394,3 @@ if __name__ == "__main__":
         preprocess_narabizi(args.dir + "/" + args.files, args.out, args.tagset)
     elif args.type == "ara":
         ara(args.dir + "/" + args.files, args.out)
-    elif args.type == "kenpos":
-        kenpos(args.dir, args.out, args.kenpostags)
