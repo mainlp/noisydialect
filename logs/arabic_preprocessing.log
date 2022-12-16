@@ -1,215 +1,138 @@
-$ python3 0.corpus_prep.py --type ara --dir ../datasets/dialectal_arabic_resources/ --files seg_plus_pos_egy.txt --out ../datasets/train_dar-egy.tsv
-Full token used: 5640
-Segmentation used -- segmentation OK: 4081
-Segmentation used -- issues with segmentation: 112
-tok لله merged لالله segments ل+الله
+../datasets/dialectal_arabic_resources/seg_plus_pos_egy.txt
+Merging worked: 7396
+Merging didn't work: 85
 tok لله merged لالله segments ل+الله
 tok هيعبّرونا merged هيعبرونا segments ه+يعبر+و+نا
-tok هيعبّرونا merged هيعبرونا segments ه+يعبر+و+نا
-tok هيعبّرونا merged هيعبرونا segments ه+يعبر+و+نا
-tok هيعبّرونا merged هيعبرونا segments ه+يعبر+و+نا
-tok للأسف merged لالأسف segments ل+ال+أسف
 tok للأسف merged لالأسف segments ل+ال+أسف
 tok فُكك merged فكك segments فك+ك
-tok فُكك merged فكك segments فك+ك
-tok ونأڤور merged ونأفور segments و+نأفور
+tok مُستحيل merged مستحيل segments مستحيل
+tok إنتَ merged إنت segments إنت
+tok الدنيـــا merged الدنيا segments ال+دنيا
+tok لمـآ merged لمآ segments لمآ
+tok مـآشي merged مآشي segments مآشي
+tok اڤورة merged افورة segments افور+ة
 tok ونأڤور merged ونأفور segments و+نأفور
 tok لله merged لالله segments ل+الله
-tok لله merged لالله segments ل+الله
-tok للالف merged لالالف segments ل+ال+الف
-tok للالف merged لالالف segments ل+ال+الف
+tok فــ merged ف segments ف
 tok للالف merged لالالف segments ل+ال+الف
 tok للست merged لالست segments ل+ال+ست
-tok للست merged لالست segments ل+ال+ست
+tok الوﻻد merged الولاد segments ال+ولاد
+tok فعلاً merged فعلا segments فعل+ا
 tok عُمرهم merged عمرهم segments عمر+هم
-tok عُمرهم merged عمرهم segments عمر+هم
-tok خلّفونا merged خلفونا segments خلف+و+نا
-tok خلّفونا merged خلفونا segments خلف+و+نا
+tok سُبحان merged سبحان segments سبحان
+tok رِوش merged روش segments روش
 tok خلّفونا merged خلفونا segments خلف+و+نا
 tok للحب merged لالحب segments ل+ال+حب
-tok للحب merged لالحب segments ل+ال+حب
-tok لله merged لالله segments ل+الله
 tok لله merged لالله segments ل+الله
 tok للناس merged لالناس segments ل+ال+ناس
-tok للناس merged لالناس segments ل+ال+ناس
+tok قـطع merged قطع segments قطع
 tok للاسف merged لالاسف segments ل+ال+اسف
-tok للاسف merged لالاسف segments ل+ال+اسف
-tok لله merged لالله segments ل+الله
 tok لله merged لالله segments ل+الله
 tok للنوم merged لالنوم segments ل+ال+نوم
-tok للنوم merged لالنوم segments ل+ال+نوم
 tok للهداية merged لالهداية segments ل+ال+هداي+ة
-tok للهداية merged لالهداية segments ل+ال+هداي+ة
+tok بـ merged ب segments ب
+tok الـ merged ال segments ال
 tok حُبه merged حبه segments حب+ه
-tok حُبه merged حبه segments حب+ه
 tok وﻻ merged ولا segments و+لا
+tok تقريباً merged تقريبا segments تقريب+ا
 tok وﻻ merged ولا segments و+لا
-tok وﻻ merged ولا segments و+لا
-tok وﻻ merged ولا segments و+لا
-tok لكَ merged لك segments ل+ك
+tok ﻻقين merged لاقين segments لاق+ين
+tok فَ merged ف segments ف
 tok لكَ merged لك segments ل+ك
 tok للاحسن merged لالاحسن segments ل+ال+احسن
-tok للاحسن merged لالاحسن segments ل+ال+احسن
-tok للمتحرش merged لالمتحرش segments ل+ال+متحرش
+tok غالباً merged غالبا segments غالب+ا
 tok للمتحرش merged لالمتحرش segments ل+ال+متحرش
 tok للسيسي merged لالسيسي segments ل+ال+سيسي
-tok للسيسي merged لالسيسي segments ل+ال+سيسي
-tok للي merged لالي segments ل+الي
 tok للي merged لالي segments ل+الي
 tok للعالم merged لالعالم segments ل+ال+عالم
-tok للعالم merged لالعالم segments ل+ال+عالم
 tok للاشمئزاز merged لالاشمئزاز segments ل+ال+اشمئزاز
-tok للاشمئزاز merged لالاشمئزاز segments ل+ال+اشمئزاز
+tok چيب merged جيب segments جيب
+tok أنـا merged أنا segments أنا
+tok الرُقي merged الرقي segments ال+رقي
+tok فـ merged ف segments ف
+tok عـن merged عن segments عن
+tok نـاس merged ناس segments ناس
 tok مـاتعرفك merged ماتعرفك segments ما+تعرف+ك
-tok مـاتعرفك merged ماتعرفك segments ما+تعرف+ك
-tok مـاتعرفك merged ماتعرفك segments ما+تعرف+ك
-tok بيـك merged بيك segments بي+ك
+tok تـهتم merged تهتم segments تهتم
 tok بيـك merged بيك segments بي+ك
 tok وكـأن merged وكأن segments و+كأن
-tok وكـأن merged وكأن segments و+كأن
 tok لـحد merged لحد segments ل+حد
-tok لـحد merged لحد segments ل+حد
+tok المُتعة merged المتعة segments ال+متع+ة
 tok للى merged لالى segments ل+الى
-tok للى merged لالى segments ل+الى
-tok لله merged لالله segments ل+الله
+tok حُب merged حب segments حب
+tok مثلاً merged مثلا segments مثل+ا
 tok لله merged لالله segments ل+الله
 tok للجد merged لالجد segments ل+ال+جد
-tok للجد merged لالجد segments ل+ال+جد
 tok للماضي merged لالماضي segments ل+ال+ماضي
-tok للماضي merged لالماضي segments ل+ال+ماضي
-tok للأسف merged لالأسف segments ل+ال+أسف
+tok فعلاً merged فعلا segments فعل+ا
 tok للأسف merged لالأسف segments ل+ال+أسف
 tok للصح merged لالصح segments ل+ال+صح
-tok للصح merged لالصح segments ل+ال+صح
 tok للشعب merged لالشعب segments ل+ال+شعب
-tok للشعب merged لالشعب segments ل+ال+شعب
+tok الـ merged ال segments ال
 tok للى merged لالى segments ل+الى
-tok للى merged لالى segments ل+الى
-tok للجميع merged لالجميع segments ل+ال+جميع
 tok للجميع merged لالجميع segments ل+ال+جميع
 tok وﻻ merged ولا segments و+لا
 tok وﻻ merged ولا segments و+لا
-tok وﻻ merged ولا segments و+لا
-tok وﻻ merged ولا segments و+لا
-tok للى merged لالى segments ل+الى
 tok للى merged لالى segments ل+الى
 tok للايام merged لالايام segments ل+ال+ايام
-tok للايام merged لالايام segments ل+ال+ايام
-tok للرئاسة merged لالرئاسة segments ل+ال+رئاس+ة
 tok للرئاسة merged لالرئاسة segments ل+ال+رئاس+ة
 tok يغدّيهم merged يغديهم segments يغدي+هم
-tok يغدّيهم merged يغديهم segments يغدي+هم
-tok للنقاش merged لالنقاش segments ل+ال+نقاش
 tok للنقاش merged لالنقاش segments ل+ال+نقاش
 tok خسِرتها merged خسرتها segments خسر+ت+ها
-tok خسِرتها merged خسرتها segments خسر+ت+ها
-tok خسِرتها merged خسرتها segments خسر+ت+ها
-tok للأبد merged لالأبد segments ل+ال+أبد
 tok للأبد merged لالأبد segments ل+ال+أبد
 tok جوّاك merged جواك segments جو+ا+ك
-tok جوّاك merged جواك segments جو+ا+ك
 tok أدّامي merged أدامي segments أدام+ي
-tok أدّامي merged أدامي segments أدام+ي
-tok ياللى merged ياللي segments يا+للي
+tok رجاءًا merged رجاءا segments رجاء+ا
 tok ياللى merged ياللي segments يا+للي
 tok للاسف merged لالاسف segments ل+ال+اسف
-tok للاسف merged لالاسف segments ل+ال+اسف
-
-$ python3 0.corpus_prep.py --type ara --dir ../datasets/dialectal_arabic_resources/ --files seg_plus_pos_glf.txt --out ../datasets/train_dar-glf.tsv
-Line with empty token (skipping sentence):
-1	B	135	10			PUNC
-Line with empty token (skipping sentence):
-5	A	174	1			PUNC
-Line with empty token (skipping sentence):
-3	B	188	14			PUNC
-Line with empty token (skipping sentence):
-3	B	189	14			PUNC
-Line with empty token (skipping sentence):
-5	A	254	6			PUNC
-Line with empty token (skipping sentence):
-4	B	304	13			PUNC
-Line with empty token (skipping sentence):
-5	B	318	9			PUNC
-Line with empty token (skipping sentence):
-5	B	333	2			PUNC
-Full token used: 4759
-Segmentation used -- segmentation OK: 4158
-Segmentation used -- issues with segmentation: 0
-
-$ python3 0.corpus_prep.py --type ara --dir ../datasets/dialectal_arabic_resources/ --files seg_plus_pos_lev.txt --out ../datasets/train_dar-lev.tsv
-Full token used: 5265
-Segmentation used -- segmentation OK: 4295
-Segmentation used -- issues with segmentation: 0
-
-$ python3 0.corpus_prep.py --type ara --dir ../datasets/dialectal_arabic_resources/ --files seg_plus_pos_mgr.txt --out ../datasets/train_dar-mgr.tsv
-Full token used: 4721
-Segmentation used -- segmentation OK: 3702
-Segmentation used -- issues with segmentation: 68
-tok بّاك merged باك segments با+ك
+tok ثانياً merged ثانيا segments ثاني+ا
+../datasets/dialectal_arabic_resources/seg_plus_pos_lev.txt
+Merging worked: 7221
+Merging didn't work: 0
+../datasets/dialectal_arabic_resources/seg_plus_pos_glf.txt
+Merging worked: 6758
+Merging didn't work: 0
+../datasets/dialectal_arabic_resources/seg_plus_pos_mgr.txt
+Merging worked: 6359
+Merging didn't work: 41
+tok غدّا merged غدا segments غد+ا
 tok بّاك merged باك segments با+ك
 tok رَآه merged رآه segments رآ+ه
-tok رَآه merged رآه segments رآ+ه
-tok للمعلمة merged لالمعلمة segments ل+ال+معلم+ة
 tok للمعلمة merged لالمعلمة segments ل+ال+معلم+ة
 tok للمطار merged لالمطار segments ل+ال+مطار
 tok للمطار merged لالمطار segments ل+ال+مطار
-tok للمطار merged لالمطار segments ل+ال+مطار
-tok للمطار merged لالمطار segments ل+ال+مطار
-tok للعمل merged لالعمل segments ل+ال+عمل
 tok للعمل merged لالعمل segments ل+ال+عمل
 tok للجياحة merged لالجياحة segments ل+ال+جياح+ة
-tok للجياحة merged لالجياحة segments ل+ال+جياح+ة
-tok للفتنة merged لالفتنة segments ل+ال+فتن+ة
 tok للفتنة merged لالفتنة segments ل+ال+فتن+ة
 tok فـالدجين merged فالدجين segments ف+ال+دجين
-tok فـالدجين merged فالدجين segments ف+ال+دجين
-tok للدنيا merged لالدنيا segments ل+ال+دنيا
 tok للدنيا merged لالدنيا segments ل+ال+دنيا
 tok للبرانية merged لالبرانية segments ل+ال+براني+ة
-tok للبرانية merged لالبرانية segments ل+ال+براني+ة
 tok للاسف merged لالاسف segments ل+ال+اسف
-tok للاسف merged لالاسف segments ل+ال+اسف
-tok لله merged لالله segments ل+الله
+tok مهبــول merged مهبول segments مهبول
+tok لهوْل merged لهول segments ل+هول
+tok تقريباً merged تقريبا segments تقريب+ا
+tok الجنَّة merged الجنة segments ال+جن+ة
 tok لله merged لالله segments ل+الله
 tok للسب merged لالسب segments ل+ال+سب
-tok للسب merged لالسب segments ل+ال+سب
+tok الواجِهات merged الواجهات segments ال+واجه+ات
 tok للبقية merged لالبقية segments ل+ال+بقي+ة
-tok للبقية merged لالبقية segments ل+ال+بقي+ة
-tok لله merged لالله segments ل+الله
 tok لله merged لالله segments ل+الله
 tok للاخر merged لالاخر segments ل+ال+اخر
-tok للاخر merged لالاخر segments ل+ال+اخر
 tok للأسف merged لالأسف segments ل+ال+أسف
-tok للأسف merged لالأسف segments ل+ال+أسف
-tok ليّا merged ليا segments ل+يا
+tok الڭومات merged الكومات segments ال+كوم+ات
 tok ليّا merged ليا segments ل+يا
 tok بيّا merged بيا segments ب+يا
-tok بيّا merged بيا segments ب+يا
-tok للفينال merged لالفينال segments ل+ال+فينال
 tok للفينال merged لالفينال segments ل+ال+فينال
 tok للألف merged لالألف segments ل+ال+ألف
-tok للألف merged لالألف segments ل+ال+ألف
-tok للنجمه merged لالنجمه segments ل+ال+نجمه
 tok للنجمه merged لالنجمه segments ل+ال+نجمه
 tok للمغرب merged لالمغرب segments ل+ال+مغرب
-tok للمغرب merged لالمغرب segments ل+ال+مغرب
-tok لليوم merged لاليوم segments ل+ال+يوم
 tok لليوم merged لاليوم segments ل+ال+يوم
 tok لله merged لالله segments ل+الله
-tok لله merged لالله segments ل+الله
-tok للراس merged لالراس segments ل+ال+راس
 tok للراس merged لالراس segments ل+ال+راس
 tok لليوم merged لاليوم segments ل+ال+يوم
-tok لليوم merged لاليوم segments ل+ال+يوم
 tok للأسف merged لالأسف segments ل+ال+أسف
-tok للأسف merged لالأسف segments ل+ال+أسف
-tok للترند merged لالترند segments ل+ال+ترند
-tok للترند merged لالترند segments ل+ال+ترند
-tok للترند merged لالترند segments ل+ال+ترند
 tok للترند merged لالترند segments ل+ال+ترند
 tok للترند merged لالترند segments ل+ال+ترند
 tok للترند merged لالترند segments ل+ال+ترند
 tok للصباح merged لالصباح segments ل+ال+صباح
-tok للصباح merged لالصباح segments ل+ال+صباح
-tok عليوتيوب merged عاليوتيوب segments ع+ال+يوتيوب
 tok عليوتيوب merged عاليوتيوب segments ع+ال+يوتيوب
