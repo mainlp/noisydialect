@@ -12,7 +12,7 @@ class Config:
                 'reinit_dev_each_seed', 'reinit_test_each_seed', \
                 'subtoken_rep', 'tokenizer_name', \
                 'use_sca_tokenizer', 'sca_sibling_weighting', \
-                'noise_type', 'noise_lvl_min', 'noise_lvl_max', \
+                'noise_type', 'noise_lvl', 'noise_lvl', \
                 'data_parent_dir', 'bert_name', 'plm_type',\
                 'classifier_dropout', 'n_epochs', 'batch_size', \
                 'learning_rate', 'sanity_mod', \
@@ -20,7 +20,7 @@ class Config:
 
     ints = ('max_sents_train', 'max_sents_dev', 'max_sents_test', 'T',
             'n_epochs', 'batch_size', 'sanity_mod')
-    floats = ('noise_lvl_min', 'noise_lvl_max',
+    floats = ('noise_lvl', 'noise_lvl',
               'classifier_dropout', 'learning_rate')
     bools = ('prepare_input_traindev', 'prepare_input_train',
              'prepare_input_dev', 'prepare_input_test',
@@ -69,8 +69,7 @@ class Config:
                  use_sca_tokenizer=False,
                  sca_sibling_weighting=None,  # {mean, relative}
                  noise_type=None,  # None -> no noise
-                 noise_lvl_min=-1,
-                 noise_lvl_max=-1,
+                 noise_lvl=0,
                  # If the input matrices just need to be loaded:
                  data_parent_dir=None,
                  # Model:
@@ -126,8 +125,7 @@ class Config:
         self.use_sca_tokenizer = use_sca_tokenizer
         self.sca_sibling_weighting = sca_sibling_weighting
         self.noise_type = noise_type
-        self.noise_lvl_min = noise_lvl_min
-        self.noise_lvl_max = noise_lvl_max
+        self.noise_lvl = noise_lvl
         self.data_parent_dir = data_parent_dir
         self.bert_name = bert_name
         # plm_type options: BertForMaskedLM, BertForPreTraining,

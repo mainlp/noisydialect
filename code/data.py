@@ -247,23 +247,18 @@ class Data:
         self.toks_orig, self.pos_orig = read_raw_input(
             filename, max_sents, subset_selection, verbose)
 
-    def add_noise(self, noise_type, noise_lvl_min,
-                  noise_lvl_max, target_alphabet):
+    def add_noise(self, noise_type, noise_lvl, target_alphabet):
+        if not noise_type:
+            return
         if noise_type == 'add_random_noise':
-            self.add_random_noise(noise_lvl_min, noise_lvl_max,
-                                  target_alphabet)
+            self.add_random_noise(noise_lvl, target_alphabet)
         elif noise_type == 'add_custom_noise_general':
-            self.add_custom_noise_general(noise_lvl_min, noise_lvl_max,
-                                          target_alphabet)
+            self.add_custom_noise_general(noise_lvl, target_alphabet)
         elif noise_type == 'add_custom_noise_gsw':
-            self.add_custom_noise_gsw(noise_lvl_min, noise_lvl_max)
-
-    @staticmethod
-    def percentage_noisy(noise_lvl_min, noise_lvl_max):
-        if noise_lvl_max - noise_lvl_min < 0.01:
-            return noise_lvl_min
-        return random.randrange(round(100 * noise_lvl_min),
-                                round(100 * noise_lvl_max)) / 100
+            self.add_custom_noise_gsw(noise_lvl)
+        else:
+            print("Did not recognize the noise type '" + noise_type
+                  + "'. Not adding any noise.")
 
     @staticmethod
     def noisy_indices(sent_toks, percentage_noisy):
@@ -291,17 +286,15 @@ class Data:
             idx = random.randrange(len(word))
         return word[:idx] + random.sample(alphabet, 1)[0] + word[idx + 1:]
 
-    def add_random_noise(self, noise_lvl_min, noise_lvl_max, target_alphabet,
-                         noise=["add_char", "delete_char", "replace_char"]):
+    def add_random_noise(self, noise_lvl, target_alphabet,
+                         noise=("add_char", "delete_char", "replace_char")):
         """
         Aepli & Sennrich 2022
         """
         toks_noisy = []
         n_changed = 0
         for sent_toks in self.toks_orig:
-            percentage_noisy = self.percentage_noisy(noise_lvl_min,
-                                                     noise_lvl_max)
-            idx_noisy = self.noisy_indices(sent_toks, percentage_noisy)
+            idx_noisy = self.noisy_indices(sent_toks, noise_lvl)
             sent_toks_noisy = []
             for i, tok in enumerate(sent_toks):
                 if i in idx_noisy:
@@ -315,8 +308,7 @@ class Data:
         print(f"Modified {n_changed} tokens.")
         self.toks_orig = toks_noisy
 
-    def add_custom_noise_general(self, noise_lvl_min, noise_lvl_max,
-                                 target_alphabet):
+    def add_custom_noise_general(self, noise_lvl, target_alphabet):
         """
         Aepli & Sennrich 2022 / Aepli, personal correspondence
         """
@@ -334,9 +326,7 @@ class Data:
                             "B": "P", "D": "T", "G": "K"}
         n_changed = 0
         for sent_toks in self.toks_orig:
-            percentage_noisy = self.percentage_noisy(noise_lvl_min,
-                                                     noise_lvl_max)
-            idx_noisy = self.noisy_indices(sent_toks, percentage_noisy)
+            idx_noisy = self.noisy_indices(sent_toks, noise_lvl)
             sent_toks_noisy = []
             for i, tok in enumerate(sent_toks):
                 if i in idx_noisy:
@@ -376,7 +366,7 @@ class Data:
         print(f"Modified {n_changed} tokens.")
         self.toks_orig = toks_noisy
 
-    def add_custom_noise_gsw(self, noise_lvl_min, noise_lvl_max):
+    def add_custom_noise_gsw(self, noise_lvl):
         """
         Aepli & Sennrich 2022 / Aepli, personal correspondence
         """
@@ -390,9 +380,7 @@ class Data:
         toks_noisy = []
         n_changed = 0
         for sent_toks in self.toks_orig:
-            percentage_noisy = self.percentage_noisy(noise_lvl_min,
-                                                     noise_lvl_max)
-            idx_noisy = self.noisy_indices(sent_toks, percentage_noisy)
+            idx_noisy = self.noisy_indices(sent_toks, noise_lvl)
             sent_toks_noisy = []
             for i, tok in enumerate(sent_toks):
                 if i in idx_noisy:
@@ -438,11 +426,33 @@ class Data:
         # remove accents
         return unicodedata.normalize("NFKD", c)[0].lower() in \
             "qwrtypsdfghjklzxcvbnm"
-        # Note that this selection of consonants is still language-specific
+        # Note that this selection of consonants is still orthography-specific
         # (Latin alphabet, "y")
 
     # ---------------------------
     # --- Matrix preparations ---
+
+    def tokenization_info(self, tokenizer, verbose=True):
+        sent_lens = np.zeros(len(self.toks_orig))
+        for i, sent_toks in enumerate(self.toks_orig):
+            cur_len = 0
+            for token in sent_toks:
+                cur_len += len(tokenizer.tokenize(token))
+            sent_lens[i] = cur_len
+        min_len = np.amin(sent_lens)
+        max_len = np.amax(sent_lens)
+        mean = np.mean(sent_lens)
+        std = np.std(sent_lens)
+        if verbose:
+            print("Tokens per sentence:")
+            print(f"Min: {min_len}")
+            print(f"Max: {max_len}")
+            print(f"Mean: {mean}")
+            print(f"Std: {std}")
+            print(f"Mean + 1 std = {mean + std}")
+            print(f"Mean + 1.5 std = {mean + 1.5 * std}")
+            print(f"Mean + 2 std = {mean + 2 * std}")
+        return min_len, max_len, mean, std
 
     def prepare_xy(self, tokenizer, T,
                    # Which subtoken of a token should be used to represent

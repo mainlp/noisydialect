@@ -61,25 +61,21 @@ cd code
 # Arabic lects #
 ################
 
-# UD_Arabic-PADT (original and transliterated)
+# UD_Arabic-PADT (original and transliterated) & UD_Maltese-MUDT
 for split in "train" "dev" "test"
 do 
   python3 A_corpus_prep.py --type ud --dir ../datasets/UD_Arabic-PADT/ --files ar_padt-ud-${split}.conllu --out ../datasets/${split}_PADT_UPOS.tsv
-#  python3 A_corpus_prep.py --type ud --dir ../datasets/UD_Arabic-PADT/ --files ar_padt-ud-${split}.conllu --out ../datasets/${split}_PADT-translit_UPOS.tsv --translit
+  python3 A_corpus_prep.py --type ud --dir ../datasets/UD_Arabic-PADT/ --files ar_padt-ud-${split}.conllu --out ../datasets/${split}_PADT-translit_UPOS.tsv --translit
+  python3 A_corpus_prep.py --type ud --dir ../datasets/UD_Maltese-MUDT/ --files mt_mudt-ud-${split}.conllu --out ../datasets/${split}_MUDT_UPOS.tsv
 done
-
-# UD_Maltese-MUDT
-python3 A_corpus_prep.py --type ud --dir ../datasets/UD_Maltese-MUDT/ --files mt_mudt-ud-train.conllu --out ../datasets/train_MUDT_UPOS.tsv
-python3 A_corpus_prep.py --type ud --dir ../datasets/UD_Maltese-MUDT/ --files mt_mudt-ud-dev.conllu --out ../datasets/dev_MUDT_UPOS.tsv
-python3 A_corpus_prep.py --type ud --dir ../datasets/UD_Maltese-MUDT/ --files mt_mudt-ud-test.conllu --out ../datasets/test_MUDT_UPOS.tsv
 
 # NArabizi treebank
 python3 A_corpus_prep.py --type narabizi --dir ../datasets/NArabizi_Treebank/Release_ACL2020/Gold_annotation --files test.NArabizi_treebank.conllu --out ../datasets/NArabizi_Treebank/test.NArabizi_treebank_cleaned.conllu --tagset ../datasets/tagset_upos.txt
 python3 A_corpus_prep.py --type ud --dir ../datasets/NArabizi_Treebank/ --files test.NArabizi_treebank_cleaned.conllu --out ../datasets/test_NArabizi_UPOS.tsv
 
 # dialectal_arabic_resources 
-# Optional preliminary check (see logs/arabic_preprocessing.log):
-python3 A_check_arabic_segmentation.py ../datasets/dialectal_arabic_resources/seg_plus_pos_egy.txt ../datasets/dialectal_arabic_resources/seg_plus_pos_lev.txt ../datasets/dialectal_arabic_resources/seg_plus_pos_glf.txt ../datasets/dialectal_arabic_resources/seg_plus_pos_mgr.txt
+# Optional preliminary check:
+python3 A_check_arabic_segmentation.py ../datasets/dialectal_arabic_resources/seg_plus_pos_egy.txt ../datasets/dialectal_arabic_resources/seg_plus_pos_lev.txt ../datasets/dialectal_arabic_resources/seg_plus_pos_glf.txt ../datasets/dialectal_arabic_resources/seg_plus_pos_mgr.txt  > ../logs/arabic_preprocessing.log 
 # The actual data conversion:
 python3 A_corpus_prep.py --type ara --dir ../datasets/dialectal_arabic_resources/ --files seg_plus_pos_egy.txt --out ../datasets/dev_dar-egy.tsv
 python3 A_corpus_prep.py --type ara --dir ../datasets/dialectal_arabic_resources/ --files seg_plus_pos_glf.txt --out ../datasets/test_dar-glf.tsv
@@ -98,16 +94,17 @@ python3 A_validate_input_file.py ../datasets/test_dar-mgr.tsv ../datasets/tagset
 
 # UD_German-HDT
 python3 A_corpus_prep.py --type ud --dir ../datasets/UD_German-HDT/ --files de_hdt-ud-train-a-1.conllu,de_hdt-ud-train-a-2.conllu,de_hdt-ud-train-b-1.conllu,de_hdt-ud-train-b-2.conllu --out ../datasets/train_HDT_UPOS.tsv
-# python3 A_corpus_prep.py --type ud --dir ../datasets/UD_German-HDT/ --files de_hdt-ud-dev.conllu --out ../datasets/dev_HDT_STTS.tsv --xpos --tigerize
-# python3 A_corpus_prep.py --type ud --dir ../datasets/UD_German-HDT/ --files de_hdt-ud-test.conllu --out ../datasets/test_HDT_STTS.tsv --xpos --tigerize
+python3 A_corpus_prep.py --type ud --dir ../datasets/UD_German-HDT/ --files de_hdt-ud-dev.conllu --out ../datasets/dev_HDT_UPOS.tsv
+python3 A_corpus_prep.py --type ud --dir ../datasets/UD_German-HDT/ --files de_hdt-ud-test.conllu --out ../datasets/test_HDT_UPOS.tsv
 
 # UD_Dutch-Alpino
-python3 A_corpus_prep.py --type ud --dir ../datasets/UD_Dutch-Alpino/ --files nl_alpino-ud-train.conllu --out ../datasets/train_Alpino_UPOS.tsv
-# python3 A_corpus_prep.py --type ud --dir ../datasets/UD_Dutch-Alpino/ --files nl_alpino-ud-dev.conllu --out ../datasets/dev_Alpino_UPOS.tsv
-# python3 A_corpus_prep.py --type ud --dir ../datasets/UD_Dutch-Alpino/ --files nl_alpino-ud-test.conllu --out ../datasets/test_Alpino_UPOS.tsv
+for split in "train" "dev" "test"
+do
+  python3 A_corpus_prep.py --type ud --dir ../datasets/UD_Dutch-Alpino/ --files nl_alpino-ud-${split}.conllu --out ../datasets/${split}_Alpino_UPOS.tsv
+done
 
 # NOAH
-python3 A_corpus_prep.py --type noah --dir ../datasets/NOAH-corpus/ --files test_GSW_UPOS.txt --out ../datasets/test_NOAH_UPOS.tsv --excl ../datasets/test_RO_UPOS.tsv
+python3 A_corpus_prep.py --type noah --dir ../datasets/NOAH-corpus/ --files test_GSW_UPOS.txt --out ../datasets/test_NOAH_UPOS.tsv
 
 # Restaure_Alsatian
 python3 A_corpus_prep.py --type ud --glob "../datasets/Restaure_Alsatian/ud/*" --out ../datasets/test_RA_UPOS.tsv
@@ -120,11 +117,12 @@ python3 A_corpus_prep.py --type ud --dir ../datasets/UD_Low_Saxon-LSDC/ --files 
 # Norwegian dialects #
 ######################
 
-# UD_Norwegian-Bokmaal
-python3 A_corpus_prep.py --type ud --dir ../datasets/UD_Norwegian-Bokmaal/ --files no_bokmaal-ud-train.conllu --out ../datasets/train_NDT-NOB_UPOS.tsv
-
-# UD_Norwegian-Nynorsk
-python3 A_corpus_prep.py --type ud --dir ../datasets/UD_Norwegian-Nynorsk/ --files no_nynorsk-ud-train.conllu --out ../datasets/train_NDT-NNO_UPOS.tsv
+# UD_Norwegian-Bokmaal & UD_Norwegian-Nynorsk
+for split in "train" "dev" "test"
+do
+  python3 A_corpus_prep.py --type ud --dir ../datasets/UD_Norwegian-Bokmaal/ --files no_bokmaal-ud-${split}.conllu --out ../datasets/${split}_NDT-NOB_UPOS.tsv
+  python3 A_corpus_prep.py --type ud --dir ../datasets/UD_Norwegian-Nynorsk/ --files no_nynorsk-ud-${split}.conllu --out ../datasets/${split}_NDT-NNO_UPOS.tsv
+done
 
 # UD_Norwegian-NynorskLIA_dialect
 python3 A_prep_lia.py
@@ -134,17 +132,14 @@ python3 A_prep_lia.py
 # Romance lects #
 #################
 
-# UD_Spanish-AnCora
-python3 A_corpus_prep.py --type ud --dir ../datasets/UD_Spanish-AnCora/ --files es_ancora-ud-train.conllu --out ../datasets/train_AnCora-SPA_UPOS.tsv
-
-# UD_French-GSD
-python3 A_corpus_prep.py --type ud --dir ../datasets/UD_French-GSD/ --files fr_gsd-ud-train.conllu --out ../datasets/train_GSD_UPOS.tsv
-
-# UD_Italian-ISDT
-python3 A_corpus_prep.py --type ud --dir ../datasets/UD_Italian-ISDT/ --files it_isdt-ud-train.conllu --out ../datasets/train_ISDT_UPOS.tsv
-
-# UD_Old_French-SRCMF
-python3 A_corpus_prep.py --type ud --dir ../datasets/UD_Old_French-SRCMF/ --files fro_srcmf-ud-train.conllu --out ../datasets/train_SRCMF_UPOS.tsv
+# UD_Spanish-AnCora, UD_French-GSD, UD_Italian-ISDT & UD_Old_French-SRCMF
+for split in "train" "dev" "test"
+do
+  python3 A_corpus_prep.py --type ud --dir ../datasets/UD_Spanish-AnCora/ --files es_ancora-ud-${split}.conllu --out ../datasets/${split}_AnCora-SPA_UPOS.tsv
+  python3 A_corpus_prep.py --type ud --dir ../datasets/UD_French-GSD/ --files fr_gsd-ud-${split}.conllu --out ../datasets/${split}_GSD_UPOS.tsv
+  python3 A_corpus_prep.py --type ud --dir ../datasets/UD_Italian-ISDT/ --files it_isdt-ud-${split}.conllu --out ../datasets/${split}_ISDT_UPOS.tsv
+  python3 A_corpus_prep.py --type ud --dir ../datasets/UD_Old_French-SRCMF/ --files fro_srcmf-ud-${split}.conllu --out ../datasets/${split}_SRCMF_UPOS.tsv
+done
 
 # UD_Catalan-AnCora
 python3 A_corpus_prep.py --type ud --dir ../datasets/UD_Catalan-AnCora/ --files ca_ancora-ud-dev.conllu --out ../datasets/dev_AnCora-CAT_UPOS.tsv
