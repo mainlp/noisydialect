@@ -4,6 +4,7 @@ import os
 import random
 import sys
 
+from arabert.preprocess import ArabertPreprocessor
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
@@ -88,6 +89,7 @@ class Data:
         self.y = y
         self.input_mask = input_mask
         self.pos2idx = pos2idx
+        self.preprocessor = None
         if load_parent_dir:
             print(f"Loading {name} from path ({load_parent_dir}/{name})")
             self.load(load_parent_dir)
@@ -291,6 +293,8 @@ class Data:
         """
         Aepli & Sennrich 2022
         """
+        if noise_lvl < 0.0001:
+            return
         toks_noisy = []
         n_changed = 0
         for sent_toks in self.toks_orig:
@@ -432,12 +436,29 @@ class Data:
     # ---------------------------
     # --- Matrix preparations ---
 
+    def tokenize_directly(self, text, tokenizer):
+        return tokenizer.tokenize(text)
+
+    def tokenize_arabic(self, text, tokenizer):
+        return tokenizer.tokenize(self.preprocessor.preprocess(text))
+
+    def get_tokenize_method(self, tokenizer):
+        if tokenizer.name_or_path == "aubmindlab/bert-base-arabertv2":
+            self.preprocessor = ArabertPreprocessor("bert-base-arabertv2")
+            return self.tokenize_arabic
+        return self.tokenize_directly
+
+    def tokenize_sample_sentence(self, tokenizer):
+        return self.get_tokenize_method(tokenizer)(
+            " ".join(self.toks_orig[0]), tokenizer)
+
     def tokenization_info(self, tokenizer, verbose=True):
+        tokenize = self.get_tokenize_method(tokenizer)
         sent_lens = np.zeros(len(self.toks_orig))
         for i, sent_toks in enumerate(self.toks_orig):
             cur_len = 0
             for token in sent_toks:
-                cur_len += len(tokenizer.tokenize(token))
+                cur_len += len(tokenize(token, tokenizer))
             sent_lens[i] = cur_len
         min_len = np.amin(sent_lens)
         max_len = np.amax(sent_lens)
@@ -466,6 +487,8 @@ class Data:
         print("Preparing input matrices")
         assert tokenizer._pad_token_type_id == 0
         assert T >= 2
+
+        tokenize = self.get_tokenize_method(tokenizer)
         N = len(self.toks_orig)
         if alias_tokenizer:
             self.x = np.zeros((N, T, tokenizer.max_siblings), dtype=np.float64)
@@ -479,7 +502,7 @@ class Data:
             cur_toks = ["[CLS]"]
             cur_pos = [DUMMY_POS]  # [CLS]
             for token, pos_tag in zip(sent_toks, sent_pos):
-                subtoks = tokenizer.tokenize(token)
+                subtoks = tokenize(token, tokenizer)
                 cur_toks += subtoks
                 if subtoken_rep == 'first':
                     cur_pos += [pos_tag]

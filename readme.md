@@ -164,6 +164,16 @@ python3 A_corpus_prep.py --type ud --dir ../datasets/UD_Estonian-EDT/ --files et
 python3 A_prep_lamurre.py
 ```
 
+3. Figure out which sentence lengths to use: (Optional, these results are already part of step 4 now.)
+```
+python3 B_corpus_stats.py ../datasets/train_PADT_UPOS.tsv ../datasets/dev_PADT_UPOS.tsv ../logs/sentence_lengths.tsv aubmindlab/bert-base-arabertv2 w+
+```
+
+
+
+
+
+
 3. Extract feature matrices for those experiments where the input representations aren't modified: (This creates subfolders in `data`, containing the input representations.)
 
 ```
