@@ -107,7 +107,7 @@ done
 python3 A_corpus_prep.py --type noah --dir ../datasets/NOAH-corpus/ --files test_GSW_UPOS.txt --out ../datasets/dev_NOAH_UPOS.tsv
 
 # Restaure_Alsatian
-python3 A_corpus_prep.py --type ud --glob "../datasets/Restaure_Alsatian/ud/*" --out ../datasets/test_RA_UPOS.tsv
+python3 A_corpus_prep.py --type ud --glob "../datasets/Restaure_Alsatian/ud/*" --out ../datasets/test_RAls_UPOS.tsv
 
 # UD_Low_Saxon-LSDC
 python3 A_corpus_prep.py --type ud --dir ../datasets/UD_Low_Saxon-LSDC/ --files nds_lsdc-ud-test.conllu --out ../datasets/test_LSDC_UPOS.tsv
@@ -132,57 +132,57 @@ python3 A_prep_lia.py
 # Romance lects #
 #################
 
-# UD_Spanish-AnCora, UD_French-GSD, UD_Italian-ISDT & UD_Old_French-SRCMF
+# UD_Spanish-AnCora, UD_French-GSD, & UD_Catalan-AnCora
 for split in "train" "dev" "test"
 do
   python3 A_corpus_prep.py --type ud --dir ../datasets/UD_Spanish-AnCora/ --files es_ancora-ud-${split}.conllu --out ../datasets/${split}_AnCora-SPA_UPOS.tsv
   python3 A_corpus_prep.py --type ud --dir ../datasets/UD_French-GSD/ --files fr_gsd-ud-${split}.conllu --out ../datasets/${split}_GSD_UPOS.tsv
-  python3 A_corpus_prep.py --type ud --dir ../datasets/UD_Italian-ISDT/ --files it_isdt-ud-${split}.conllu --out ../datasets/${split}_ISDT_UPOS.tsv
-  python3 A_corpus_prep.py --type ud --dir ../datasets/UD_Old_French-SRCMF/ --files fro_srcmf-ud-${split}.conllu --out ../datasets/${split}_SRCMF_UPOS.tsv
+  python3 A_corpus_prep.py --type ud --dir ../datasets/UD_Catalan-AnCora/ --files ca_ancora-ud-${split}.conllu --out ../datasets/${split}_AnCora-CAT_UPOS.tsv
 done
 
-# UD_Catalan-AnCora
-python3 A_corpus_prep.py --type ud --dir ../datasets/UD_Catalan-AnCora/ --files ca_ancora-ud-dev.conllu --out ../datasets/dev_AnCora-CAT_UPOS.tsv
+# Restaure_Picard
+python3 A_corpus_prep.py --type ud --glob "../datasets/Restaure_Picard/picud/*" --out ../datasets/dev_RPic_UPOS.tsv --glosscomp
 
 # Restaure_Occitan
-python3 A_corpus_prep.py --type ud --glob "../datasets/Restaure_Occitan/*" --out ../datasets/test_RO_UPOS.tsv
+python3 A_corpus_prep.py --type ud --glob "../datasets/Restaure_Occitan/*" --out ../datasets/test_ROci_UPOS.tsv
 
-# Restaure_Picard
-python3 A_corpus_prep.py --type ud --glob "../datasets/Restaure_Picard/picud/*" --out ../datasets/test_RP_UPOS.tsv --glosscomp
 
 ####################
 # Finnish dialects #
 ####################
 
-# UD_Finnish-TDT
-python3 A_corpus_prep.py --type ud --dir ../datasets/UD_Finnish-TDT/ --files fi_tdt-ud-train.conllu --out ../datasets/train_TDT_UPOS.tsv
-
-# UD_Estonian-EDT
-python3 A_corpus_prep.py --type ud --dir ../datasets/UD_Estonian-EDT/ --files et_edt-ud-train.conllu --out ../datasets/train_EDT_UPOS.tsv
+# UD_Finnish-TDT & UD_Estonian-EDT
+for split in "train" "dev" "test"
+do
+  python3 A_corpus_prep.py --type ud --dir ../datasets/UD_Finnish-TDT/ --files fi_tdt-ud-${split}.conllu --out ../datasets/${split}_TDT_UPOS.tsv
+  python3 A_corpus_prep.py --type ud --dir ../datasets/UD_Estonian-EDT/ --files et_edt-ud-${split}.conllu --out ../datasets/${split}_EDT_UPOS.tsv
+done
 
 # Lauseopin arkiston murrekorpus
 python3 A_prep_lamurre.py
 ```
 
-3. Figure out which sentence lengths to use: (Optional, these results are already part of step 4 now.)
+3. Figure out which sentence lengths to use:
 ```
 python3 B_corpus_stats.py ../datasets/train_PADT_UPOS.tsv ../datasets/dev_PADT_UPOS.tsv,../datasets/dev_dar-egy_UPOS.tsv ../logs/sentence_lengths_ara.tsv aubmindlab/bert-base-arabertv2 w+
 python3 B_corpus_stats.py ../datasets/train_PADT_UPOS.tsv ../datasets/dev_PADT_UPOS.tsv,../datasets/dev_dar-egy_UPOS.tsv ../logs/sentence_lengths_ara.tsv bert-base-multilingual-cased a
 
 python3 B_corpus_stats.py ../datasets/train_HDT_UPOS.tsv ../datasets/dev_HDT_UPOS.tsv,../datasets/dev_NOAH_UPOS.tsv ../logs/sentence_lengths_wger.tsv bert-base-multilingual-cased w+
 python3 B_corpus_stats.py ../datasets/train_HDT_UPOS.tsv ../datasets/dev_HDT_UPOS.tsv,../datasets/dev_NOAH_UPOS.tsv ../logs/sentence_lengths_wger.tsv deepset/gbert-base a
-python3 B_corpus_stats.py ../datasets/train_Alpino_UPOS.tsv ../datasets/dev_Alpino_UPOS.tsv,../datasets/dev_A_UPOS.tsv ../logs/sentence_lengths_wger.tsv bert-base-multilingual-cased a
-python3 B_corpus_stats.py ../datasets/train_Alpino_UPOS.tsv ../datasets/dev_Alpino_UPOS.tsv,../datasets/dev_A_UPOS.tsv ../logs/sentence_lengths_wger.tsv GroNLP/bert-base-dutch-cased a
+python3 B_corpus_stats.py ../datasets/train_Alpino_UPOS.tsv ../datasets/dev_Alpino_UPOS.tsv,../datasets/dev_NOAH_UPOS.tsv ../logs/sentence_lengths_wger.tsv bert-base-multilingual-cased a
+python3 B_corpus_stats.py ../datasets/train_Alpino_UPOS.tsv ../datasets/dev_Alpino_UPOS.tsv,../datasets/dev_NOAH_UPOS.tsv ../logs/sentence_lengths_wger.tsv GroNLP/bert-base-dutch-cased a
 
 python3 B_corpus_stats.py ../datasets/train_NDT-NOB_UPOS.tsv ../datasets/dev_NDT-NOB_UPOS.tsv,../datasets/dev_LIA-west_UPOS.tsv ../logs/sentence_lengths_nor.tsv ltgoslo/norbert2 w+
 python3 B_corpus_stats.py ../datasets/train_NDT-NOB_UPOS.tsv ../datasets/dev_NDT-NOB_UPOS.tsv,../datasets/dev_LIA-west_UPOS.tsv ../logs/sentence_lengths_nor.tsv bert-base-multilingual-cased a
 python3 B_corpus_stats.py ../datasets/train_NDT-NNO_UPOS.tsv ../datasets/dev_NDT-NNO_UPOS.tsv,../datasets/dev_LIA-west_UPOS.tsv ../logs/sentence_lengths_nor.tsv ltgoslo/norbert2 a
 python3 B_corpus_stats.py ../datasets/train_NDT-NNO_UPOS.tsv ../datasets/dev_NDT-NNO_UPOS.tsv,../datasets/dev_LIA-west_UPOS.tsv ../logs/sentence_lengths_nor.tsv bert-base-multilingual-cased a
 
-python3 B_corpus_stats.py ../datasets/train_SRCMF_UPOS.tsv ../datasets/dev_SRCMF_UPOS.tsv,../datasets/dev_AnCora-CAT_UPOS.tsv ../logs/sentence_lengths_rom.tsv camembert-base w+
-python3 B_corpus_stats.py ../datasets/train_SRCMF_UPOS.tsv ../datasets/dev_SRCMF_UPOS.tsv,../datasets/dev_AnCora-CAT_UPOS.tsv ../logs/sentence_lengths_rom.tsv bert-base-multilingual-cased a
-python3 B_corpus_stats.py ../datasets/train_AnCora-SPA_UPOS.tsv ../datasets/dev_SRCMF_UPOS.tsv,../datasets/dev_AnCora-CAT_UPOS.tsv ../logs/sentence_lengths_rom.tsv dccuchile/bert-base-spanish-wwm-uncased a
-python3 B_corpus_stats.py ../datasets/train_AnCora-SPA_UPOS.tsv ../datasets/dev_SRCMF_UPOS.tsv,../datasets/dev_AnCora-CAT_UPOS.tsv ../logs/sentence_lengths_rom.tsv bert-base-multilingual-cased a
+python3 B_corpus_stats.py ../datasets/train_GSD_UPOS.tsv ../datasets/dev_GSD_UPOS.tsv,../datasets/dev_RPic_UPOS.tsv ../logs/sentence_lengths_rom.tsv camembert-base w+
+python3 B_corpus_stats.py ../datasets/train_GSD_UPOS.tsv ../datasets/dev_GSD_UPOS.tsv,../datasets/dev_RPic_UPOS.tsv ../logs/sentence_lengths_rom.tsv bert-base-multilingual-cased a
+python3 B_corpus_stats.py ../datasets/train_AnCora-SPA_UPOS.tsv ../datasets/dev_AnCora-SPA_UPOS.tsv,../datasets/dev_RPic_UPOS.tsv ../logs/sentence_lengths_rom.tsv dccuchile/bert-base-spanish-wwm-uncased a
+python3 B_corpus_stats.py ../datasets/train_AnCora-SPA_UPOS.tsv ../datasets/dev_AnCora-SPA_UPOS.tsv,../datasets/dev_RPic_UPOS.tsv ../logs/sentence_lengths_rom.tsv bert-base-multilingual-cased a
+python3 B_corpus_stats.py ../datasets/train_AnCora-CAT_UPOS.tsv ../datasets/dev_AnCora-CAT_UPOS.tsv,../datasets/dev_RPic_UPOS.tsv ../logs/sentence_lengths_rom.tsv dccuchile/bert-base-spanish-wwm-uncased a
+python3 B_corpus_stats.py ../datasets/train_AnCora-CAT_UPOS.tsv ../datasets/dev_AnCora-CAT_UPOS.tsv,../datasets/dev_RPic_UPOS.tsv ../logs/sentence_lengths_rom.tsv bert-base-multilingual-cased a
 
 python3 B_corpus_stats.py ../datasets/train_TDT_UPOS.tsv ../datasets/dev_TDT_UPOS.tsv,../datasets/dev_murre-SAV_UPOS.tsv ../logs/sentence_lengths_fin.tsv TurkuNLP/bert-base-finnish-cased-v1 w+
 python3 B_corpus_stats.py ../datasets/train_TDT_UPOS.tsv ../datasets/dev_TDT_UPOS.tsv,../datasets/dev_murre-SAV_UPOS.tsv ../logs/sentence_lengths_fin.tsv bert-base-multilingual-cased a

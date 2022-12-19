@@ -17,23 +17,40 @@ def corpus_stats(train, devs, out, tokenizer_name, access_mode_out):
         tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
         alphabet = {}
         n_sents = -1
+        unmodified_toks = None
+        n_inits = 5
         for infile in [train] + devs.split(","):
             print("Analyzing " + infile)
+            d = Data("dummy_name", raw_data_path=infile)
+            unmodified_toks = d.toks_orig
+            n_sents = len(d.toks_orig)
+            if infile == train:
+                alphabet = d.alphabet()
             for noise_lvl in ("-", 0.15, 0.35, 0.55, 0.75, 0.95):
                 print("Noise: " + str(noise_lvl))
-                d = Data("dummy_name", raw_data_path=infile)
                 if noise_lvl == "-":
                     noise_type = "-"
-                    if infile == train:
-                        alphabet = d.alphabet()
-                        n_sents = len(d.toks_orig)
+                    min_len, max_len, mean, std = d.tokenization_info(
+                        tokenizer, verbose=False)
                 else:
-                    d.add_random_noise(noise_lvl, alphabet)
                     noise_type = "add_random_noise"
-                min_len, max_len, mean, std = d.tokenization_info(
-                    tokenizer, verbose=False)
+                    min_len, max_len, mean, std = 0, 0, 0, 0
+                    for _ in range(n_inits):
+                        d.toks_orig = unmodified_toks
+                        d.add_random_noise(noise_lvl, alphabet)
+                        _min_len, _max_len, _mean, _std = d.tokenization_info(
+                            tokenizer, verbose=True)
+                        min_len += _min_len
+                        max_len += _max_len
+                        mean += _mean
+                        std += _std
+                        print(d.tokenize_sample_sentence(tokenizer))
+                    min_len /= n_inits
+                    max_len /= n_inits
+                    mean /= n_inits
+                    std /= n_inits
                 sample_sentence = " ".join(
-                    d.tokenize_sample_sentence(tokenizer)).replace('"', '\\"')
+                    d.tokenize_sample_sentence(tokenizer))
                 f_out.write("\t".join((str(x) for x in (
                     infile, tokenizer_name, noise_type, noise_lvl, n_sents,
                     min_len, max_len, mean, std, mean + std, mean + 1.5 * std,
