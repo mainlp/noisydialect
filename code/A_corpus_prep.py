@@ -29,12 +29,13 @@ def ud(input_files, out_file, tagfix, upos=True, translit=False,
                     filename = None
                 first_sent = True
                 sent = []
-                gloss_diff = False
+                gloss_diff = not gloss_comp
+                skip_sent = False
                 for line in f_in:
                     line = line.strip()
                     if not line:
-                        if gloss_comp and sent:
-                            if gloss_diff:
+                        if sent:
+                            if gloss_diff and not skip_sent:
                                 sents_added += 1
                                 for form, pos, filename in sent:
                                     if filename:
@@ -44,9 +45,14 @@ def ud(input_files, out_file, tagfix, upos=True, translit=False,
                                         f_out.write(f"{form}\t{pos}\n")
                             else:
                                 sents_skipped += 1
-                                print("Sentence identical to gloss (skipping)")
+                                if not gloss_diff:
+                                    print(
+                                        "Identical to gloss (skipping sent.)")
+                                else:
+                                    print(
+                                        "Missing POS tag (skipping sent.)")
                                 print(" ".join((x[0] for x in sent)))
-                            gloss_diff = False
+                            gloss_diff = not gloss_comp
                             sent = []
                         if not first_sent:
                             f_out.write("\n")
@@ -67,6 +73,10 @@ def ud(input_files, out_file, tagfix, upos=True, translit=False,
                             form = cells[1]
                         pos = cells[pos_idx]
                         pos = tagfix.get(pos, pos)
+                        if not pos:
+                            print("POS tag missing for " + form)
+                            print("Skipping sentence!")
+                            skip_sent = True
                         if pos == "_":
                             continue
                         if not form:
@@ -89,13 +99,7 @@ def ud(input_files, out_file, tagfix, upos=True, translit=False,
                                     break
                             if gloss != form:
                                 gloss_diff = True
-                            sent.append((form, pos, filename))
-                        else:
-                            if incl_source_file:
-                                f_out.write(f"{form}\t{pos}\t{filename}\n")
-                            else:
-                                f_out.write(f"{form}\t{pos}\n")
-                            sents_added += 1
+                        sent.append((form, pos, filename))
                     except IndexError:
                         print("!!! malformed line:")
                         print(line)
