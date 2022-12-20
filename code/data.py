@@ -46,7 +46,7 @@ def read_raw_input(filename, max_sents=-1, subset_selection="first",
                 word = cells[0]
                 word_pos = cells[1]
                 # We don't care if there's more cells
-            except ValueError:
+            except IndexError:
                 print("ERROR:")
                 print(line)
                 sys.exit(1)
