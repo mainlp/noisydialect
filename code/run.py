@@ -73,7 +73,7 @@ def main(config_path, gpus=[0], dryrun=False,
             subtok2weight = dm.train.get_subtoken_sibling_distribs(
                 dm.tokenizer, orig_tokenizer)
 
-        val_data_names = config.name_test.split(",")
+        val_data_names = config.name_dev.split(",")
         if test_per_epoch:
             val_data_names += [name for name in config.name_test.split(",")]
 
