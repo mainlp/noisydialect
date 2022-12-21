@@ -201,17 +201,14 @@ python3 B_create_gridsearch_configs.py
 
 for sfx in "2e-05_16" "3e-05_16" "2e-05_32" "3e-05_32"
 do
-  python3 run.py -c ../configs/B_hyperparams_tdt-full_tdt-sav_finbert_orig_${sfx}.cfg
-  python3 run.py -c ../configs/B_hyperparams_tdt-full_tdt-sav_xlmr_orig_${sfx}.cfg
-  python3 run.py -c ../configs/B_hyperparams_hdt-full_hdt-noah_gbert_orig_${sfx}.cfg
-  python3 run.py -c ../configs/B_hyperparams_hdt-full_hdt-noah_xlmr_orig_${sfx}.cfg
-  python3 run.py -c ../configs/B_hyperparams_padt-full_padt-egy_arabert_orig_${sfx}.cfg
-  python3 run.py -c ../configs/B_hyperparams_padt-full_padt-egy_xlmr_orig_${sfx}.cfg
+  python3 run.py -c ../configs/B_hyperparams_tdt-full_tdt-sav_finbert_orig_${sfx}.cfg --test_per_epoch
+  python3 run.py -c ../configs/B_hyperparams_tdt-full_tdt-sav_xlmr_orig_${sfx}.cfg --test_per_epoch
+  python3 run.py -c ../configs/B_hyperparams_hdt-full_hdt-noah_gbert_orig_${sfx}.cfg --test_per_epoch
+  python3 run.py -c ../configs/B_hyperparams_hdt-full_hdt-noah_xlmr_orig_${sfx}.cfg --test_per_epoch
+  python3 run.py -c ../configs/B_hyperparams_padt-full_padt-egy_arabert_orig_${sfx}.cfg --test_per_epoch
+  python3 run.py -c ../configs/B_hyperparams_padt-full_padt-egy_xlmr_orig_${sfx}.cfg --test_per_epoch
 done
 ```
-
-
-
 
 
 

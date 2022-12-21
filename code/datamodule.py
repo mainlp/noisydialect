@@ -13,10 +13,16 @@ class PosDataModule(pl.LightningDataModule):
         self.config = config
         self.pos2idx = pos2idx
         self.train_name = config.name_train + train_sfx
-        self.dev_names = [name_dev + test_sfx
-                          for name_dev in config.name_dev.split(",")]
-        self.test_names = [name_test + test_sfx
-                           for name_test in config.name_test.split(",")]
+        if config.name_dev:
+            self.dev_names = [name_dev + test_sfx
+                              for name_dev in config.name_dev.split(",")]
+        else:
+            self.dev_names = []
+        if config.name_test:
+            self.test_names = [name_test + test_sfx
+                               for name_test in config.name_test.split(",")]
+        else:
+            self.test_names = []
         self.test_sfx = test_sfx
         self.tokenizer = None
         self.use_sca_tokenizer = config.use_sca_tokenizer
@@ -103,13 +109,19 @@ class PosDataModule(pl.LightningDataModule):
         if stage == 'fit':
             self.train = Data(self.train_name,
                               load_parent_dir=self.config.data_parent_dir)
-            self.vals = [Data(
-                dev_name, load_parent_dir=self.config.data_parent_dir)
-                for dev_name in self.dev_names]
+            if self.dev_names:
+                self.vals = [Data(
+                    dev_name, load_parent_dir=self.config.data_parent_dir)
+                    for dev_name in self.dev_names]
+            else:
+                self.vals = []
         elif stage in ['test', 'predict']:
-            self.tests = [Data(
-                test_name, load_parent_dir=self.config.data_parent_dir)
-                for test_name in self.test_names]
+            if self.test_names:
+                self.tests = [Data(
+                    test_name, load_parent_dir=self.config.data_parent_dir)
+                    for test_name in self.test_names]
+            else:
+                self.tests = []
 
     def print_preview(self, data):
         print(data)

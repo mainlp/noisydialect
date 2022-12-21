@@ -29,8 +29,8 @@ class Config:
     def __init__(self,
                  config_name=None,
                  name_train=None,
-                 name_dev="",  # can be a comma-separated list
-                 name_test="",  # can be a comma-separated list
+                 name_dev=None,  # can be a comma-separated list
+                 name_test=None,  # can be a comma-separated list
                  # Loading data:
                  orig_file_train=None,
                  orig_file_dev=None,

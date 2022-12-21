@@ -11,3 +11,4 @@ datasets/LA-murre-vrt
 */lightning_logs/
 *BACKUP*
 *.vrt
+results_old/

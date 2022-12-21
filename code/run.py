@@ -73,8 +73,11 @@ def main(config_path, gpus=[0], dryrun=False,
             subtok2weight = dm.train.get_subtoken_sibling_distribs(
                 dm.tokenizer, orig_tokenizer)
 
-        val_data_names = config.name_dev.split(",")
-        if test_per_epoch:
+        if config.name_dev:
+            val_data_names = config.name_dev.split(",")
+        else:
+            val_data_names = []
+        if test_per_epoch and config.name_test:
             val_data_names += [name for name in config.name_test.split(",")]
 
         model = Classifier(config.bert_name, config.plm_type, pos2idx,
@@ -109,7 +112,7 @@ def main(config_path, gpus=[0], dryrun=False,
             dm.setup("fit")
             dm.setup("test")
             # test_dataloader() returns a list of dataloaders
-            val_dataloaders = [dm.val_dataloader()] + dm.test_dataloader()
+            val_dataloaders = dm.val_dataloader() + dm.test_dataloader()
             trainer.fit(model, train_dataloaders=dm.train_dataloader(),
                         val_dataloaders=val_dataloaders)
         else:
@@ -135,7 +138,7 @@ def main(config_path, gpus=[0], dryrun=False,
                             # If there is an unexpected 0th epoch, it is
                             # due to model validation before training starts
         else:
-            trainer.test(datamodule=dm)
+            trainer.test(datamodule=dm, ckpt_path='last')
             # trainer.logged_metrics got re-initialized during trainer.test()
             scores.update({key: trainer.logged_metrics[key].item()
                            for key in trainer.logged_metrics})
