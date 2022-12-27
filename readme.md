@@ -222,9 +222,11 @@ python3 B_data-matrix_prep.py ../configs/B_gsd-full_gsd-rpic_xlmr_orig.cfg
 python3 B_data-matrix_prep.py ../configs/B_nob-full_nob-west_norbert_orig.cfg
 python3 B_data-matrix_prep.py ../configs/B_nob-full_nob-west_mbert_orig.cfg
 python3 B_data-matrix_prep.py ../configs/B_nob-full_nob-west_xlmr_orig.cfg
+python3 B_data-matrix_prep.py ../configs/B_nno-full_nno-west_norbert_orig.cfg
+python3 B_data-matrix_prep.py ../configs/B_nno-full_nno-west_mbert_orig.cfg
+python3 B_data-matrix_prep.py ../configs/B_nno-full_nno-west_xlmr_orig.cfg
 
 python3 B_create_gridsearch_configs.py --noise
-
 
 for noise in "orig" "rand15" "rand35" "rand55" "rand75" "rand95"
 do
@@ -247,6 +249,11 @@ do
   python3 run.py -c ../configs/C_tdt-full_tdt-sav_finbert_${noise}.cfg --test_per_epoch --save_model
   python3 run.py -c ../configs/C_tdt-full_tdt-sav_mbert_${noise}.cfg --test_per_epoch --save_model
   python3 run.py -c ../configs/C_tdt-full_tdt-sav_xlmr_${noise}.cfg --test_per_epoch --save_model
+
+  python3 run.py -c ../configs/C_nno-full_nno-west_norbert_${noise}.cfg --test_per_epoch --save_model
+  python3 run.py -c ../configs/C_nno-full_nno-west_mbert_${noise}.cfg --test_per_epoch --save_model
+  python3 run.py -c ../configs/C_nno-full_nno-west_xlmr_${noise}.cfg --test_per_epoch --save_model
+
 done
 ```
 

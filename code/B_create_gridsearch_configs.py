@@ -35,8 +35,10 @@ def models():
             "C_hdt-full_hdt-noah_gbert_orig.cfg",
             "C_gsd-full_gsd-rpic_camembert_orig.cfg",
             "C_nob-full_nob-west_norbert_orig.cfg",
+            "C_nno-full_nno-west_norbert_orig.cfg",
             "C_padt-full_padt-egy_arabert_orig.cfg",
-            "C_tdt-full_tdt-sav_finbert_orig.cfg"):
+            "C_tdt-full_tdt-sav_finbert_orig.cfg",
+    ):
         all_configs.append(conf_file[:-4])
         for name_short, name_long, model_type in (
                 ("mbert", "bert-base-multilingual-cased", "BertForMaskedLM"),
