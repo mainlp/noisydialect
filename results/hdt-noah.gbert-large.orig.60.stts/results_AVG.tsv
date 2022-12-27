@@ -1,5 +1,0 @@
-METRIC	AVERAGE	STD_DEV	N_RUNS
-test.noah.gbert-large.orig.60.stts_acc_epoch1	0.43020405894830444	0.13405805196900505	5
-test.noah.gbert-large.orig.60.stts_f1_epoch1	0.2652138674640906	0.13009607245909346	5
-test.noah.gbert-large.orig.60.stts_acc_epoch2	0.442562454265045	0.14229905462594292	5
-test.noah.gbert-large.orig.60.stts_f1_epoch2	0.2812831786298399	0.1386394700225109	5

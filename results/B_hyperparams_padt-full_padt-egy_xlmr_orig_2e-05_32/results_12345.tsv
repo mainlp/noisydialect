@@ -1,0 +1,12 @@
+dev_padt_xlmr_orig_acc_epoch1	0.9463547850866777
+dev_padt_xlmr_orig_f1_epoch1	0.7335893813550561
+dev_dar-egy_xlmr_orig_acc_epoch1	0.6072210065645515
+dev_dar-egy_xlmr_orig_f1_epoch1	0.36813886705709153
+dev_padt_xlmr_orig_acc_epoch2	0.9569935882213251
+dev_padt_xlmr_orig_f1_epoch2	0.8292268928021814
+dev_dar-egy_xlmr_orig_acc_epoch2	0.6105716630196937
+dev_dar-egy_xlmr_orig_f1_epoch2	0.3922638081225984
+dev_padt_xlmr_orig_acc_epoch3	0.9601044882450724
+dev_padt_xlmr_orig_f1_epoch3	0.8376613272466488
+dev_dar-egy_xlmr_orig_acc_epoch3	0.5990836980306345
+dev_dar-egy_xlmr_orig_f1_epoch3	0.38920819058666484

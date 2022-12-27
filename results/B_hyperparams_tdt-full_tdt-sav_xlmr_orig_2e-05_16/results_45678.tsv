@@ -1,0 +1,12 @@
+dev_tdt_xlmr_orig_acc_epoch1	0.9706757452652057
+dev_tdt_xlmr_orig_f1_epoch1	0.7877439788110734
+dev_murre-SAV_xlmr_orig_acc_epoch1	0.7565546501989575
+dev_murre-SAV_xlmr_orig_f1_epoch1	0.5436707132978569
+dev_tdt_xlmr_orig_acc_epoch2	0.976511987183155
+dev_tdt_xlmr_orig_f1_epoch2	0.87379160885766
+dev_murre-SAV_xlmr_orig_acc_epoch2	0.7783673642653988
+dev_murre-SAV_xlmr_orig_f1_epoch2	0.5797811615152942
+dev_tdt_xlmr_orig_acc_epoch3	0.9774560851404703
+dev_tdt_xlmr_orig_f1_epoch3	0.8956824206704471
+dev_murre-SAV_xlmr_orig_acc_epoch3	0.7749065536447989
+dev_murre-SAV_xlmr_orig_f1_epoch3	0.570176246443306

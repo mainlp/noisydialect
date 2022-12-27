@@ -1,8 +1,0 @@
-dev.hdt.gbert-large.orig.60.stts_acc_epoch1	0.9808917197452229
-dev.hdt.gbert-large.orig.60.stts_f1_epoch1	0.913963684872903
-test.noah.gbert-large.orig.60.stts_acc_epoch1	0.5173074963643606
-test.noah.gbert-large.orig.60.stts_f1_epoch1	0.3375039459662579
-dev.hdt.gbert-large.orig.60.stts_acc_epoch2	0.9811084722355542
-dev.hdt.gbert-large.orig.60.stts_f1_epoch2	0.9224622667305329
-test.noah.gbert-large.orig.60.stts_acc_epoch2	0.4894728554358599
-test.noah.gbert-large.orig.60.stts_f1_epoch2	0.33783333258421305

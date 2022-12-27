@@ -1,5 +1,0 @@
-METRIC	AVERAGE	STD_DEV	N_RUNS
-test.noah.dbmdz-cased.orig.60.stts_acc_epoch1	0.7317907724228643	0.005803557639626763	5
-test.noah.dbmdz-cased.orig.60.stts_f1_epoch1	0.4558342278975078	0.00608642861553128	5
-test.noah.dbmdz-cased.orig.60.stts_acc_epoch2	0.7299974990505655	0.0017610132271908207	5
-test.noah.dbmdz-cased.orig.60.stts_f1_epoch2	0.45937786366449956	0.001492969740924524	5

@@ -1,8 +1,0 @@
-dev.hdt.dbmdz-uncased.orig.60.stts_acc_epoch1	0.980051288722056
-dev.hdt.dbmdz-uncased.orig.60.stts_f1_epoch1	0.9197785364070878
-test.noah.dbmdz-uncased.orig.60.stts_acc_epoch1	0.45597708722228325
-test.noah.dbmdz-uncased.orig.60.stts_f1_epoch1	0.3050304150306199
-dev.hdt.dbmdz-uncased.orig.60.stts_acc_epoch2	0.9800946487527797
-dev.hdt.dbmdz-uncased.orig.60.stts_f1_epoch2	0.946577509081812
-test.noah.dbmdz-uncased.orig.60.stts_acc_epoch2	0.4289282969144614
-test.noah.dbmdz-uncased.orig.60.stts_f1_epoch2	0.3056097233232286

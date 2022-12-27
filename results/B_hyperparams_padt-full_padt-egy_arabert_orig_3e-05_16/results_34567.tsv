@@ -1,0 +1,12 @@
+dev_padt_arabert_orig_acc_epoch1	0.9236563710210636
+dev_padt_arabert_orig_f1_epoch1	0.8288489121142287
+dev_dar-egy_arabert_orig_acc_epoch1	0.6328125
+dev_dar-egy_arabert_orig_f1_epoch1	0.4369674698177442
+dev_padt_arabert_orig_acc_epoch2	0.9267497874752054
+dev_padt_arabert_orig_f1_epoch2	0.8583808338160258
+dev_dar-egy_arabert_orig_acc_epoch2	0.6258769132653061
+dev_dar-egy_arabert_orig_f1_epoch2	0.43477321575421196
+dev_padt_arabert_orig_acc_epoch3	0.9245773117974875
+dev_padt_arabert_orig_f1_epoch3	0.8623066570543935
+dev_dar-egy_arabert_orig_acc_epoch3	0.6101721938775511
+dev_dar-egy_arabert_orig_f1_epoch3	0.42303240801605335
