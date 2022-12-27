@@ -197,7 +197,7 @@ python3 B_data-matrix_prep.py ../configs/B_padt-full_padt-egy_xlmr_orig.cfg
 python3 B_data-matrix_prep.py ../configs/B_tdt-full_tdt-sav_xlmr_orig.cfg
 python3 B_data-matrix_prep.py ../configs/B_hdt-full_hdt-noah_xlmr_orig.cfg
 
-python3 B_create_gridsearch_configs.py
+python3 B_create_gridsearch_configs.py --hyperparams
 
 for sfx in "2e-05_16" "3e-05_16" "2e-05_32" "3e-05_32"
 do
@@ -207,6 +207,46 @@ do
   python3 run.py -c ../configs/B_hyperparams_hdt-full_hdt-noah_xlmr_orig_${sfx}.cfg --test_per_epoch
   python3 run.py -c ../configs/B_hyperparams_padt-full_padt-egy_arabert_orig_${sfx}.cfg --test_per_epoch
   python3 run.py -c ../configs/B_hyperparams_padt-full_padt-egy_xlmr_orig_${sfx}.cfg --test_per_epoch
+done
+```
+
+5. Dev set experiments with different noise levels:
+```
+# Data prep
+python3 B_data-matrix_prep.py ../configs/B_padt-full_padt-egy_mbert_orig.cfg
+python3 B_data-matrix_prep.py ../configs/B_tdt-full_tdt-sav_mbert_orig.cfg
+python3 B_data-matrix_prep.py ../configs/B_hdt-full_hdt-noah_mbert_orig.cfg
+python3 B_data-matrix_prep.py ../configs/B_gsd-full_gsd-rpic_camembert_orig.cfg
+python3 B_data-matrix_prep.py ../configs/B_gsd-full_gsd-rpic_mbert_orig.cfg
+python3 B_data-matrix_prep.py ../configs/B_gsd-full_gsd-rpic_xlmr_orig.cfg
+python3 B_data-matrix_prep.py ../configs/B_nob-full_nob-west_norbert_orig.cfg
+python3 B_data-matrix_prep.py ../configs/B_nob-full_nob-west_mbert_orig.cfg
+python3 B_data-matrix_prep.py ../configs/B_nob-full_nob-west_xlmr_orig.cfg
+
+python3 B_create_gridsearch_configs.py --noise
+
+
+for noise in "orig" "rand15" "rand35" "rand55" "rand75" "rand95"
+do
+  python3 run.py -c ../configs/C_hdt-full_hdt-noah_gbert_${noise}.cfg --test_per_epoch --save_model
+  python3 run.py -c ../configs/C_hdt-full_hdt-noah_mbert_${noise}.cfg --tes_per_epoch --save_model
+  python3 run.py -c ../configs/C_hdt-full_hdt-noah_xlmr_${noise}.cfg --test_per_epoch --save_model
+  
+  python3 run.py -c ../configs/C_gsd-full_gsd-rpic_camembert_${noise}.cfg --test_per_epoch --save_model
+  python3 run.py -c ../configs/C_gsd-full_gsd-rpic_mbert_${noise}.cfg --test_per_epoch --save_model
+  python3 run.py -c ../configs/C_gsd-full_gsd-rpic_xlmr_${noise}.cfg --test_per_epoch --save_model
+
+  python3 run.py -c ../configs/C_nob-full_nob-west_norbert_${noise}.cfg --test_per_epoch --save_model
+  python3 run.py -c ../configs/C_nob-full_nob-west_mbert_${noise}.cfg --test_per_epoch --save_model
+  python3 run.py -c ../configs/C_nob-full_nob-west_xlmr_${noise}.cfg --test_per_epoch --save_model
+
+  python3 run.py -c ../configs/C_padt-full_padt-egy_arabert_${noise}.cfg --test_per_epoch --save_model
+  python3 run.py -c ../configs/C_padt-full_padt-egy_mbert_${noise}.cfg --test_per_epoch --save_model
+  python3 run.py -c ../configs/C_padt-full_padt-egy_xlmr_${noise}.cfg --test_per_epoch --save_model
+
+  python3 run.py -c ../configs/C_tdt-full_tdt-sav_finbert_${noise}.cfg --test_per_epoch --save_model
+  python3 run.py -c ../configs/C_tdt-full_tdt-sav_mbert_${noise}.cfg --test_per_epoch --save_model
+  python3 run.py -c ../configs/C_tdt-full_tdt-sav_xlmr_${noise}.cfg --test_per_epoch --save_model
 done
 ```
 

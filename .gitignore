@@ -13,3 +13,4 @@ datasets/LA-murre-vrt
 *.vrt
 results_old/
 results/*tsv
+results/*pt

@@ -11,7 +11,7 @@ class Config:
                 'reinit_dev_each_seed', 'reinit_test_each_seed', \
                 'subtoken_rep', 'tokenizer_name', \
                 'use_sca_tokenizer', 'sca_sibling_weighting', \
-                'noise_type', 'noise_lvl', 'noise_lvl', \
+                'noise_type', 'noise_lvl', \
                 'data_parent_dir', 'bert_name', 'plm_type',\
                 'classifier_dropout', 'n_epochs', 'batch_size', \
                 'learning_rate', 'sanity_mod', \
@@ -19,8 +19,7 @@ class Config:
 
     ints = ('max_sents_train', 'max_sents_dev', 'max_sents_test', 'T',
             'n_epochs', 'batch_size', 'sanity_mod')
-    floats = ('noise_lvl', 'noise_lvl',
-              'classifier_dropout', 'learning_rate')
+    floats = ('noise_lvl', 'classifier_dropout', 'learning_rate')
     bools = ('prepare_input_train', 'prepare_input_dev', 'prepare_input_test',
              'reinit_train_each_seed', 'reinit_dev_each_seed',
              'reinit_test_each_seed', 'use_sca_tokenizer')
@@ -58,7 +57,9 @@ class Config:
                  # SCATokenizer is built.
                  use_sca_tokenizer=False,
                  sca_sibling_weighting=None,  # {mean, relative}
-                 noise_type=None,  # None -> no noise
+                 # None -> no noise.
+                 # {add_random_noise, add_custom_noise_general}
+                 noise_type=None,
                  noise_lvl=0,
                  # If the input matrices just need to be loaded:
                  data_parent_dir=None,
