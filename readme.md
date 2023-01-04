@@ -269,7 +269,12 @@ done
 python3 clean_up_results.py
 ```
 
-6. Prepare test data:
+6. Get the tokenization stats:
+```
+python3 tokenization_stats.py
+```
+
+7. Prepare test data:
 ```
 python3 B_data-matrix_prep.py ../configs/D_nor_mbert.cfg
 ```

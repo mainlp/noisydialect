@@ -97,5 +97,5 @@ if __name__ == "__main__":
         configs = models()
         noise(configs)
     else:
-        configs = ()
+        configs = ("")
         noise(configs)

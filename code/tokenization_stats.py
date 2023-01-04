@@ -32,27 +32,30 @@ def write_dataset_stats(out_file, include_pos_distrib, data_folder="../data/"):
             print(path)
             _, _, setup_and_inst = path.rpartition("/")
             setup, _, inst = setup_and_inst.rpartition("_")
-            data = Data(name=setup + "_12345", load_parent_dir=data_folder)
-            n_sents = data.x.shape[0]
-            subtok_ratio = data.subtok_ratio()
-            unk_ratio = data.unk_ratio()
-            if include_pos_distrib:
-                pos_y_distrib = data.pos_y_distrib()
-            for seed in ("23456", "34567", "45678", "56789"):
-                data = Data(name=setup + "_" + seed,
-                            load_parent_dir=data_folder)
-                subtok_ratio += data.subtok_ratio()
-                unk_ratio += data.unk_ratio()
-            subtok_ratio /= 5
-            unk_ratio /= 5
-            if include_pos_distrib:
-                infos = [setup, n_sents, subtok_ratio, unk_ratio,
-                         pos_y_distrib]
-            else:
-                infos = [setup, n_sents, subtok_ratio, unk_ratio]
-            print(infos)
-            f_out.write("\t".join([str(info) for info in infos]))
-            f_out.write("\n")
+            try:
+                data = Data(name=setup + "_12345", load_parent_dir=data_folder)
+                n_sents = data.x.shape[0]
+                subtok_ratio = data.subtok_ratio()
+                unk_ratio = data.unk_ratio()
+                if include_pos_distrib:
+                    pos_y_distrib = data.pos_y_distrib()
+                for seed in ("23456", "34567", "45678", "56789"):
+                    data = Data(name=setup + "_" + seed,
+                                load_parent_dir=data_folder)
+                    subtok_ratio += data.subtok_ratio()
+                    unk_ratio += data.unk_ratio()
+                subtok_ratio /= 5
+                unk_ratio /= 5
+                if include_pos_distrib:
+                    infos = [setup, n_sents, subtok_ratio, unk_ratio,
+                             pos_y_distrib]
+                else:
+                    infos = [setup, n_sents, subtok_ratio, unk_ratio]
+                print(infos)
+                f_out.write("\t".join([str(info) for info in infos]))
+                f_out.write("\n")
+            except FileNotFoundError:
+                print("Couldn't process " + setup)
 
 
 def tagset_order(tagset_file):
@@ -136,94 +139,94 @@ if __name__ == "__main__":
     include_pos_distrib = len(sys.argv) > 1 and sys.argv[1] == "--pos_distrib"
     write_dataset_stats("../results/data_statistics.tsv", include_pos_distrib)
 
-    upos_order = tagset_order("../datasets/tagset_upos.txt")
-    name2subtoks, name2unks, name2label_distrib = read_dataset_stats(
-        "../results/data_statistics.tsv", {}, {}, {}, upos_order)
+    # upos_order = tagset_order("../datasets/tagset_upos.txt")
+    # name2subtoks, name2unks, name2label_distrib = read_dataset_stats(
+    #     "../results/data_statistics.tsv", {}, {}, {}, upos_order)
 
-    data2metric2scores = {}
-    for d in glob("../results/*upos"):
-        data2metric2scores = average_scores(d, data2metric2scores)
+    # data2metric2scores = {}
+    # for d in glob("../results/*upos"):
+    #     data2metric2scores = average_scores(d, data2metric2scores)
 
-    data2metric2avg = {}
-    for data in data2metric2scores:
-        data2metric2avg[data] = {}
-        for metric in data2metric2scores[data]:
-            scores = data2metric2scores[data][metric]
-            data2metric2avg[data][metric] = sum(scores) / len(scores)
+    # data2metric2avg = {}
+    # for data in data2metric2scores:
+    #     data2metric2avg[data] = {}
+    #     for metric in data2metric2scores[data]:
+    #         scores = data2metric2scores[data][metric]
+    #         data2metric2avg[data][metric] = sum(scores) / len(scores)
 
-    setups = [data for data in data2metric2avg]
-    target_data = []
-    source_data = []
-    target_type = []
-    target_corpus = []
-    tagset = []
-    for setup in setups:
-        src, tgt = setup.split("+")
-        source_data.append(src)
-        target_data.append(tgt)
-        tgt_splits = tgt.split(".")
-        target_type.append(tgt_splits[0])
-        target_corpus.append(tgt_splits[1])
-        tagset.append(tgt_splits[-1])
-    # TODO where do these NaNs come from
-    subtoks_per_tok = [name2subtoks[tgt] if tgt in name2subtoks
-                       else np.nan for tgt in target_data]
-    unks_per_subtok = [name2unks[tgt] if tgt in name2subtoks
-                       else np.nan for tgt in target_data]
-    acc = [data2metric2avg[setup]["acc"] if setup in data2metric2avg
-           else np.nan for setup in setups]
-    f1_macro = [data2metric2avg[setup]["f1"] if setup in data2metric2avg
-                else np.nan for setup in setups]
-    run_df = pd.DataFrame(
-        {"source_data": source_data,
-         "target_data": target_data, "target_corpus": target_corpus,
-         "target_type": target_type, "tagset": tagset,
-         "subtoks_per_tok": subtoks_per_tok,
-         "unks_per_subtok": unks_per_subtok,
-         "acc": acc, "f1_macro": f1_macro,
-         },
-        index=setups)
+    # setups = [data for data in data2metric2avg]
+    # target_data = []
+    # source_data = []
+    # target_type = []
+    # target_corpus = []
+    # tagset = []
+    # for setup in setups:
+    #     src, tgt = setup.split("+")
+    #     source_data.append(src)
+    #     target_data.append(tgt)
+    #     tgt_splits = tgt.split(".")
+    #     target_type.append(tgt_splits[0])
+    #     target_corpus.append(tgt_splits[1])
+    #     tagset.append(tgt_splits[-1])
+    # # TODO where do these NaNs come from
+    # subtoks_per_tok = [name2subtoks[tgt] if tgt in name2subtoks
+    #                    else np.nan for tgt in target_data]
+    # unks_per_subtok = [name2unks[tgt] if tgt in name2subtoks
+    #                    else np.nan for tgt in target_data]
+    # acc = [data2metric2avg[setup]["acc"] if setup in data2metric2avg
+    #        else np.nan for setup in setups]
+    # f1_macro = [data2metric2avg[setup]["f1"] if setup in data2metric2avg
+    #             else np.nan for setup in setups]
+    # run_df = pd.DataFrame(
+    #     {"source_data": source_data,
+    #      "target_data": target_data, "target_corpus": target_corpus,
+    #      "target_type": target_type, "tagset": tagset,
+    #      "subtoks_per_tok": subtoks_per_tok,
+    #      "unks_per_subtok": unks_per_subtok,
+    #      "acc": acc, "f1_macro": f1_macro,
+    #      },
+    #     index=setups)
 
-    datasets = list({src for src in source_data}.union(
-        {tgt for tgt in target_data}))
-    data_df = pd.DataFrame(
-        {"noise": [d.split(".", 4)[3] for d in datasets],
-         "subtoks_per_tok": [name2subtoks[d] if d in name2subtoks
-                             else np.nan for d in datasets],
-         "unks_per_subtok": [name2unks[d] if d in name2unks
-                             else np.nan for d in datasets],
-         "label_distrib": [name2label_distrib[d] if d in name2label_distrib
-                           else None for d in datasets],
-         },
-        index=datasets)
+    # datasets = list({src for src in source_data}.union(
+    #     {tgt for tgt in target_data}))
+    # data_df = pd.DataFrame(
+    #     {"noise": [d.split(".", 4)[3] for d in datasets],
+    #      "subtoks_per_tok": [name2subtoks[d] if d in name2subtoks
+    #                          else np.nan for d in datasets],
+    #      "unks_per_subtok": [name2unks[d] if d in name2unks
+    #                          else np.nan for d in datasets],
+    #      "label_distrib": [name2label_distrib[d] if d in name2label_distrib
+    #                        else None for d in datasets],
+    #      },
+    #     index=datasets)
 
-    run_df["source_noise"] = run_df.apply(
-        lambda row: data_df.loc[row["source_data"]]["noise"],
-        axis=1)
+    # run_df["source_noise"] = run_df.apply(
+    #     lambda row: data_df.loc[row["source_data"]]["noise"],
+    #     axis=1)
 
-    run_df["dev"] = run_df.apply(
-        lambda row: None if row["target_type"] == "dev"
-        else row["source_data"] + "+" + row["source_data"].replace(
-            "train", "dev"),
-        axis=1)
+    # run_df["dev"] = run_df.apply(
+    #     lambda row: None if row["target_type"] == "dev"
+    #     else row["source_data"] + "+" + row["source_data"].replace(
+    #         "train", "dev"),
+    #     axis=1)
 
-    for indep_var in ("subtoks_per_tok", "unks_per_subtok"):
-        run_df[indep_var + "_diff"] = run_df.apply(
-            lambda row:
-            row[indep_var] - data_df.loc[row["source_data"]][indep_var],
-            axis=1)
+    # for indep_var in ("subtoks_per_tok", "unks_per_subtok"):
+    #     run_df[indep_var + "_diff"] = run_df.apply(
+    #         lambda row:
+    #         row[indep_var] - data_df.loc[row["source_data"]][indep_var],
+    #         axis=1)
 
-    for metric in ("acc", "f1_macro"):
-        run_df[metric + "_diff"] = run_df.apply(
-            lambda row:
-            row[metric] - run_df.loc[row["dev"]][metric]
-            if row["dev"] in run_df.index else np.nan,
-            axis=1)
+    # for metric in ("acc", "f1_macro"):
+    #     run_df[metric + "_diff"] = run_df.apply(
+    #         lambda row:
+    #         row[metric] - run_df.loc[row["dev"]][metric]
+    #         if row["dev"] in run_df.index else np.nan,
+    #         axis=1)
 
-    run_df["kullback_leibner"] = run_df.apply(
-        lambda row:
-        entropy(data_df.loc[row["source_data"]]["label_distrib"],
-                data_df.loc[row["target_data"]]["label_distrib"]), axis=1)
+    # run_df["kullback_leibner"] = run_df.apply(
+    #     lambda row:
+    #     entropy(data_df.loc[row["source_data"]]["label_distrib"],
+    #             data_df.loc[row["target_data"]]["label_distrib"]), axis=1)
 
-    seaborn.scatterplot(run_df, x="subtoks_per_tok_diff", y="acc_diff",
-                        hue="source_noise", style="target_corpus")
+    # seaborn.scatterplot(run_df, x="subtoks_per_tok_diff", y="acc_diff",
+    #                     hue="source_noise", style="target_corpus")

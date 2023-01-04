@@ -197,8 +197,7 @@ class Classifier(pl.LightningModule):
                            f"{val_name}_f1_epoch{self.epoch}": f1_macro})
 
     def on_test_start(self):
-        self.test_preds = []
-        self.test_gold = []
+        self.set_test_names(self.test_data_names)
 
     def on_test_epoch_start(self):
         self.cur_test_preds = [[] for _ in self.test_data_names]
