@@ -34,6 +34,7 @@ def models():
     for conf_file in (
             "C_hdt-full_hdt-noah_gbert_orig.cfg",
             "C_gsd-full_gsd-rpic_camembert_orig.cfg",
+            "C_ancoraspa-full_ancoraspa-rpic_beto_orig.cfg",
             "C_nob-full_nob-west_norbert_orig.cfg",
             "C_nno-full_nno-west_norbert_orig.cfg",
             "C_padt-full_padt-egy_arabert_orig.cfg",
@@ -87,10 +88,14 @@ def noise(configs):
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        print("Expected one argument: '--hyperparams' or '--noise'")
+        print("Expected one argument: "
+              "'--hyperparams' or '--noise' or '--noiseonly'")
         sys.exit(1)
     if sys.argv[1].endswith("hyperparams"):
         hyperparams()
-    else:
+    elif sys.argv[1].endswith("noise"):
         configs = models()
+        noise(configs)
+    else:
+        configs = ()
         noise(configs)

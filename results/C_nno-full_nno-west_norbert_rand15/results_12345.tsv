@@ -1,0 +1,8 @@
+dev_ndt-nno_norbert_orig_acc_epoch1	0.975936
+dev_ndt-nno_norbert_orig_f1_epoch1	0.8671170080530942
+dev_lia-west_norbert_orig_acc_epoch1	0.682229564717713
+dev_lia-west_norbert_orig_f1_epoch1	0.6335744490767995
+dev_ndt-nno_norbert_orig_acc_epoch2	0.980032
+dev_ndt-nno_norbert_orig_f1_epoch2	0.888471460813926
+dev_lia-west_norbert_orig_acc_epoch2	0.6921419336302256
+dev_lia-west_norbert_orig_f1_epoch2	0.6448398421047769

@@ -42,7 +42,7 @@ class Classifier(pl.LightningModule):
     def __init__(self, pretrained_model_name_or_path, plm_type,
                  pos2idx, classifier_dropout, learning_rate,
                  use_sca_embeddings=False, subtok2weight=None,
-                 val_data_names=["dev"],
+                 val_data_names=["dev"], test_data_names=["test"],
                  print_model_structures=False, print_config=True,
                  ):
         super().__init__()
@@ -119,9 +119,13 @@ class Classifier(pl.LightningModule):
         # nested: validation set -> epoch
         self.val_preds = [[] for _ in val_data_names]
         self.val_gold = [[] for _ in val_data_names]
-        self.test_preds = []
-        self.test_gold = []
+        self.set_test_names(test_data_names)
         self.epoch = 0
+
+    def set_test_names(self, test_data_names):
+        self.test_data_names = test_data_names
+        self.test_preds = [[] for _ in test_data_names]
+        self.test_gold = [[] for _ in test_data_names]
 
     def forward(self, input_ids, attention_mask):
         if self.is_roberta:
@@ -196,23 +200,36 @@ class Classifier(pl.LightningModule):
         self.test_preds = []
         self.test_gold = []
 
-    def test_step(self, test_batch, batch_idx):
+    def on_test_epoch_start(self):
+        self.cur_test_preds = [[] for _ in self.test_data_names]
+        self.cur_test_gold = [[] for _ in self.test_data_names]
+
+    def test_step(self, test_batch, batch_idx, dataloader_idx=0):
         x, mask, y = test_batch
         logits = self.forward(x, mask)
-        # loss = self.loss(logits, y)
         acc, f1_macro, y_pred, y_true = self.detach_and_score(logits, y)
-        self.test_preds += y_pred.tolist()
-        self.test_gold += y_true.tolist()
-        # self.log_dict({"test_loss_batch": loss, "test_acc_batch": acc,
-        #                "test_f1_batch": f1_macro}, prog_bar=True)
+        self.cur_test_preds[dataloader_idx] += y_pred.tolist()
+        self.cur_test_gold[dataloader_idx] += y_true.tolist()
+        test_name = self.test_data_names[dataloader_idx]
+        self.log_dict({test_name + "_acc_batch": acc,
+                       test_name + "_f1_batch": f1_macro}, prog_bar=True)
 
     def on_test_epoch_end(self):
-        acc, f1_macro = self.score(np.asarray(self.test_preds),
-                                   np.asarray(self.test_gold))
-        self.log_dict({"test_acc": acc, "test_f1": f1_macro})
+        for i, test_name in enumerate(self.test_data_names):
+            print(i, test_name)
+            cur_preds = np.asarray(self.cur_test_preds[i])
+            cur_gold = np.asarray(self.cur_test_gold[i])
+            acc, f1_macro = self.score(cur_preds, cur_gold)
+            print("acc", acc)
+            print("f1 macro", f1_macro)
+            self.test_preds[i].append(cur_preds)
+            self.test_gold[i].append(cur_gold)
+            self.log_dict({f"{test_name}_acc_epoch{self.epoch}": acc,
+                           f"{test_name}_f1_epoch{self.epoch}": f1_macro})
 
     def test_results(self):
-        return self.score(self.test_preds, self.test_gold)
+        return [self.score(self.test_preds[i], self.test_gold[i])
+                for i in range(len(self.test_data_names))]
 
     def predict_step(self, batch, batch_idx, dataloader_idx=0):
         return self(batch[0], batch[1])

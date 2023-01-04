@@ -1,6 +1,7 @@
 import glob
 import os
 import re
+import sys
 
 import numpy as np
 
@@ -154,7 +155,11 @@ def rescore_dir(directory):
 
 
 if __name__ == "__main__":
-    for path in glob.glob("../results/*"):
+    if len(sys.argv) > 1:
+        path_glob = sys.argv[1]
+    else:
+        path_glob = "../results/*"
+    for path in glob.glob(path_glob):
         if os.path.isfile(path):
             continue
         # Remove dummy predictions:

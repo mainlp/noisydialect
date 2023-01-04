@@ -1,8 +1,7 @@
-from data import Data, read_raw_input
+from data import Data
 from tokenizer import SCATokenizer
 
 import pytorch_lightning as pl
-from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader
 from transformers import AutoTokenizer
 
@@ -12,7 +11,10 @@ class PosDataModule(pl.LightningDataModule):
         super().__init__()
         self.config = config
         self.pos2idx = pos2idx
-        self.train_name = config.name_train + train_sfx
+        if config.name_train:
+            self.train_name = config.name_train + train_sfx
+        else:
+            self.train_name = None
         if config.name_dev:
             self.dev_names = [name_dev + test_sfx
                               for name_dev in config.name_dev.split(",")]
@@ -107,8 +109,11 @@ class PosDataModule(pl.LightningDataModule):
 
     def setup(self, stage):
         if stage == 'fit':
-            self.train = Data(self.train_name,
-                              load_parent_dir=self.config.data_parent_dir)
+            if self.train_name:
+                self.train = Data(self.train_name,
+                                  load_parent_dir=self.config.data_parent_dir)
+            else:
+                self.train = None
             if self.dev_names:
                 self.vals = [Data(
                     dev_name, load_parent_dir=self.config.data_parent_dir)
@@ -130,6 +135,8 @@ class PosDataModule(pl.LightningDataModule):
             print(tok, idx2pos[pos_idx])
 
     def train_dataloader(self):
+        if not self.train:
+            return None
         self.print_preview(self.train)
         return DataLoader(self.train.tensor_dataset(),
                           batch_size=self.config.batch_size)

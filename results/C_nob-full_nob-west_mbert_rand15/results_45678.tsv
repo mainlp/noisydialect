@@ -1,0 +1,8 @@
+dev_ndt-nob_mbert_orig_acc_epoch1	0.9781670195506915
+dev_ndt-nob_mbert_orig_f1_epoch1	0.8918513590326103
+dev_lia-west_mbert_orig_acc_epoch1	0.5677345209021692
+dev_lia-west_mbert_orig_f1_epoch1	0.5066306146782318
+dev_ndt-nob_mbert_orig_acc_epoch2	0.9814392168724393
+dev_ndt-nob_mbert_orig_f1_epoch2	0.9015494849648755
+dev_lia-west_mbert_orig_acc_epoch2	0.5739117942824307
+dev_lia-west_mbert_orig_f1_epoch2	0.5255446096109653

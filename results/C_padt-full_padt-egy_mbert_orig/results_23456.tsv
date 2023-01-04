@@ -1,0 +1,8 @@
+dev_padt_mbert_orig_acc_epoch1	0.9531507309695849
+dev_padt_mbert_orig_f1_epoch1	0.8105362326421194
+dev_dar-egy_mbert_orig_acc_epoch1	0.5914776772093969
+dev_dar-egy_mbert_orig_f1_epoch1	0.36849063562601125
+dev_padt_mbert_orig_acc_epoch2	0.9620231893799361
+dev_padt_mbert_orig_f1_epoch2	0.8594843418866978
+dev_dar-egy_mbert_orig_acc_epoch2	0.599105054408624
+dev_dar-egy_mbert_orig_f1_epoch2	0.36916874663409227

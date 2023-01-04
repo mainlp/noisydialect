@@ -12,5 +12,7 @@ datasets/LA-murre-vrt
 *BACKUP*
 *.vrt
 results_old/
-results/*tsv
+results/*predictions*
 results/*pt
+results_copyable/
+*.pt

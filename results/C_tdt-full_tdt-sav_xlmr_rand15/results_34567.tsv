@@ -1,0 +1,8 @@
+dev_hdt_gbert_orig_acc_epoch1	0.09686247467999827
+dev_hdt_gbert_orig_f1_epoch1	0.06209513729912775
+dev_noah_gbert_orig_acc_epoch1	0.0904680139127372
+dev_noah_gbert_orig_f1_epoch1	0.057775176837723874
+dev_hdt_gbert_orig_acc_epoch2	0.09271276497497245
+dev_hdt_gbert_orig_f1_epoch2	0.05251895133818298
+dev_noah_gbert_orig_acc_epoch2	0.08544005635539119
+dev_noah_gbert_orig_f1_epoch2	0.05049664342678439

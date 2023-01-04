@@ -1,0 +1,8 @@
+dev_gsd_xlmr_orig_acc_epoch1	0.9818620167643184
+dev_gsd_xlmr_orig_f1_epoch1	0.886841430157888
+dev_rpic_xlmr_orig_acc_epoch1	0.7437933460649312
+dev_rpic_xlmr_orig_f1_epoch1	0.5165752073843135
+dev_gsd_xlmr_orig_acc_epoch2	0.9844972106192705
+dev_gsd_xlmr_orig_f1_epoch2	0.8995573366423155
+dev_rpic_xlmr_orig_acc_epoch2	0.7437933460649312
+dev_rpic_xlmr_orig_f1_epoch2	0.5178702357210796

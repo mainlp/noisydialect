@@ -1,0 +1,8 @@
+dev_gsd_mbert_orig_acc_epoch1	0.9765454239757888
+dev_gsd_mbert_orig_f1_epoch1	0.8670531391368577
+dev_rpic_mbert_orig_acc_epoch1	0.7402754045632727
+dev_rpic_mbert_orig_f1_epoch1	0.5108764365542541
+dev_gsd_mbert_orig_acc_epoch2	0.9796278652692932
+dev_gsd_mbert_orig_f1_epoch2	0.887495602561775
+dev_rpic_mbert_orig_acc_epoch2	0.7330384963312896
+dev_rpic_mbert_orig_f1_epoch2	0.5122546415615086

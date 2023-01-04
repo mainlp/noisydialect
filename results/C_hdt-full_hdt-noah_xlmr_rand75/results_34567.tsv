@@ -1,0 +1,8 @@
+dev_hdt_xlmr_orig_acc_epoch1	0.9801749773736155
+dev_hdt_xlmr_orig_f1_epoch1	0.9108202703780961
+dev_noah_xlmr_orig_acc_epoch1	0.7949907970867716
+dev_noah_xlmr_orig_f1_epoch1	0.6821244440155245
+dev_hdt_xlmr_orig_acc_epoch2	0.9806983087162374
+dev_hdt_xlmr_orig_f1_epoch2	0.9111226474457047
+dev_noah_xlmr_orig_acc_epoch2	0.7854972655458781
+dev_noah_xlmr_orig_f1_epoch2	0.6765394556391957

@@ -1,0 +1,8 @@
+dev_hdt_mbert_orig_acc_epoch1	0.9810584838167479
+dev_hdt_mbert_orig_f1_epoch1	0.9111126179023171
+dev_noah_mbert_orig_acc_epoch1	0.6224032407203558
+dev_noah_mbert_orig_f1_epoch1	0.5273951563521706
+dev_hdt_mbert_orig_acc_epoch2	0.9815633446413949
+dev_hdt_mbert_orig_f1_epoch2	0.9500657803329764
+dev_noah_mbert_orig_acc_epoch2	0.6162124080841883
+dev_noah_mbert_orig_f1_epoch2	0.5559092708464449

@@ -162,7 +162,7 @@ done
 python3 A_prep_lamurre.py
 ```
 
-3. Figure out which sentence lengths to use: (The results are used for the configs later on.)
+3. Figure out which sentence length to use: (The results are used for the configs later on.)
 ```
 python3 B_corpus_stats.py ../datasets/train_PADT_UPOS.tsv,../datasets/dev_PADT_UPOS.tsv,../datasets/dev_dar-egy_UPOS.tsv ../logs/sentence_lengths_ara.tsv aubmindlab/bert-base-arabertv2 w+
 python3 B_corpus_stats.py ../datasets/train_PADT_UPOS.tsv,../datasets/dev_PADT_UPOS.tsv,../datasets/dev_dar-egy_UPOS.tsv ../logs/sentence_lengths_ara.tsv bert-base-multilingual-cased a
@@ -208,6 +208,9 @@ do
   python3 run.py -c ../configs/B_hyperparams_padt-full_padt-egy_arabert_orig_${sfx}.cfg --test_per_epoch
   python3 run.py -c ../configs/B_hyperparams_padt-full_padt-egy_xlmr_orig_${sfx}.cfg --test_per_epoch
 done
+
+# Reformat results files
+python3 clean_up_results.py
 ```
 
 5. Dev set experiments with different noise levels:
@@ -219,6 +222,9 @@ python3 B_data-matrix_prep.py ../configs/B_hdt-full_hdt-noah_mbert_orig.cfg
 python3 B_data-matrix_prep.py ../configs/B_gsd-full_gsd-rpic_camembert_orig.cfg
 python3 B_data-matrix_prep.py ../configs/B_gsd-full_gsd-rpic_mbert_orig.cfg
 python3 B_data-matrix_prep.py ../configs/B_gsd-full_gsd-rpic_xlmr_orig.cfg
+python3 B_data-matrix_prep.py ../configs/B_ancoraspa-full_ancoraspa-rpic_beto_orig.cfg
+python3 B_data-matrix_prep.py ../configs/B_ancoraspa-full_ancoraspa-rpic_mbert_orig.cfg
+python3 B_data-matrix_prep.py ../configs/B_ancoraspa-full_ancoraspa-rpic_xlmr_orig.cfg
 python3 B_data-matrix_prep.py ../configs/B_nob-full_nob-west_norbert_orig.cfg
 python3 B_data-matrix_prep.py ../configs/B_nob-full_nob-west_mbert_orig.cfg
 python3 B_data-matrix_prep.py ../configs/B_nob-full_nob-west_xlmr_orig.cfg
@@ -237,10 +243,18 @@ do
   python3 run.py -c ../configs/C_gsd-full_gsd-rpic_camembert_${noise}.cfg --test_per_epoch --save_model
   python3 run.py -c ../configs/C_gsd-full_gsd-rpic_mbert_${noise}.cfg --test_per_epoch --save_model
   python3 run.py -c ../configs/C_gsd-full_gsd-rpic_xlmr_${noise}.cfg --test_per_epoch --save_model
+  
+  python3 run.py -c ../configs/C_ancoraspa-full_ancoraspa-rpic_beto_${noise}.cfg --test_per_epoch --save_model
+  python3 run.py -c ../configs/C_ancoraspa-full_ancoraspa-rpic_mbert_${noise}.cfg --test_per_epoch --save_model
+  python3 run.py -c ../configs/C_ancoraspa-full_ancoraspa-rpic_xlmr_${noise}.cfg --test_per_epoch --save_model
 
   python3 run.py -c ../configs/C_nob-full_nob-west_norbert_${noise}.cfg --test_per_epoch --save_model
   python3 run.py -c ../configs/C_nob-full_nob-west_mbert_${noise}.cfg --test_per_epoch --save_model
   python3 run.py -c ../configs/C_nob-full_nob-west_xlmr_${noise}.cfg --test_per_epoch --save_model
+
+  python3 run.py -c ../configs/C_nno-full_nno-west_norbert_${noise}.cfg --test_per_epoch --save_model
+  python3 run.py -c ../configs/C_nno-full_nno-west_mbert_${noise}.cfg --test_per_epoch --save_model
+  python3 run.py -c ../configs/C_nno-full_nno-west_xlmr_${noise}.cfg --test_per_epoch --save_model
 
   python3 run.py -c ../configs/C_padt-full_padt-egy_arabert_${noise}.cfg --test_per_epoch --save_model
   python3 run.py -c ../configs/C_padt-full_padt-egy_mbert_${noise}.cfg --test_per_epoch --save_model
@@ -249,13 +263,27 @@ do
   python3 run.py -c ../configs/C_tdt-full_tdt-sav_finbert_${noise}.cfg --test_per_epoch --save_model
   python3 run.py -c ../configs/C_tdt-full_tdt-sav_mbert_${noise}.cfg --test_per_epoch --save_model
   python3 run.py -c ../configs/C_tdt-full_tdt-sav_xlmr_${noise}.cfg --test_per_epoch --save_model
-
-  python3 run.py -c ../configs/C_nno-full_nno-west_norbert_${noise}.cfg --test_per_epoch --save_model
-  python3 run.py -c ../configs/C_nno-full_nno-west_mbert_${noise}.cfg --test_per_epoch --save_model
-  python3 run.py -c ../configs/C_nno-full_nno-west_xlmr_${noise}.cfg --test_per_epoch --save_model
-
 done
+
+# Reformat results files
+python3 clean_up_results.py
 ```
+
+6. Prepare test data:
+```
+python3 B_data-matrix_prep.py ../configs/D_nor_mbert.cfg
+```
+
+
+Old stuff below; ignore (will be removed):
+
+for noise in "rand55" "rand75" "rand95"
+do
+  python3 run.py -c ../configs/C_ancoraspa-full_ancoraspa-rpic_mbert_${noise}.cfg --test_per_epoch --save_model
+done
+
+
+export CUDA_VISIBLE_DEVICES=MIG-5e8c067e-f6a8-5eb5-8b91-cc7fd22d1043
 
 
 
