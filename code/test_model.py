@@ -49,6 +49,8 @@ def load_model(config, pos2idx, datamodule, seed,
 
 def test_model(model, datamodule, seed, out_dir):
     trainer = pl.Trainer()
+    # The PL test code automatically puts the model into evaluation mode
+    # (no dropout).
     trainer.test(model=model, datamodule=datamodule, verbose=True)
     for name, (preds, gold) in zip(datamodule.test_names,
                                    model.get_test_predictions()):

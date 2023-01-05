@@ -38,6 +38,7 @@ def models():
             "C_nob-full_nob-west_norbert_orig.cfg",
             "C_nno-full_nno-west_norbert_orig.cfg",
             "C_padt-full_padt-egy_arabert_orig.cfg",
+            "C_padt-translit-full_padt-translit_bertu_orig.cfg",
             "C_tdt-full_tdt-sav_finbert_orig.cfg",
     ):
         all_configs.append(conf_file[:-4])
@@ -97,5 +98,11 @@ if __name__ == "__main__":
         configs = models()
         noise(configs)
     else:
-        configs = ("")
+        configs = ("C_gsd-full_gsd-rpic_beto_orig",
+                   "C_ancoraspa-full_ancoraspa-rpic_camembert_orig",
+                   "C_tdt-full_tdt-sav_estbert_orig",
+                   "C_tdt-full_tdt-sav_bert_orig",
+                   "C_nno-full_nno-west_bert_orig",
+                   "C_nno-full_nno-west_finbert_orig",
+                   "C_nno-full_nno-west_arabert_orig",)
         noise(configs)
