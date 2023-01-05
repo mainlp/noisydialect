@@ -9,9 +9,15 @@ import pytorch_lightning as pl
 import torch
 
 
-def load_config_and_data(config_name, results_folder="../results/"):
+def load_config_and_data(train_config_name, test_config_name,
+                         config_folder="../configs/",
+                         results_folder="../results/"):
     config = Config()
-    config.load(results_folder + config_name + "/" + config_name + ".cfg")
+    config.load(results_folder + "/" + train_config_name
+                + "/" + train_config_name + ".cfg")
+    test_config = Config()
+    test_config.load(config_folder + "/" + test_config_name + ".cfg")
+    config.name_test = test_config.name_test
     pos2idx = {}
     with open(config.tagset_path, encoding="utf8") as f:
         for i, line in enumerate(f):
@@ -55,19 +61,23 @@ def test_model(model, datamodule, seed, out_dir):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("USAGE: python test_model.py CONFIG_NAME")
+    if len(sys.argv) != 3:
+        print("USAGE: python test_model.py TRAIN_CONFIG_NAME TEST_CONFIG_NAME")
         sys.exit(1)
 
     # Load config + datamodule
+    config_folder = "../configs/"
     results_folder = "../results/"
-    config_name = sys.argv[1]
-    config, pos2idx, dm = load_config_and_data(config_name, results_folder)
-    # Get predictions for each of the model initializations:
+    train_config_name = sys.argv[1]
+    test_config_name = sys.argv[2]
+    config, pos2idx, dm = load_config_and_data(
+        train_config_name, test_config_name, config_folder, results_folder)
+
+    # Get predictions for each of the model initializations
     acc = [[] for _ in dm.test_names]
     f1 = [[] for _ in dm.test_names]
     seeds = ("12345", "23456", "34567", "45678", "56789")
-    out_dir = results_folder + config_name
+    out_dir = results_folder + train_config_name
     for seed in seeds:
         print("Seed", seed)
         model = load_model(config, pos2idx, dm, seed)
@@ -78,6 +88,8 @@ if __name__ == "__main__":
             acc[i].append(acc_seed)
             f1[i].append(f1_seed)
             n_runs = len(seeds)
+
+    # Calculate and save score averages and standard deviations
     with open(out_dir + "/results_test_AVG.tsv", "w", encoding="utf8") as f:
         f.write("METRIC\tAVERAGE\tSTD_DEV\tN_RUNS\n")
         for name, a, f in zip(dm.test_names, acc, f1):
