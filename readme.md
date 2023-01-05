@@ -307,10 +307,10 @@ done
 Old stuff below; ignore (will be removed):
 
 
-for noise in "rand55" "rand75" "rand95"
 for noise in "orig" "rand15" "rand35" 
+for noise in "rand55" "rand75" "rand95"
 do
-  python3 run.py -c ../configs/C_padt-translit-full_padt-translit_mbert_${noise}.cfg --test_per_epoch --save_model
+  python3 run.py -c ../configs/C_padt-translit-full_padt-translit_xlmr_${noise}.cfg --test_per_epoch --save_model
 done
 
 1/0

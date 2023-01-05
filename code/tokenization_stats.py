@@ -13,18 +13,17 @@ from data import Data, DUMMY_POS
 def write_dataset_stats(out_file, include_pos_distrib, data_folder="../data/"):
     with open(out_file, "w+", encoding="utf8") as f_out:
         f_out.write("DATASET\tN_SENTS\tSUBTOKS_PER_TOK\t"
-                    "UNKS_PER_SUBTOK")
+                    "UNKS_PER_SUBTOK\tTTR\tSPLIT_UNSPLIT_RATIO")
         if include_pos_distrib:
             f_out.write("\tLABEL_DISTRIBUTION")
         f_out.write("\n")
         for path in glob(data_folder + "*orig"):
             data = Data(name=path.split("/")[-1], load_parent_dir=data_folder)
+            infos = [data.name, data.x.shape[0], data.subtok_ratio(),
+                     data.unk_ratio(), data.type_token_ratio(),
+                     data.split_unsplit_ratio()]
             if include_pos_distrib:
-                infos = [data.name, data.x.shape[0], data.subtok_ratio(),
-                         data.unk_ratio(), data.pos_y_distrib()]
-            else:
-                infos = [data.name, data.x.shape[0], data.subtok_ratio(),
-                         data.unk_ratio()]
+                infos.append(data.pos_y_distrib())
             print(infos)
             f_out.write("\t".join([str(info) for info in infos]))
             f_out.write("\n")
@@ -37,6 +36,8 @@ def write_dataset_stats(out_file, include_pos_distrib, data_folder="../data/"):
                 n_sents = data.x.shape[0]
                 subtok_ratio = data.subtok_ratio()
                 unk_ratio = data.unk_ratio()
+                tt_ratio = data.type_token_ratio()
+                su_ratio = data.split_unsplit_ratio()
                 if include_pos_distrib:
                     pos_y_distrib = data.pos_y_distrib()
                 for seed in ("23456", "34567", "45678", "56789"):
@@ -44,13 +45,16 @@ def write_dataset_stats(out_file, include_pos_distrib, data_folder="../data/"):
                                 load_parent_dir=data_folder)
                     subtok_ratio += data.subtok_ratio()
                     unk_ratio += data.unk_ratio()
+                    tt_ratio += data.type_token_ratio()
+                    su_ratio += data.split_unsplit_ratio()
                 subtok_ratio /= 5
                 unk_ratio /= 5
+                tt_ratio /= 5
+                su_ratio /= 5
+                infos = [setup, n_sents, subtok_ratio, unk_ratio, tt_ratio,
+                         su_ratio]
                 if include_pos_distrib:
-                    infos = [setup, n_sents, subtok_ratio, unk_ratio,
-                             pos_y_distrib]
-                else:
-                    infos = [setup, n_sents, subtok_ratio, unk_ratio]
+                    infos.append(pos_y_distrib)
                 print(infos)
                 f_out.write("\t".join([str(info) for info in infos]))
                 f_out.write("\n")

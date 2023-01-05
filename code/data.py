@@ -145,6 +145,31 @@ class Data:
         except TypeError:
             return None
 
+    def type_token_ratio(self):
+        n_types = len({tok for sent in self.toks_bert for tok in sent})
+        n_toks = len([tok for sent in self.toks_bert for tok in sent])
+        return n_types / n_toks
+
+    # ONLY works if subtoken_rep was last !!
+    def split_unsplit_ratio(self, subtoken_rep):
+        if subtoken_rep != "last":
+            return None
+        n_split, n_unsplit = 0, 0
+        for i in range(len(self.y)):
+            in_padding = True
+            prev_dummy = False
+            for label in reversed(self.y[i][1:-1]):
+                if label == self.dummy_idx:
+                    if not in_padding and not prev_dummy:
+                        prev_dummy = True
+                        n_split += 1
+                        n_unsplit -= 1
+                else:
+                    in_padding = False
+                    prev_dummy = False
+                    n_unsplit += 1
+        return n_split / n_unsplit
+
     def sca_sibling_ratio(self):
         if not self.x:
             return None
