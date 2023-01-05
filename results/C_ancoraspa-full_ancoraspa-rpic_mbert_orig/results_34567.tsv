@@ -1,0 +1,8 @@
+dev_AnCora-SPA_mbert_orig_acc_epoch1	0.9870609299149086
+dev_AnCora-SPA_mbert_orig_f1_epoch1	0.9059898323776351
+dev_rpic_mbert_orig_acc_epoch1	0.634737159513519
+dev_rpic_mbert_orig_f1_epoch1	0.45668844054359015
+dev_AnCora-SPA_mbert_orig_acc_epoch2	0.9894973881905605
+dev_AnCora-SPA_mbert_orig_f1_epoch2	0.9594839175817225
+dev_rpic_mbert_orig_acc_epoch2	0.6299125540255303
+dev_rpic_mbert_orig_f1_epoch2	0.4656897441240728

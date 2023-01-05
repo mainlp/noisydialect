@@ -221,14 +221,17 @@ class Classifier(pl.LightningModule):
             acc, f1_macro = self.score(cur_preds, cur_gold)
             print("acc", acc)
             print("f1 macro", f1_macro)
-            self.test_preds[i].append(cur_preds)
-            self.test_gold[i].append(cur_gold)
+            self.test_preds[i] = cur_preds
+            self.test_gold[i] = cur_gold
             self.log_dict({f"{test_name}_acc_epoch{self.epoch}": acc,
                            f"{test_name}_f1_epoch{self.epoch}": f1_macro})
 
     def test_results(self):
         return [self.score(self.test_preds[i], self.test_gold[i])
                 for i in range(len(self.test_data_names))]
+
+    def get_test_predictions(self):
+        return self.test_preds, self.test_gold
 
     def predict_step(self, batch, batch_idx, dataloader_idx=0):
         return self(batch[0], batch[1])

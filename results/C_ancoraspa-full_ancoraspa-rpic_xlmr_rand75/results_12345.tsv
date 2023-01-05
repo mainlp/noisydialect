@@ -1,0 +1,8 @@
+dev_AnCora-SPA_xlmr_orig_acc_epoch1	0.9587425238130399
+dev_AnCora-SPA_xlmr_orig_f1_epoch1	0.7670144116821225
+dev_rpic_xlmr_orig_acc_epoch1	0.6957483164137099
+dev_rpic_xlmr_orig_f1_epoch1	0.4977533879633456
+dev_AnCora-SPA_xlmr_orig_acc_epoch2	0.9692461049988924
+dev_AnCora-SPA_xlmr_orig_f1_epoch2	0.8176924501495022
+dev_rpic_xlmr_orig_acc_epoch2	0.69283345059805
+dev_rpic_xlmr_orig_f1_epoch2	0.4999622522430373

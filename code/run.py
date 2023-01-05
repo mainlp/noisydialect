@@ -121,6 +121,7 @@ def main(config_path, gpus=[0], dryrun=False,
         scores = {key: trainer.logged_metrics[key].item()
                   for key in trainer.logged_metrics}
         if save_model:
+            # TODO change to PL model-saving code instead
             torch.save(model.finetuning_model.state_dict(),
                        f"{out_dir}/model_{seed}.pt")
 

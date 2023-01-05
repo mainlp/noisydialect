@@ -1,0 +1,8 @@
+dev_ndt-nno_xlmr_orig_acc_epoch1	0.960576
+dev_ndt-nno_xlmr_orig_f1_epoch1	0.7862480567062029
+dev_lia-west_xlmr_orig_acc_epoch1	0.6042235311018532
+dev_lia-west_xlmr_orig_f1_epoch1	0.5283755564116341
+dev_ndt-nno_xlmr_orig_acc_epoch2	0.969728
+dev_ndt-nno_xlmr_orig_f1_epoch2	0.8528931148514031
+dev_lia-west_xlmr_orig_acc_epoch2	0.6274242206579514
+dev_lia-west_xlmr_orig_f1_epoch2	0.5858700594092486

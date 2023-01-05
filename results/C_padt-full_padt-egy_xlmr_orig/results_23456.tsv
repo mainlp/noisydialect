@@ -1,0 +1,8 @@
+dev_padt_xlmr_orig_acc_epoch1	0.957226161288185
+dev_padt_xlmr_orig_f1_epoch1	0.8080920886012524
+dev_dar-egy_xlmr_orig_acc_epoch1	0.6492423471982101
+dev_dar-egy_xlmr_orig_f1_epoch1	0.39391428385754546
+dev_padt_xlmr_orig_acc_epoch2	0.9648465973096547
+dev_padt_xlmr_orig_f1_epoch2	0.8608143202786125
+dev_dar-egy_xlmr_orig_acc_epoch2	0.6166988711481746
+dev_dar-egy_xlmr_orig_f1_epoch2	0.3914688536839638
