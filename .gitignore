@@ -16,3 +16,4 @@ results/*predictions*
 results/*pt
 results_copyable/
 *.pt
+temp/

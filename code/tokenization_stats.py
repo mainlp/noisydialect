@@ -10,10 +10,11 @@ from config import Config
 from data import Data, DUMMY_POS
 
 
-def write_dataset_stats(out_file, include_pos_distrib, data_folder="../data/"):
+def write_dataset_stats(out_file, include_pos_distrib, data_folder="../data/",
+                        subtoken_rep="last"):
     with open(out_file, "w+", encoding="utf8") as f_out:
         f_out.write("DATASET\tN_SENTS\tSUBTOKS_PER_TOK\t"
-                    "UNKS_PER_SUBTOK\tTTR\tSPLIT_UNSPLIT_RATIO")
+                    "UNKS_PER_SUBTOK\tTTR\tSPLIT_TOKEN_RATIO")
         if include_pos_distrib:
             f_out.write("\tLABEL_DISTRIBUTION")
         f_out.write("\n")
@@ -21,7 +22,7 @@ def write_dataset_stats(out_file, include_pos_distrib, data_folder="../data/"):
             data = Data(name=path.split("/")[-1], load_parent_dir=data_folder)
             infos = [data.name, data.x.shape[0], data.subtok_ratio(),
                      data.unk_ratio(), data.type_token_ratio(),
-                     data.split_unsplit_ratio()]
+                     data.split_token_ratio(subtoken_rep)]
             if include_pos_distrib:
                 infos.append(data.pos_y_distrib())
             print(infos)
@@ -37,7 +38,7 @@ def write_dataset_stats(out_file, include_pos_distrib, data_folder="../data/"):
                 subtok_ratio = data.subtok_ratio()
                 unk_ratio = data.unk_ratio()
                 tt_ratio = data.type_token_ratio()
-                su_ratio = data.split_unsplit_ratio()
+                su_ratio = data.split_token_ratio(subtoken_rep)
                 if include_pos_distrib:
                     pos_y_distrib = data.pos_y_distrib()
                 for seed in ("23456", "34567", "45678", "56789"):
@@ -46,7 +47,7 @@ def write_dataset_stats(out_file, include_pos_distrib, data_folder="../data/"):
                     subtok_ratio += data.subtok_ratio()
                     unk_ratio += data.unk_ratio()
                     tt_ratio += data.type_token_ratio()
-                    su_ratio += data.split_unsplit_ratio()
+                    su_ratio += data.split_token_ratio(subtoken_rep)
                 subtok_ratio /= 5
                 unk_ratio /= 5
                 tt_ratio /= 5

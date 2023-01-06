@@ -80,6 +80,7 @@ class Data:
                  other_dir=None,
                  # If initializing from scratch:
                  raw_data_path=None, max_sents=-1, subset_selection="first",
+                 verbose=True
                  ):
         self.name = name
         self.toks_orig = toks_orig
@@ -91,17 +92,22 @@ class Data:
         self.pos2idx = pos2idx
         self.preprocessor = None
         if load_parent_dir:
-            print(f"Loading {name} from path ({load_parent_dir}/{name})")
+            if verbose:
+                print(f"Loading {name} from path ({load_parent_dir}/{name})")
             self.load(load_parent_dir)
         elif other_dir:
-            print(f"Initializing {name} from other data ({other_dir})")
+            if verbose:
+                print(f"Initializing {name} from other data ({other_dir})")
             self.load_orig(other_dir)
         elif raw_data_path:
-            print(f"Initializing {name} from scratch ({raw_data_path})")
+            if verbose:
+                print(f"Initializing {name} from scratch ({raw_data_path})")
             self.read_raw_input(raw_data_path, max_sents, subset_selection)
         else:
-            print(f"Initializing {name} from args only")
-        print(self)
+            if verbose:
+                print(f"Initializing {name} from args only")
+        if verbose:
+            print(self)
 
     def subtok_ratio(self, return_all=False, cls_sep_per_sent=2):
         """
@@ -151,15 +157,16 @@ class Data:
         return n_types / n_toks
 
     # ONLY works if subtoken_rep was last !!
-    def split_unsplit_ratio(self, subtoken_rep):
+    def split_token_ratio(self, subtoken_rep):
         if subtoken_rep != "last":
             return None
         n_split, n_unsplit = 0, 0
+        dummy_idx = self.dummy_idx()
         for i in range(len(self.y)):
             in_padding = True
             prev_dummy = False
             for label in reversed(self.y[i][1:-1]):
-                if label == self.dummy_idx:
+                if label == dummy_idx:
                     if not in_padding and not prev_dummy:
                         prev_dummy = True
                         n_split += 1
@@ -168,7 +175,9 @@ class Data:
                     in_padding = False
                     prev_dummy = False
                     n_unsplit += 1
-        return n_split / n_unsplit
+        if n_split == 0 and n_unsplit == 0:
+            return -1
+        return n_split / (n_split + n_unsplit)
 
     def sca_sibling_ratio(self):
         if not self.x:
