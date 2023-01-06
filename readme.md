@@ -286,7 +286,10 @@ python3 clean_up_results.py
 
 6. Get the tokenization stats:
 ```
-python3 tokenization_stats.py
+for train_data in "hdt" "gsd" "ancoraspa" "nob" "nno" "padt" "tdt"
+do
+  python3 data_stats.py "../results/C_${train_data}*" ../results/stats-${train_data}.tsv
+done
 ```
 
 7. Prepare test data:
