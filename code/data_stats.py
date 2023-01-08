@@ -110,7 +110,7 @@ def data_stats(input_pattern, out_file):
                     f_out.write("\t".join((
                         str(train_stats[i]), str(cur_dev_stats[i]),
                         str(cur_dev_stats[i] - train_stats[i]))))
-                f_out.write("\t")
+                    f_out.write("\t")
                 f_out.write("\t".join((*cur_scores["f1"], *cur_scores["acc"])))
                 f_out.write("\n")
             print("-- Finished " + setup_name)
