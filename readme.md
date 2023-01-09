@@ -288,8 +288,11 @@ python3 clean_up_results.py
 ```
 for train_data in "hdt" "gsd" "ancoraspa" "nob" "nno" "padt" "tdt"
 do
+  echo "Calculating data stats for transfer from ${train_data}"
   python3 data_stats.py "../results/C_${train_data}*" ../results/stats-${train_data}.tsv
 done
+
+python3 dataset_graphs.py
 ```
 
 7. Prepare test data:
