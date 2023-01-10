@@ -33,6 +33,7 @@ def models():
     all_configs = []
     for conf_file in (
             "C_hdt-full_hdt-noah_gbert_orig.cfg",
+            "C_alpino-full_alpino-noah_bertje_orig.cfg",
             "C_gsd-full_gsd-rpic_camembert_orig.cfg",
             "C_ancoraspa-full_ancoraspa-rpic_beto_orig.cfg",
             "C_nob-full_nob-west_norbert_orig.cfg",
@@ -98,7 +99,9 @@ if __name__ == "__main__":
         configs = models()
         noise(configs)
     else:
-        configs = ("C_gsd-full_gsd-rpic_beto_orig",
+        configs = ("C_hdt-full_hdt-noah_bertje_orig",
+                   "C_alpino-full_alpino-noah_gbert_orig",
+                   "C_gsd-full_gsd-rpic_beto_orig",
                    "C_ancoraspa-full_ancoraspa-rpic_camembert_orig",
                    "C_tdt-full_tdt-sav_estbert_orig",
                    "C_tdt-full_tdt-sav_bert_orig",

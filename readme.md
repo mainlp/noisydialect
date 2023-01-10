@@ -221,6 +221,7 @@ python3 B_data-matrix_prep.py ../configs/B_tdt-full_tdt-sav_mbert_orig.cfg
 python3 B_data-matrix_prep.py ../configs/B_tdt-full_tdt-sav_estbert_orig.cfg
 python3 B_data-matrix_prep.py ../configs/B_tdt-full_tdt-sav_bert_orig.cfg
 python3 B_data-matrix_prep.py ../configs/B_hdt-full_hdt-noah_mbert_orig.cfg
+python3 B_data-matrix_prep.py ../configs/B_hdt-full_hdt-noah_bertje_orig.cfg
 python3 B_data-matrix_prep.py ../configs/B_gsd-full_gsd-rpic_camembert_orig.cfg
 python3 B_data-matrix_prep.py ../configs/B_gsd-full_gsd-rpic_beto_orig.cfg
 python3 B_data-matrix_prep.py ../configs/B_gsd-full_gsd-rpic_mbert_orig.cfg
@@ -238,6 +239,10 @@ python3 B_data-matrix_prep.py ../configs/B_nno-full_nno-west_finbert_orig.cfg
 python3 B_data-matrix_prep.py ../configs/B_nno-full_nno-west_arabert_orig.cfg
 python3 B_data-matrix_prep.py ../configs/B_nno-full_nno-west_mbert_orig.cfg
 python3 B_data-matrix_prep.py ../configs/B_nno-full_nno-west_xlmr_orig.cfg
+python3 B_data-matrix_prep.py ../configs/B_alpino-full_alpino-noah_bertje_orig.cfg
+python3 B_data-matrix_prep.py ../configs/B_alpino-full_alpino-noah_gbert_orig.cfg
+python3 B_data-matrix_prep.py ../configs/B_alpino-full_alpino-noah_mbert_orig.cfg
+python3 B_data-matrix_prep.py ../configs/B_alpino-full_alpino-noah_xlmr_orig.cfg
 
 python3 B_create_gridsearch_configs.py --noise
 python3 B_create_gridsearch_configs.py --noiseonly
@@ -245,8 +250,14 @@ python3 B_create_gridsearch_configs.py --noiseonly
 for noise in "orig" "rand15" "rand35" "rand55" "rand75" "rand95"
 do
   python3 run.py -c ../configs/C_hdt-full_hdt-noah_gbert_${noise}.cfg --test_per_epoch --save_model
+  python3 run.py -c ../configs/C_hdt-full_hdt-noah_bertje_${noise}.cfg --test_per_epoch --save_model
   python3 run.py -c ../configs/C_hdt-full_hdt-noah_mbert_${noise}.cfg --tes_per_epoch --save_model
   python3 run.py -c ../configs/C_hdt-full_hdt-noah_xlmr_${noise}.cfg --test_per_epoch --save_model
+
+  python3 run.py -c ../configs/C_alpino-full_alpino-noah_bertje_${noise}.cfg --test_per_epoch --save_model
+  python3 run.py -c ../configs/C_alpino-full_alpino-noah_gbert_${noise}.cfg --test_per_epoch --save_model
+  python3 run.py -c ../configs/C_alpino-full_alpino-noah_mbert_${noise}.cfg --test_per_epoch --save_model
+  python3 run.py -c ../configs/C_alpino-full_alpino-noah_xlmr_${noise}.cfg --test_per_epoch --save_model
   
   python3 run.py -c ../configs/C_gsd-full_gsd-rpic_camembert_${noise}.cfg --test_per_epoch --save_model
   python3 run.py -c ../configs/C_gsd-full_gsd-rpic_beto_${noise}.cfg --test_per_epoch --save_model
@@ -313,11 +324,39 @@ done
 Old stuff below; ignore (will be removed):
 
 
-for noise in "orig" "rand15" "rand35" 
+
+
+  python3 run.py -c ../configs/C_alpino-full_alpino-noah_bertje_${noise}.cfg --test_per_epoch --save_model
+  python3 run.py -c ../configs/C_alpino-full_alpino-noah_gbert_${noise}.cfg --test_per_epoch --save_model
+  python3 run.py -c ../configs/C_alpino-full_alpino-noah_mbert_${noise}.cfg --test_per_epoch --save_model
+  python3 run.py -c ../configs/C_alpino-full_alpino-noah_xlmr_${noise}.cfg --test_per_epoch --save_model
+
+
+
+
+for noise in "orig" "rand15" "rand35"
+do
+  python3 run.py -c ../configs/C_alpino-full_alpino-noah_xlmr_${noise}.cfg --test_per_epoch --save_model
+done
+
+va
+export CUDA_VISIBLE_DEVICES=MIG-cde26571-d967-57fe-bac7-029266b95b51
 for noise in "rand55" "rand75" "rand95"
 do
-  python3 run.py -c ../configs/C_padt-translit-full_padt-translit_xlmr_${noise}.cfg --test_per_epoch --save_model
+  python3 run.py -c ../configs/C_hdt-full_hdt-noah_xlmr_${noise}.cfg --test_per_epoch --save_model
 done
+
+
+
+3/0
+export CUDA_VISIBLE_DEVICES=MIG-feee0c61-26ec-5616-bb59-b6d777cc4f34
+
+3/1
+export CUDA_VISIBLE_DEVICES=MIG-c0386dcc-84bf-55a0-bb83-93d415e7a9e3
+
+4/0
+export CUDA_VISIBLE_DEVICES=MIG-cde26571-d967-57fe-bac7-029266b95b51
+
 
 1/0
 export CUDA_VISIBLE_DEVICES=MIG-b765791e-00bd-51cd-90d2-ccf46d0093d2
@@ -326,99 +365,3 @@ export CUDA_VISIBLE_DEVICES=MIG-b765791e-00bd-51cd-90d2-ccf46d0093d2
 5/1
 export CUDA_VISIBLE_DEVICES=MIG-0f3b4979-897a-55f3-bf40-ea1672341ea6
 
-
-
-3. Extract feature matrices for those experiments where the input representations aren't modified: (This creates subfolders in `data`, containing the input representations.)
-
-```
-# Vanilla UPOS data:
-python3 B_data-matrix_prep.py ../configs/B_hdt-noah_lsdc_uzh.dbmdz-cased.orig.60.upos.cfg
-python3 B_data-matrix_prep.py ../configs/B_hdt-noah_lsdc_uzh.dbmdz-uncased.orig.60.upos.cfg
-python3 B_data-matrix_prep.py ../configs/B_hdt-noah_lsdc_uzh.gbert-base.orig.60.upos.cfg
-python3 B_data-matrix_prep.py ../configs/B_hdt-noah_lsdc_uzh.gbert-large.orig.60.upos.cfg
-python3 B_data-matrix_prep.py ../configs/B_hdt-noah_lsdc_uzh.mbert-cased.orig.60.upos.cfg
-python3 B_data-matrix_prep.py ../configs/B_hdt-noah_lsdc_uzh.europeana-deu.orig.60.upos.cfg
-python3 B_data-matrix_prep.py ../configs/B_hdt-noah_lsdc_uzh.xlm-roberta.orig.60.upos.cfg
-python3 B_data-matrix_prep.py ../configs/B_hdt-noah_lsdc_uzh.bertje.orig.60.upos.cfg
-python3 B_data-matrix_prep.py ../configs/B_hdt-noah_lsdc_uzh.bert-base-cased.orig.60.upos.cfg
-python3 B_data-matrix_prep.py ../configs/B_hdt-noah_lsdc_uzh.bert-base-uncased.orig.60.upos.cfg
-python3 B_data-matrix_prep.py ../configs/B_hdt-noah_lsdc_uzh.finnish-bert-cased.orig.60.upos.cfg
-
-python3 B_data-matrix_prep.py ../configs/B_hdt_6k_f-noah_lsdc_uzh.dbmdz-cased.orig.60.upos.cfg
-python3 B_data-matrix_prep.py ../configs/B_hdt_12k_f-noah_lsdc_uzh.dbmdz-cased.orig.60.upos.cfg
-python3 B_data-matrix_prep.py ../configs/B_hdt_12k_l-noah_lsdc_uzh.dbmdz-cased.orig.60.upos.cfg
-python3 B_data-matrix_prep.py ../configs/B_hdt_24k_f-noah_lsdc_uzh.dbmdz-cased.orig.60.upos.cfg
-python3 B_data-matrix_prep.py ../configs/B_hdt_48k_f-noah_lsdc_uzh.dbmdz-cased.orig.60.upos.cfg
-
-python3 B_data-matrix_prep.py ../configs/B_hdt_6k_f-noah_lsdc_uzh.bert-base-cased.orig.60.upos.cfg
-python3 B_data-matrix_prep.py ../configs/B_hdt_12k_f-noah_lsdc_uzh.bert-base-cased.orig.60.upos.cfg
-python3 B_data-matrix_prep.py ../configs/B_hdt_24k_f-noah_lsdc_uzh.bert-base-cased.orig.60.upos.cfg
-python3 B_data-matrix_prep.py ../configs/B_hdt_48k_f-noah_lsdc_uzh.bert-base-cased.orig.60.upos.cfg
-
-python3 B_data-matrix_prep.py ../configs/B_alpino-noah_lsdc_uzh.dbmdz-cased.orig.60.upos.cfg
-python3 B_data-matrix_prep.py ../configs/B_alpino-noah_lsdc_uzh.dbmdz-uncased.orig.60.upos.cfg
-python3 B_data-matrix_prep.py ../configs/B_alpino-noah_lsdc_uzh.bertje.orig.60.upos.cfg
-python3 B_data-matrix_prep.py ../configs/B_alpino-noah_lsdc_uzh.mbert-cased.orig.60.upos.cfg
-python3 B_data-matrix_prep.py ../configs/B_alpino-noah_lsdc_uzh.gbert-base.orig.60.upos.cfg
-python3 B_data-matrix_prep.py ../configs/B_alpino-noah_lsdc_uzh.xlm-roberta.orig.60.upos.cfg
-python3 B_data-matrix_prep.py ../configs/B_alpino-noah_lsdc_uzh.bert-base-cased.orig.60.upos.cfg
-python3 B_data-matrix_prep.py ../configs/B_alpino-noah_lsdc_uzh.bert-base-uncased.orig.60.upos.cfg
-python3 B_data-matrix_prep.py ../configs/B_alpino-noah_lsdc_uzh.finnish-bert-cased.orig.60.upos.cfg
-```
-
-4. Run baselines: (The results are saved in `results`, in folders named after the configs.)
-
-```
-# Vanilla UPOS data:
-python3 run.py -c ../configs/hdt-noah_lsdc_uzh.dbmdz-cased.orig.60.upos.cfg --test_per_epoch
-python3 run.py -c ../configs/hdt-noah_lsdc_uzh.dbmdz-uncased.orig.60.upos.cfg --test_per_epoch
-python3 run.py -c ../configs/hdt-noah_lsdc_uzh.gbert-base.orig.60.upos.cfg --test_per_epoch
-python3 run.py -c ../configs/hdt-noah_lsdc_uzh.gbert-large.orig.60.upos.cfg --test_per_epoch
-python3 run.py -c ../configs/hdt-noah_lsdc_uzh.mbert-cased.orig.60.upos.cfg --test_per_epoch
-python3 run.py -c ../configs/hdt-noah_lsdc_uzh.europeana-deu.orig.60.upos.cfg --test_per_epoch
-python3 run.py -c ../configs/hdt-noah_lsdc_uzh.xlm-roberta.orig.60.upos.cfg --test_per_epoch
-python3 run.py -c ../configs/hdt-noah_lsdc_uzh.bertje.orig.60.upos.cfg --test_per_epoch
-python3 run.py -c ../configs/hdt-noah_lsdc_uzh.bert-base-cased.orig.60.upos.cfg --test_per_epoch
-python3 run.py -c ../configs/hdt-noah_lsdc_uzh.bert-base-uncased.orig.60.upos.cfg --test_per_epoch
-python3 run.py -c ../configs/hdt-noah_lsdc_uzh.finnish-bert-cased.orig.60.upos.cfg --test_per_epoch
-
-python3 run.py -c ../configs/hdt_6k_f-noah_lsdc_uzh.dbmdz-cased.orig.60.upos.cfg --test_per_epoch
-python3 run.py -c ../configs/hdt_6r_f-noah_lsdc_uzh.dbmdz-cased.orig.60.upos.cfg --test_per_epoch
-python3 run.py -c ../configs/hdt_12k_f-noah_lsdc_uzh.dbmdz-cased.orig.60.upos.cfg --test_per_epoch
-python3 run.py -c ../configs/hdt_12k_l-noah_lsdc_uzh.dbmdz-cased.orig.60.upos.cfg --test_per_epoch
-python3 run.py -c ../configs/hdt_12k_r-noah_lsdc_uzh.dbmdz-cased.orig.60.upos.cfg --test_per_epoch
-python3 run.py -c ../configs/hdt_24k_f-noah_lsdc_uzh.dbmdz-cased.orig.60.upos.cfg --test_per_epoch
-python3 run.py -c ../configs/hdt_24k_r-noah_lsdc_uzh.dbmdz-cased.orig.60.upos.cfg --test_per_epoch
-python3 run.py -c ../configs/hdt_48k_f-noah_lsdc_uzh.dbmdz-cased.orig.60.upos.cfg --test_per_epoch
-python3 run.py -c ../configs/hdt_48k_r-noah_lsdc_uzh.dbmdz-cased.orig.60.upos.cfg --test_per_epoch
-
-python3 run.py -c ../configs/hdt_6k_f-noah_lsdc_uzh.bert-base-cased.orig.60.upos.cfg --test_per_epoch
-python3 run.py -c ../configs/hdt_6r_f-noah_lsdc_uzh.bert-base-cased.orig.60.upos.cfg --test_per_epoch
-python3 run.py -c ../configs/hdt_12k_f-noah_lsdc_uzh.bert-base-cased.orig.60.upos.cfg --test_per_epoch
-python3 run.py -c ../configs/hdt_12k_l-noah_lsdc_uzh.bert-base-cased.orig.60.upos.cfg --test_per_epoch
-python3 run.py -c ../configs/hdt_12k_r-noah_lsdc_uzh.bert-base-cased.orig.60.upos.cfg --test_per_epoch
-python3 run.py -c ../configs/hdt_24k_f-noah_lsdc_uzh.bert-base-cased.orig.60.upos.cfg --test_per_epoch
-python3 run.py -c ../configs/hdt_24k_r-noah_lsdc_uzh.bert-base-cased.orig.60.upos.cfg --test_per_epoch
-python3 run.py -c ../configs/hdt_48k_f-noah_lsdc_uzh.bert-base-cased.orig.60.upos.cfg --test_per_epoch
-python3 run.py -c ../configs/hdt_48k_r-noah_lsdc_uzh.bert-base-cased.orig.60.upos.cfg --test_per_epoch
-
-python3 run.py -c ../configs/alpino-noah_lsdc_uzh.dbmdz-cased.orig.60.upos.cfg --test_per_epoch
-python3 run.py -c ../configs/alpino-noah_lsdc_uzh.dbmdz-uncased.orig.60.upos.cfg --test_per_epoch
-python3 run.py -c ../configs/alpino-noah_lsdc_uzh.bertje.orig.60.upos.cfg --test_per_epoch
-python3 run.py -c ../configs/alpino-noah_lsdc_uzh.mbert-cased.orig.60.upos.cfg --test_per_epoch
-python3 run.py -c ../configs/alpino-noah_lsdc_uzh.gbert-base.orig.60.upos.cfg --test_per_epoch
-python3 run.py -c ../configs/alpino-noah_lsdc_uzh.xlm-roberta.orig.60.upos.cfg --test_per_epoch
-python3 run.py -c ../configs/alpino-noah_lsdc_uzh.bert-base-cased.orig.60.upos.cfg --test_per_epoch
-python3 run.py -c ../configs/alpino-noah_lsdc_uzh.bert-base-uncased.orig.60.upos.cfg --test_per_epoch
-python3 run.py -c ../configs/alpino-noah_lsdc_uzh.finnish-bert-cased.orig.60.upos.cfg --test_per_epoch
-```
-
-5. Reformat results files:
-```
-python3 clean_up_results.py
-```
-
-6.
-```
-python3 dataset_stats.py
-```
