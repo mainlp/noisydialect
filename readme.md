@@ -324,12 +324,16 @@ done
 Old stuff below; ignore (will be removed):
 
 
+ "gsd" "ancoraspa" "nob" "nno" "padt" "tdt"
 
 
-  python3 run.py -c ../configs/C_alpino-full_alpino-noah_bertje_${noise}.cfg --test_per_epoch --save_model
-  python3 run.py -c ../configs/C_alpino-full_alpino-noah_gbert_${noise}.cfg --test_per_epoch --save_model
-  python3 run.py -c ../configs/C_alpino-full_alpino-noah_mbert_${noise}.cfg --test_per_epoch --save_model
-  python3 run.py -c ../configs/C_alpino-full_alpino-noah_xlmr_${noise}.cfg --test_per_epoch --save_model
+va
+export CUDA_VISIBLE_DEVICES=MIG-9ada8eeb-cf73-5a32-b182-861914ff2eac
+for train_data in "nob"
+do
+  echo "Calculating data stats for transfer from ${train_data}"
+  python3 data_stats.py "../results/C_${train_data}*" ../results/stats-${train_data}.tsv
+done
 
 
 
@@ -346,6 +350,8 @@ do
   python3 run.py -c ../configs/C_hdt-full_hdt-noah_xlmr_${noise}.cfg --test_per_epoch --save_model
 done
 
+0/0
+export CUDA_VISIBLE_DEVICES=MIG-9ada8eeb-cf73-5a32-b182-861914ff2eac
 
 
 3/0

@@ -98,24 +98,29 @@ def data_stats(input_pattern, out_file):
                 cur_dev_stats.append(word_types_in_train)
                 dev_stats.append(cur_dev_stats)
             scores = {}
-            with open(folder + "/results_AVG.tsv") as f_in:
-                for line in f_in:
-                    line = line.strip()
-                    if not line:
-                        continue
-                    cells = line.split("\t")
-                    run_and_metric = cells[0]
-                    if run_and_metric.endswith(str(config.n_epochs)):
-                        for dev_name in dev_names:
-                            if run_and_metric.startswith(dev_name):
-                                metric = run_and_metric.rsplit("_", 2)[1]
-                                try:
-                                    scores[dev_name][metric] = (
-                                        cells[1], cells[2])
-                                except KeyError:
-                                    scores[dev_name] = {
-                                        metric: (cells[1], cells[2])}
-                                break
+            try:
+                with open(folder + "/results_AVG.tsv") as f_in:
+                    for line in f_in:
+                        line = line.strip()
+                        if not line:
+                            continue
+                        cells = line.split("\t")
+                        run_and_metric = cells[0]
+                        if run_and_metric.endswith(str(config.n_epochs)):
+                            for dev_name in dev_names:
+                                if run_and_metric.startswith(dev_name):
+                                    metric = run_and_metric.rsplit("_", 2)[1]
+                                    try:
+                                        scores[dev_name][metric] = (
+                                            cells[1], cells[2])
+                                    except KeyError:
+                                        scores[dev_name] = {
+                                            metric: (cells[1], cells[2])}
+                                    break
+            except FileNotFoundError:
+                for dev_name in dev_names:
+                    scores[dev_name] = {"acc": ("-1", "-1"),
+                                        "f1": ("-1", "-1")}
             for cur_dev_name, cur_dev_stats in zip(dev_names, dev_stats):
                 try:
                     cur_scores = scores[cur_dev_name]
