@@ -1,6 +1,8 @@
 from glob import glob
 import sys
 
+from transformers import AutoTokenizer
+
 from config import Config
 from data import Data
 
@@ -18,6 +20,8 @@ def data_stats(input_pattern, out_file):
             "SPLIT_TOKEN_RATIO_DIFF",
             "F1_MACRO_AVG_DEV", "F1_MACRO_STD_DEV",
             "ACCURACY_AVG_DEV", "ACCURACY_STD_DEV",
+            "DEV_SUBTOKS_IN_TRAIN", "DEV_SUBTOK_TYPES_IN_TRAIN",
+            "DEV_WORDS_IN_TRAIN", "DEV_WORD_TYPES_IN_TRAIN",
         )))
         f_out.write("\n")
         folders = sorted(glob(input_pattern))
@@ -25,6 +29,7 @@ def data_stats(input_pattern, out_file):
             setup_name = folder.rsplit("/", 1)[1]
             config = Config()
             config.load(folder + "/" + setup_name + ".cfg")
+            tokenizer = AutoTokenizer.from_pretrained(config.tokenizer_name)
             if config.noise_type is None:
                 try:
                     train_data = Data(name=config.name_train,
@@ -33,6 +38,7 @@ def data_stats(input_pattern, out_file):
                 except FileNotFoundError:
                     print("!! Could not load " + config.name_train)
                     continue
+                train_data.calculate_toks_orig_cutoff(tokenizer, config.T)
                 train_stats = (train_data.subtok_ratio(),
                                train_data.unk_ratio(),
                                train_data.type_token_ratio(),
@@ -48,6 +54,8 @@ def data_stats(input_pattern, out_file):
                         train_data = Data(
                             name=config.name_train + "_" + str(seed),
                             load_parent_dir="../data/", verbose=False)
+                        train_data.calculate_toks_orig_cutoff(tokenizer,
+                                                              config.T)
                         train_stats[0] += train_data.subtok_ratio()
                         train_stats[1] += train_data.unk_ratio()
                         train_stats[2] += train_data.type_token_ratio()
@@ -62,22 +70,33 @@ def data_stats(input_pattern, out_file):
                     continue
                 for i in range(len(train_stats)):
                     train_stats[i] = train_stats[i] / n_runs
+            train_tok_counter = train_data.subtok_counter()
+            train_word_counter = train_data.word_counter()
             dev_stats = []
             dev_names = config.name_dev.split(",")
             for cur_dev_name in dev_names:
+                cur_dev_data = Data(name=cur_dev_name,
+                                    load_parent_dir="../data/",
+                                    verbose=False)
+                cur_dev_data.calculate_toks_orig_cutoff(tokenizer, config.T)
                 if cur_dev_name in saved_data_stats:
-                    dev_stats.append(saved_data_stats[cur_dev_name])
+                    cur_dev_stats = saved_data_stats[cur_dev_name]
                 else:
-                    cur_dev_data = Data(name=cur_dev_name,
-                                        load_parent_dir="../data/",
-                                        verbose=False)
-                    cur_dev_stats = (cur_dev_data.subtok_ratio(),
+                    cur_dev_stats = [cur_dev_data.subtok_ratio(),
                                      cur_dev_data.unk_ratio(),
                                      cur_dev_data.type_token_ratio(),
                                      cur_dev_data.split_token_ratio(
-                                         subtoken_rep=config.subtoken_rep))
-                    dev_stats.append(cur_dev_stats)
+                                         subtoken_rep=config.subtoken_rep)]
                     saved_data_stats[cur_dev_name] = cur_dev_stats
+                subtoks_in_train, subtok_types_in_train =\
+                    cur_dev_data.subtoks_present_in_other(train_tok_counter)
+                cur_dev_stats.append(subtoks_in_train)
+                cur_dev_stats.append(subtok_types_in_train)
+                words_in_train, word_types_in_train =\
+                    cur_dev_data.words_present_in_other(train_word_counter)
+                cur_dev_stats.append(words_in_train)
+                cur_dev_stats.append(word_types_in_train)
+                dev_stats.append(cur_dev_stats)
             scores = {}
             with open(folder + "/results_AVG.tsv") as f_in:
                 for line in f_in:
@@ -111,6 +130,9 @@ def data_stats(input_pattern, out_file):
                         str(train_stats[i]), str(cur_dev_stats[i]),
                         str(cur_dev_stats[i] - train_stats[i]))))
                     f_out.write("\t")
+                f_out.write("\t".join((str(cur_dev_stats[-i])
+                                       for i in range(4, 0, -1))))
+                f_out.write("\t")
                 f_out.write("\t".join((*cur_scores["f1"], *cur_scores["acc"])))
                 f_out.write("\n")
             print("-- Finished " + setup_name)

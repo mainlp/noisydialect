@@ -91,6 +91,7 @@ class Data:
         self.input_mask = input_mask
         self.pos2idx = pos2idx
         self.preprocessor = None
+        self.toks_orig_cutoff = None
         if load_parent_dir:
             if verbose:
                 print(f"Loading {name} from path ({load_parent_dir}/{name})")
@@ -114,7 +115,7 @@ class Data:
         Subtokens per token, *ignoring [SEP]/[CLS]*!
         """
         n_toks_bert = self.n_toks_bert(cls_sep_per_sent)
-        n_toks_orig = self.n_toks_orig()
+        n_toks_orig = self.n_toks_orig_cutoff()
         try:
             ratio = n_toks_bert / n_toks_orig
         except (TypeError, ZeroDivisionError):
@@ -138,9 +139,36 @@ class Data:
             return ratio, n_unks_bert, n_toks_bert
         return ratio
 
-    def n_toks_orig(self):
+    def get_sent_tokens_with_cutoff(self, sent_toks, tokenize, tokenizer,
+                                    maxlen):
+        cur_toks = []
+        n_subtoks = 0
+        for token in sent_toks:
+            subtoks = tokenize(token, tokenizer)
+            n_subtoks += len(subtoks)
+            if n_subtoks >= maxlen:
+                if n_subtoks == maxlen:
+                    cur_toks.append(token)
+                return cur_toks
+            cur_toks.append(token)
+        return cur_toks
+
+    def calculate_toks_orig_cutoff(self, tokenizer, T, verbose=False):
+        if self.toks_orig_cutoff:
+            return
+        tokenize = self.get_tokenize_method(tokenizer)
+        maxlen = T - 2  # minus CLS, SEP
+        self.toks_orig_cutoff = []
+        for sent_toks in self.toks_orig:
+            self.toks_orig_cutoff.append(
+                self.get_sent_tokens_with_cutoff(sent_toks, tokenize,
+                                                 tokenizer, maxlen))
+
+    def n_toks_orig_cutoff(self):
+        if not self.toks_orig_cutoff:
+            return None
         try:
-            return sum(len(sent_toks) for sent_toks in self.toks_orig)
+            return sum(len(sent_toks) for sent_toks in self.toks_orig_cutoff)
         except TypeError:
             return None
 
@@ -234,6 +262,37 @@ class Data:
             for deu in siblings:
                 subtok2weight[deu] = siblings[deu] / total
         return subtok2weight
+
+    def subtok_counter(self):
+        return Counter([tok for sent in self.toks_bert for tok in sent[1:-1]])
+
+    def word_counter(self):
+        return Counter([tok for sent in self.toks_orig_cutoff
+                        for tok in sent[1:-1]])
+
+    def subtoks_present_in_other(self, other_counter):
+        tok_counter = self.subtok_counter()
+        n_toks = sum(tok_counter.values())
+        n_types = len(tok_counter)
+        n_seen_toks = 0
+        n_seen_types = 0
+        for tok in tok_counter:
+            if tok in other_counter:
+                n_seen_toks += tok_counter[tok]
+                n_seen_types += 1
+        return n_seen_toks / n_toks, n_seen_types / n_types
+
+    def words_present_in_other(self, other_counter):
+        word_counter = self.word_counter()
+        n_toks = sum(word_counter.values())
+        n_types = len(word_counter)
+        n_seen_toks = 0
+        n_seen_types = 0
+        for tok in word_counter:
+            if tok in other_counter:
+                n_seen_toks += word_counter[tok]
+                n_seen_types += 1
+        return n_seen_toks / n_toks, n_seen_types / n_types
 
     def pos_orig_distrib(self):
         c = Counter([pos for sent in self.pos_orig for pos in sent])
@@ -606,6 +665,8 @@ class Data:
                  x=self.x, y=self.y, input_mask=self.input_mask)
         if save_orig:
             self.save_tsv(self.toks_orig, directory, "toks_orig.tsv")
+            self.save_tsv(self.toks_orig_cutoff, directory,
+                          "toks_orig_cutoff.tsv")
             self.save_tsv(self.pos_orig, directory, "pos_orig.tsv")
         self.save_tsv(self.toks_bert, directory, "toks_bert.tsv")
         if self.pos2idx:
@@ -643,6 +704,8 @@ class Data:
 
     def load_orig(self, other_dir):
         self.toks_orig = self.tsv2list(other_dir, "toks_orig.tsv")
+        self.toks_orig_cutoff = self.tsv2list(other_dir,
+                                              "toks_orig_cutoff.tsv")
         self.pos_orig = self.tsv2list(other_dir, "pos_orig.tsv")
         self.load_pos2idx(os.path.join(other_dir, "pos2idx.tsv"))
 
