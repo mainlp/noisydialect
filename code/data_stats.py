@@ -18,10 +18,10 @@ def data_stats(input_pattern, out_file):
             "TTR_TRAIN", "TTR_DEV", "TTR_DIFF",
             "SPLIT_TOKEN_RATIO_TRAIN", "SPLIT_TOKEN_RATIO_DEV",
             "SPLIT_TOKEN_RATIO_DIFF",
+            "DEV_SUBTOKS_IN_TRAIN", "DEV_SUBTOK_TYPES_IN_TRAIN",
+            "DEV_WORD_TOKENS_IN_TRAIN", "DEV_WORD_TYPES_IN_TRAIN",
             "F1_MACRO_AVG_DEV", "F1_MACRO_STD_DEV",
             "ACCURACY_AVG_DEV", "ACCURACY_STD_DEV",
-            "DEV_SUBTOKS_IN_TRAIN", "DEV_SUBTOK_TYPES_IN_TRAIN",
-            "DEV_WORDS_IN_TRAIN", "DEV_WORD_TYPES_IN_TRAIN",
         )))
         f_out.write("\n")
         folders = sorted(glob(input_pattern))
