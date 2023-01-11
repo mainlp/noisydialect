@@ -202,7 +202,6 @@ if __name__ == "__main__":
                      "DEV_WORD_TOKENS_IN_TRAIN",
                      "DEV_WORD_TYPES_IN_TRAIN")
 
-
     palette_name = "plasma"  # "plasma", "hot", "YlGnBu_r"
     for stats_file in glob("../results/stats-*"):
         df = process_data_stats(stats_file)
@@ -216,6 +215,7 @@ if __name__ == "__main__":
                 palette = palette_name
             folder = "../figures/" + token_metric.lower()
             Path(folder).mkdir(parents=True, exist_ok=True)
-            y_score = "F1_MACRO_AVG_DEV"
-            png_name = f"{folder}/{train_name}_{dev_name}_f1_{token_metric}.png"
-            plot(df, y_score, token_metric, palette, png_name)
+            for y_score in ("F1_MACRO_AVG_DEV", "ACCURACY_AVG_DEV"):
+                score_short = "f1" if y_score.startswith("F1") else "acc"
+                png_name = f"{folder}/{train_name}_{dev_name}_{score_short}_{token_metric}.png"
+                plot(df, y_score, token_metric, palette, png_name)
