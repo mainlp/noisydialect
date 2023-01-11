@@ -344,11 +344,16 @@ do
 done
 
 va
-export CUDA_VISIBLE_DEVICES=MIG-cde26571-d967-57fe-bac7-029266b95b51
-for noise in "rand55" "rand75" "rand95"
-do
-  python3 run.py -c ../configs/C_hdt-full_hdt-noah_xlmr_${noise}.cfg --test_per_epoch --save_model
-done
+
+ "rand55" 
+
+
+va
+export CUDA_VISIBLE_DEVICES=MIG-c0386dcc-84bf-55a0-bb83-93d415e7a9e3
+python3 run.py -c ../configs/C_alpino-full_alpino-noah_gbert_rand55.cfg --test_per_epoch --save_model
+
+
+
 
 0/0
 export CUDA_VISIBLE_DEVICES=MIG-9ada8eeb-cf73-5a32-b182-861914ff2eac
