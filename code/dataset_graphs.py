@@ -22,6 +22,54 @@ def pretty_print_plm(plm):
     return plm
 
 
+def pretty_score_label(y_score):
+    if y_score == "F1_MACRO_AVG_DEV":
+        return "F1 macro"
+    if y_score == "ACCURACY_AVG_DEV":
+        return "Accuracy"
+    return y_score
+
+
+def pretty_tokenization_label(token_metric):
+    if token_metric == "subtoken_ratio":
+        return "Subtoken ratio (train)"
+    if token_metric == "unk_ratio":
+        return "Subtoken-level UNK ratio (train)"
+    if token_metric == "ttr":
+        return "Subtoken-level TTR (train)"
+    if token_metric == "split_token_ratio":
+        return "Split-word ratio (train)"
+    if token_metric == "DEV_SUBTOK_TYPES_IN_TRAIN":
+        return "% of dev subtoken types also in train"
+    if token_metric == "DEV_SUBTOKS_IN_TRAIN":
+        return "% of dev subtokens also in train"
+    if token_metric == "DEV_WORD_TYPES_IN_TRAIN":
+        return "% of dev word types also in train"
+    if token_metric == "DEV_WORD_TOKENS_IN_TRAIN":
+        return "% of dev word tokens also in train"
+    return token_metric
+
+
+def pretty_colorbar_label(hue):
+    if hue.startswith("subtoken_ratio"):
+        return "Absolute subtoken ratio difference"
+    if hue.startswith("unk_ratio"):
+        return "Absolute subtoken-level UNK ratio difference"
+    if hue.startswith("ttr"):
+        return "Absolute subtoken-level TTR difference"
+    if hue.startswith("split_token_ratio"):
+        return "Absolute split word ratio difference"
+    if hue == "DEV_SUBTOK_TYPES_IN_TRAIN":
+        return "% of dev subtoken types also in train"
+    if hue == "DEV_SUBTOKS_IN_TRAIN":
+        return "% of dev subtokens also in train"
+    if hue == "DEV_WORD_TYPES_IN_TRAIN":
+        return "% of dev word types also in train"
+    if hue == "DEV_WORD_TOKENS_IN_TRAIN":
+        return "% of dev word tokens also in train"
+    return hue
+
+
 def process_data_stats(filename):
     df = pd.read_csv(filename, sep='\t')
     df["dev_is_stdlang"] = df.apply(
@@ -41,170 +89,107 @@ def process_data_stats(filename):
     return df
 
 
-def make_colour_bar(df, hue, token_global_max, token_global_min, g,
-                    palette_name):
-    # Replace the one-item-per-scatterplot-value legend
-    # with a colour bar
-    g._legend.remove()
-    vmin = token_global_min
-    vmax = token_global_max
-    g.fig.subplots_adjust(right=.94)
-    # add_axes: left, bottom, width, height
-    cax = g.fig.add_axes([.95, .2, .01, .33])
-    points = plt.scatter([], [], c=[],
-                         vmin=vmin, vmax=vmax,
-                         cmap=plt.cm.get_cmap(palette_name))
-    cbar = g.fig.colorbar(points, cax=cax)
-    cbar.ax.tick_params(right=False)
-    cbar.ax.tick_params(axis='y', pad=0)
-    cbar.ax.set_yticks([math.ceil(vmin * 100) / 100,
-                        # round(vmax * 50 - vmin * 50) / 100,
-                        math.floor(vmax * 100) / 100])
-    label = "Absolute "
-    if hue.startswith("subtoken_ratio"):
-        label += "subtoken ratio"
-    elif hue.startswith("unk_ratio"):
-        label += "subtoken-level UNK ratio"
-    elif hue.startswith("ttr"):
-        label += "subtoken-level TTR"
-    elif hue.startswith("split_token_ratio"):
-        label += "split word ratio"
-    label += " difference"
-    cbar.set_label(label, fontsize=11)
-
-
-def plot_performance(df, token_metric, plms,
-                     f1=True,
-                     raw_value=False,
-                     token_global_max=1,
-                     token_global_min=0,
-                     use_global_upper=True,
-                     use_global_lower=False,
-                     palette_name="inferno",
-                     png_name=None,):
-    y = "F1_MACRO_AVG_DEV" if f1 else "ACCURACY_AVG_DEV"
-    ylabel = "F1 macro" if f1 else "Accuracy"
-    hue = token_metric
-    if not raw_value:
-        hue += "_diff_abs"
-
-    if not use_global_upper:
-        token_global_max = df[hue].max()
-    if not use_global_lower:
-        token_global_min = df[hue].min()
-    divisor = token_global_max - token_global_min
-    palette = {x: plt.cm.get_cmap(palette_name)
-               ((x - token_global_min) / divisor)
-               for x in df[hue]}
-
-    g = sns.catplot(
-        data=df, x="noise", y=y, col="PLM",
-        hue=hue, palette=palette,
-        kind="point", linestyles="",
-        height=6, aspect=0.3,
-    )
-    g.set(xlabel="", ylabel=ylabel)
-    g.set_titles("{col_name}")
-    g.fig.text(x=0.5, y=0, horizontalalignment='center',
-               s='Noise level')
-
-    # Add correlation info to each subplot
-    y_pos_corr = df[y].min()
-    for ax, plm in zip(g.axes.flat, plms):
-        df_sub = df[df.PLM == plm]
-        if len(df_sub[hue]) < 2:
-            continue
-        r, r_p = pearsonr(df_sub[hue], df_sub[y])
-        rho, rho_p = spearmanr(df_sub[hue], (df_sub[y]))
-        ax.text(
-            0, y_pos_corr,
-            f"r = {r:.2f} (p = {r_p:.2f})\nρ = {rho:.2f} (p = {rho_p:.2f})",
-            fontsize=9)
-
-    g.despine(left=True)
-    make_colour_bar(df, hue, token_global_max, token_global_min, g,
-                    palette_name)
-
-    if png_name:
-        g.savefig(png_name)
-
-
-def plot_subtoks(df, token_metric, plms,
-                 raw_value=False,
-                 token_global_max=1,
-                 token_global_min=0,
-                 use_global_upper=True,
-                 use_global_lower=False,
-                 palette_name="inferno",
-                 png_name=None,):
-    if token_metric == "subtoken_ratio":
-        ylabel = "Subtoken ratio (train)"
-    elif token_metric == "unk_ratio":
-        ylabel = "Subtoken-level UNK ratio (train)"
-    elif token_metric == "ttr":
-        ylabel = "Subtoken-level TTR (train)"
-    elif token_metric == "split_token_ratio":
-        ylabel = "Split-word ratio (train)"
-    elif token_metric == "DEV_SUBTOK_TYPES_IN_TRAIN":
-        ylabel = "% of dev subtoken types also in train"
-    elif token_metric == "DEV_SUBTOKS_IN_TRAIN":
-        ylabel = "% of dev subtokens also in train"
-    elif token_metric == "DEV_WORD_TYPES_IN_TRAIN":
-        ylabel = "% of dev word types also in train"
-    elif token_metric == "DEV_WORD_TOKENS_IN_TRAIN":
-        ylabel = "% of dev word tokens also in train"
-    else:
-        ylabel = token_metric
-
-    if raw_value:
-        y = token_metric
+def plot(df, y_score, token_metric, palette_name, png_name):
+    if token_metric.startswith("DEV_"):
         hue = token_metric
+        y_tok = token_metric
     else:
-        y = token_metric.upper() + "_TRAIN"
         hue = token_metric + "_diff_abs"
+        y_tok = token_metric.upper() + "_TRAIN"
 
-    if not use_global_upper:
-        token_global_max = df[hue].max()
-    if not use_global_lower:
-        token_global_min = df[hue].min()
-    divisor = token_global_max - token_global_min
+    width_ratios = [4 for _ in range(len(plms))] + [1]
+    fig, axes = plt.subplots(2, len(plms) + 1, figsize=(8, 6),
+                             sharey="row", sharex="col",
+                             gridspec_kw={
+                                 "width_ratios": width_ratios},)
+
+    y_pos_corr = 1.15 * (df[y_tok].max() - df[y_tok].min()) + df[y_tok].min()
+
+    vmin = df[hue].min()
+    vmax = df[hue].max()
     palette = {x: plt.cm.get_cmap(palette_name)
-               ((x - token_global_min) / divisor)
+               ((x - vmin) / (vmax - vmin))
                for x in df[hue]}
-#     else:
-#         # NOT adjusting the minimum since we want it
-#         # to remain at 0.
-#         token_global_max = df[hue].max()
-#         palette = {x: plt.cm.get_cmap(palette_name)
-#                    (x / token_global_max)
-#                    for x in df[hue]}
-    g = sns.catplot(
-        data=df, x="noise", y=y, col="PLM",
-        hue=hue, palette=palette,
-        kind="point", linestyles="",
-        height=6, aspect=0.3,
-    )
-    g.set(xlabel="", ylabel=ylabel)
-    g.set_titles("{col_name}")
-    g.fig.text(x=0.5, y=0, horizontalalignment='center',
-               s='Noise level')
 
-    if not raw_value or not y.startswith("DEV_"):
-        # Draw lines indicating where the optimal values
-        # (train ratio == dev ratio) would be.
-        y_dev = token_metric.upper() + "_DEV"
-        zero_diff_col = plt.cm.get_cmap(palette_name)(0)
-        for i, plm in enumerate(plms):
-            g.axes[0][i].axhline(
+    for i, (plm, df_for_plm) in enumerate(df.groupby("PLM")):
+        # Plot F1/accuracy
+        score_plot = sns.scatterplot(
+            data=df_for_plm, x="noise", y=y_score,
+            hue=hue, palette=palette,
+            ax=axes[0, i],
+        )
+        score_plot.set_title(plm)
+
+        if not token_metric.startswith("DEV_"):
+            # Draw lines indicating where the optimal values
+            # (train ratio == dev ratio) would be.
+            y_dev = token_metric.upper() + "_DEV"
+            zero_diff_col = plt.cm.get_cmap(palette_name)(0)
+            axes[1, i].axhline(
                 df.loc[df['PLM'] == plm, y_dev].iloc[0],
                 c=zero_diff_col)
 
-    g.despine(left=True)
-    make_colour_bar(df, hue, token_global_max, token_global_min, g,
-                    palette_name)
+        # Plot the tokenization measure
+        token_plot = sns.scatterplot(
+            data=df_for_plm, x="noise", y=y_tok,
+            hue=hue, palette=palette,
+            ax=axes[1, i],
+        )
+        token_plot.set_xticks([0, 15, 35, 55, 75, 95])
 
+        # Add correlation info
+        df_sub = df[df.PLM == plm]
+        if len(df_sub[hue]) >= 2:
+            r, r_p = pearsonr(df_sub[hue], df_sub[y_score])
+            rho, rho_p = spearmanr(df_sub[hue], (df_sub[y_score]))
+            axes[1, i].text(
+                0, y_pos_corr,
+                f"r = {r:.2f} (p = {r_p:.2f})\nρ = {rho:.2f} (p = {rho_p:.2f})",
+                fontsize=9)
+
+        # Remove visual clutter
+        for row in (0, 1):
+            ax = axes[row, i]
+            ax.get_legend().remove()
+            ax.xaxis.grid()
+            ax.spines['top'].set_visible(False)
+            ax.spines['right'].set_visible(False)
+            ax.spines['bottom'].set_visible(False)
+            ax.spines['left'].set_visible(False)
+        axes[1, i].set_xlabel(None)
+
+    # Update the axis labels
+    axes[0, 0].set_ylabel(pretty_score_label(y_score))
+    axes[1, 0].set_ylabel(pretty_tokenization_label(token_metric))
+    fig.text(0.5, 0, "Noise (%)", ha='center')
+
+    # Add colour bar
+    axes[0, -1].axis("off")
+    axes[1, -1].axis("off")
+    points = plt.scatter([], [], c=[],
+                         vmin=vmin, vmax=vmax,
+                         cmap=plt.cm.get_cmap(palette_name))
+    cbar = plt.colorbar(points,
+                        ax=[axes[0, -1], axes[1, -1]],
+                        aspect=35,
+                        shrink=0.7,
+                        pad=0,)
+    cbar.ax.tick_params(right=False)
+    cbar.ax.tick_params(axis='y', pad=0)
+    cbar.ax.set_yticks([math.ceil(vmin * 100) / 100,
+                        math.floor(vmax * 100) / 100])
+
+    cbar.set_label(pretty_colorbar_label(hue), fontsize=11)
+
+    plt.show()
     if png_name:
-        g.savefig(png_name)
+        fig.savefig(png_name)
+
+
+def reverse_palette(palette_name):
+    if palette_name.endswith("_r"):
+        return palette_name[:-2]
+    return palette_name + "_r"
 
 
 if __name__ == "__main__":
@@ -217,53 +202,20 @@ if __name__ == "__main__":
                      "DEV_WORD_TOKENS_IN_TRAIN",
                      "DEV_WORD_TYPES_IN_TRAIN")
 
-    dfs = []
-    max_scores = {}
-    min_scores = {}
+
+    palette_name = "plasma"  # "plasma", "hot", "YlGnBu_r"
     for stats_file in glob("../results/stats-*"):
         df = process_data_stats(stats_file)
-        dfs.append(df)
-        for metric in token_metrics:
-            met = metric
-            if metric.startswith("DEV"):
-                met = metric
-            else:
-                met = metric + "_diff_abs"
-            _max = df[met].max()
-            if metric not in max_scores or _max > max_scores[metric]:
-                max_scores[metric] = _max
-            _min = df[met].min()
-            if metric not in min_scores or _min > min_scores[metric]:
-                min_scores[metric] = _min
-
-    palette_name = "plasma"  # or "hot", "cool"
-    for df in dfs:
         plms = list(OrderedDict.fromkeys(df['PLM']))
         train_name = list(df.TRAIN_SET.apply(lambda x: x.split("_", 2)[1]))[0]
         dev_name = list(df.DEV_SET.apply(lambda x: x.split("_", 2)[1]))[0]
         for token_metric in token_metrics:
-            token_global_max = max_scores[token_metric]
-            token_global_min = min_scores[token_metric]
-            raw_value = token_metric.startswith("DEV")
+            if token_metric.startswith("DEV"):
+                palette = reverse_palette(palette_name)
+            else:
+                palette = palette_name
             folder = "../figures/" + token_metric.lower()
             Path(folder).mkdir(parents=True, exist_ok=True)
-            file_pfx = f"{folder}/{train_name}_{dev_name}_"
-            for use_global_palette in (True, False):
-                if use_global_palette:
-                    file_sfx = "_global-colours.png"
-                else:
-                    file_sfx = "_local-colours.png"
-
-                plot_performance(df, token_metric, plms, f1=True,
-                                 raw_value=raw_value,
-                                 token_global_max=token_global_max,
-                                 token_global_min=0,
-                                 use_global_upper=True, use_global_lower=True,
-                                 palette_name=palette_name,
-                                 png_name=file_pfx + "f1" + file_sfx)
-                plot_subtoks(df, token_metric, plms, raw_value=raw_value,
-                             token_global_max=token_global_max,
-                             token_global_min=0,
-                             use_global_upper=True, use_global_lower=True,
-                             palette_name=palette_name,
-                             png_name=file_pfx + "subtok" + file_sfx)
+            y_score = "F1_MACRO_AVG_DEV"
+            png_name = f"{folder}/{train_name}_{dev_name}_f1_{token_metric}.png"
+            plot(df, y_score, token_metric, palette, png_name)
