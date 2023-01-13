@@ -267,8 +267,7 @@ class Data:
         return Counter([tok for sent in self.toks_bert for tok in sent[1:-1]])
 
     def word_counter(self):
-        return Counter([tok for sent in self.toks_orig_cutoff
-                        for tok in sent[1:-1]])
+        return Counter([tok for sent in self.toks_orig_cutoff for tok in sent])
 
     def subtoks_present_in_other(self, other_counter):
         tok_counter = self.subtok_counter()

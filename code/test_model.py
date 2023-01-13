@@ -41,7 +41,7 @@ def load_model(config, pos2idx, datamodule, seed,
                        use_sca_embeddings=config.use_sca_tokenizer,
                        subtok2weight=subtok2weight,
                        test_data_names=datamodule.test_names,)
-    weights_path = dir_name + "/model_" + seed + ".pt"
+    weights_path = dir_name + "/model_" + str(seed) + ".pt"
     weights = torch.load(weights_path)
     model.finetuning_model.load_state_dict(weights)
     return model
@@ -52,8 +52,9 @@ def test_model(model, datamodule, seed, out_dir):
     # The PL test code automatically puts the model into evaluation mode
     # (no dropout).
     trainer.test(model=model, datamodule=datamodule, verbose=True)
-    for name, (preds, gold) in zip(datamodule.test_names,
-                                   model.get_test_predictions()):
+    preds_and_golds = model.get_test_predictions()
+    for name, preds, gold in zip(datamodule.test_names,
+                                 preds_and_golds[0], preds_and_golds[1]):
         with open(out_dir + f"/predictions_{name}_{seed}_epochx.tsv",
                   "w", encoding="utf8") as f:
             f.write("PREDICTED\tGOLD\n")
@@ -78,9 +79,8 @@ if __name__ == "__main__":
     # Get predictions for each of the model initializations
     acc = [[] for _ in dm.test_names]
     f1 = [[] for _ in dm.test_names]
-    seeds = ("12345", "23456", "34567", "45678", "56789")
     out_dir = results_folder + train_config_name
-    for seed in seeds:
+    for seed in config.random_seeds:
         print("Seed", seed)
         model = load_model(config, pos2idx, dm, seed)
         print("Loaded model")
@@ -89,16 +89,16 @@ if __name__ == "__main__":
         for i, (acc_seed, f1_seed) in enumerate(results):
             acc[i].append(acc_seed)
             f1[i].append(f1_seed)
-            n_runs = len(seeds)
+    n_runs = len(config.random_seeds)
 
     # Calculate and save score averages and standard deviations
     with open(out_dir + "/results_test_AVG.tsv", "w", encoding="utf8") as f:
         f.write("METRIC\tAVERAGE\tSTD_DEV\tN_RUNS\n")
-        for name, a, f in zip(dm.test_names, acc, f1):
-            acc_avg = sum(a) / n_runs
-            acc_std = np.std(a)
-            f1_avg = sum(f) / n_runs
-            f1_std = np.std(f)
+        for name, _acc, _f1 in zip(dm.test_names, acc, f1):
+            acc_avg = sum(_acc) / n_runs
+            acc_std = np.std(_acc)
+            f1_avg = sum(_f1) / n_runs
+            f1_std = np.std(_f1)
             print(name, acc_avg, acc_std, f1_avg, f1_std)
             f.write(f"{name}_acc\t{acc_avg}\t{acc_std}\t{n_runs}\n")
             f.write(f"{name}_f1\t{f1_avg}\t{f1_std}\t{n_runs}\n")

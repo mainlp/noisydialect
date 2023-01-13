@@ -197,7 +197,7 @@ python3 B_data-matrix_prep.py ../configs/B_padt-full_padt-egy_xlmr_orig.cfg
 python3 B_data-matrix_prep.py ../configs/B_tdt-full_tdt-sav_xlmr_orig.cfg
 python3 B_data-matrix_prep.py ../configs/B_hdt-full_hdt-noah_xlmr_orig.cfg
 
-python3 B_create_gridsearch_configs.py --hyperparams
+python3 B_create_configs.py --hyperparams
 
 for sfx in "2e-05_16" "3e-05_16" "2e-05_32" "3e-05_32"
 do
@@ -244,8 +244,8 @@ python3 B_data-matrix_prep.py ../configs/B_alpino-full_alpino-noah_gbert_orig.cf
 python3 B_data-matrix_prep.py ../configs/B_alpino-full_alpino-noah_mbert_orig.cfg
 python3 B_data-matrix_prep.py ../configs/B_alpino-full_alpino-noah_xlmr_orig.cfg
 
-python3 B_create_gridsearch_configs.py --noise
-python3 B_create_gridsearch_configs.py --noiseonly
+python3 B_create_configs.py --noise
+python3 B_create_configs.py --noiseonly
 
 for noise in "orig" "rand15" "rand35" "rand55" "rand75" "rand95"
 do
@@ -308,7 +308,13 @@ python3 dataset_graphs.py
 
 7. Prepare test data:
 ```
-python3 B_data-matrix_prep.py ../configs/D_nor_mbert.cfg
+python3 B_generate_configs.py --modelonly
+
+
+python3 B_data-matrix_prep.py ../configs/D_nno_norbert_test.cfg
+python3 B_data-matrix_prep.py ../configs/D_nno_mbert_test.cfg
+python3 B_data-matrix_prep.py ../configs/D_nno_xlmr_test.cfg
+
 
 
 python3 B_data-matrix_prep.py ../configs/B_padt-translit-full_padt-translit_bertu_orig.cfg
@@ -318,7 +324,30 @@ for noise in "orig" "rand15" "rand35" "rand55" "rand75" "rand95"
 do
   python3 run.py -c ../configs/C_padt-translit-full_padt-translit_bertu_${noise}.cfg --test_per_epoch --save_model
 done
+
+
+
+
+python3 test_model.py C_nno-full_nno-west_norbert_orig D_nno_norbert_test
 ```
+
+8. Test the models:
+```
+python3 test_model.py C_nno-full_nno-west_norbert_orig D_nno_norbert_test
+ 
+
+for noise in "orig" "rand15" "rand35" "rand55" "rand75" "rand95"
+do
+  python3 test_model.py C_nno-full_nno-west_norbert_${noise} D_nno_norbert_test
+done
+
+
+TODO
+
+python3 test_model.py C_nno-full_nno-west_mbert_orig D_nno_mbert_test
+
+```
+
 
 
 Old stuff below; ignore (will be removed):
@@ -329,7 +358,7 @@ Old stuff below; ignore (will be removed):
 
 va
 export CUDA_VISIBLE_DEVICES=MIG-9ada8eeb-cf73-5a32-b182-861914ff2eac
-for train_data in "nob"
+for train_data in "alpino"
 do
   echo "Calculating data stats for transfer from ${train_data}"
   python3 data_stats.py "../results/C_${train_data}*" ../results/stats-${train_data}.tsv
@@ -349,8 +378,13 @@ va
 
 
 va
-export CUDA_VISIBLE_DEVICES=MIG-c0386dcc-84bf-55a0-bb83-93d415e7a9e3
-python3 run.py -c ../configs/C_alpino-full_alpino-noah_gbert_rand55.cfg --test_per_epoch --save_model
+export CUDA_VISIBLE_DEVICES=MIG-5fbcc07b-421b-57d3-aae8-792ad6be10d2
+python3 run.py -c ../configs/C_alpino-full_alpino-noah_bertje_rand55.cfg --test_per_epoch --save_model
+
+
+
+
+python3 run.py -c ../configs/C_nno-full_nno-west_mbert_orig-56789.cfg --test_per_epoch --save_model
 
 
 
@@ -367,6 +401,9 @@ export CUDA_VISIBLE_DEVICES=MIG-c0386dcc-84bf-55a0-bb83-93d415e7a9e3
 
 4/0
 export CUDA_VISIBLE_DEVICES=MIG-cde26571-d967-57fe-bac7-029266b95b51
+
+4/1
+export CUDA_VISIBLE_DEVICES=MIG-5fbcc07b-421b-57d3-aae8-792ad6be10d2
 
 
 1/0
