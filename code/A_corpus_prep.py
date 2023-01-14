@@ -72,34 +72,44 @@ def ud(input_files, out_file, tagfix, upos=True, translit=False,
                         else:
                             form = cells[1]
                         pos = cells[pos_idx]
-                        pos = tagfix.get(pos, pos)
-                        if not pos:
-                            print("POS tag missing for " + form)
-                            print("Skipping sentence!")
-                            skip_sent = True
-                        if pos == "_":
-                            continue
-                        if not form:
-                            if translit:
-                                print("Transliteration missing!")
-                                print(line)
-                                print(in_file)
-                                print("(exiting)")
-                                return
-                            else:
-                                print("Form missing:")
-                                print(line)
+                        if "+" in pos:
+                            print("Splitting " + pos + " and " + cells[2]
+                                  + " (Incompatible w/ translit or glosscomp)")
+                            for i, (subpos, lemma) in enumerate(
+                                    zip(pos.split("+"), cells[2].split("_"))):
+                                subpos = tagfix.get(subpos, subpos)
+                                if i == 0 and form[0] == form[0].upper():
+                                    lemma = lemma[0].upper() + lemma[1:]
+                                sent.append((lemma, subpos, filename))
+                        else:
+                            pos = tagfix.get(pos, pos)
+                            if not pos:
+                                print("POS tag missing for " + form)
+                                print("Skipping sentence!")
+                                skip_sent = True
+                            if pos == "_":
                                 continue
-                        if gloss_comp:
-                            miscs = cells[-1].split("|")
-                            gloss = ""
-                            for misc in miscs:
-                                if misc.startswith("Gloss="):
-                                    gloss = misc.split("=", 1)[1]
-                                    break
-                            if gloss != form:
-                                gloss_diff = True
-                        sent.append((form, pos, filename))
+                            if not form:
+                                if translit:
+                                    print("Transliteration missing!")
+                                    print(line)
+                                    print(in_file)
+                                    print("(exiting)")
+                                    return
+                                else:
+                                    print("Form missing:")
+                                    print(line)
+                                    continue
+                            if gloss_comp:
+                                miscs = cells[-1].split("|")
+                                gloss = ""
+                                for misc in miscs:
+                                    if misc.startswith("Gloss="):
+                                        gloss = misc.split("=", 1)[1]
+                                        break
+                                if gloss != form:
+                                    gloss_diff = True
+                            sent.append((form, pos, filename))
                     except IndexError:
                         print("!!! malformed line:")
                         print(line)
