@@ -26,7 +26,7 @@ def hyperparams():
                 print(conf.config_name)
 
 
-def models(confs):
+def models(confs, prepate_test=False):
     lr = 2e-5
     batch_size = 32
     epochs = 2
@@ -53,12 +53,16 @@ def models(confs):
                 except AttributeError:
                     conf.name_dev = [dev.replace(old_model, name_short)
                                      for dev in conf.name_dev]
+            if conf.name_test:
+                conf.name_test = conf.name_test.replace(old_model,
+                                                        name_short)
             conf.bert_name = name_long
             conf.tokenizer_name = name_long
             conf.plm_type = model_type
             conf.prepare_input_train = False
             conf.prepare_input_dev = False
-            conf.prepare_input_test = False
+            if not prepate_test:
+                conf.prepare_input_test = False
             conf.save("../configs/" + conf.config_name + ".cfg")
             print(conf.config_name)
             all_configs.append(conf.config_name)
@@ -106,8 +110,16 @@ if __name__ == "__main__":
     elif sys.argv[1].endswith("modelonly"):
         confs = (
             "D_nno_norbert_test.cfg",
+            "D_nob_norbert_test.cfg",
+            "D_padt_arabert_test.cfg",
+            "D_padt-translit_bertu_test.cfg",
+            "D_hdt_gbert_test.cfg",
+            "D_alpino_bertje_test.cfg",
+            "D_gsd_camembert_test.cfg",
+            "D_ancoraspa_beto_test.cfg",
+            "D_tdt_finbert_test.cfg",
         )
-        configs = models(confs)
+        configs = models(confs, True)
     else:
         configs = ("C_hdt-full_hdt-noah_bertje_orig",
                    "C_alpino-full_alpino-noah_gbert_orig",
