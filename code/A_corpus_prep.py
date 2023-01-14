@@ -9,6 +9,26 @@ from argparse import ArgumentParser
 from glob import glob
 import re
 
+occitan_contractions = {"al": ("a", "lo"), "als": ("a", "los"),
+                        "au": ("a", "lo"), "aus": ("a", "los"),
+                        "ai": ("a", "lei"), "ais": ("a", "lei"),
+                        "ath": ("a", "eth"), "ara": ("a", "era"),
+                        "del": ("de", "lo"), "dels": ("de", "los"),
+                        "dei": ("de", "lei"), "des": ("de", "les"),
+                        "dau": ("de", "lo"), "daus": ("de", "los"),
+                        "deu": ("de", "lo"), "deus": ("de", "los"),
+                        "deth": ("de", "eth"),
+                        "dera": ("de", "era"), "deras": ("de", "eras"),
+                        "pel": ("per", "lo"), "pels": ("per", "los"),
+                        "peu": ("per", "lo"), "peus": ("per", "los"),
+                        "peth": ("per", "eth"), "pera": ("per", "era"),
+                        "sul": ("sus", "lo"), "suls": ("sus", "los"),
+                        "suu": ("sus", "lo"), "suus": ("sus", "los"),
+                        "tau": ("tà", "lo"), "taus": ("tà", "los"),
+                        "tath": ("tà", "eth"),
+                        "entau": ("entà", "lo"), "entaus": ("entà", "los"),
+                        }
+
 
 def ud(input_files, out_file, tagfix, upos=True, translit=False,
        gloss_comp=False, incl_source_file=False, verbose=True):
@@ -71,16 +91,23 @@ def ud(input_files, out_file, tagfix, upos=True, translit=False,
                                     break
                         else:
                             form = cells[1]
+                        form = form.strip()
                         pos = cells[pos_idx]
                         if "+" in pos:
-                            print("Splitting " + pos + " and " + cells[2]
+                            print("Splitting " + pos + " and " + form
                                   + " (Incompatible w/ translit or glosscomp)")
-                            for i, (subpos, lemma) in enumerate(
-                                    zip(pos.split("+"), cells[2].split("_"))):
-                                subpos = tagfix.get(subpos, subpos)
-                                if i == 0 and form[0] == form[0].upper():
-                                    lemma = lemma[0].upper() + lemma[1:]
-                                sent.append((lemma, subpos, filename))
+                            try:
+                                lemmas = occitan_contractions[form.lower()]
+                                for i, (subpos, lemma) in enumerate(
+                                        zip(pos.split("+"), lemmas)):
+                                    subpos = tagfix.get(subpos, subpos)
+                                    if i == 0 and form[0] == form[0].upper():
+                                        lemma = lemma[0].upper() + lemma[1:]
+                                    sent.append((lemma, subpos, filename))
+                            except IndexError:
+                                print("Unknown lemma: " + form)
+                                print("Skipping sentence!")
+                                skip_sent = True
                         else:
                             pos = tagfix.get(pos, pos)
                             if not pos:
