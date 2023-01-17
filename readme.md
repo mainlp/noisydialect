@@ -341,6 +341,10 @@ python3 B_data-matrix_prep.py ../configs/D_padt-translit_bertu_test.cfg
 python3 B_data-matrix_prep.py ../configs/D_padt-translit_mbert_test.cfg
 python3 B_data-matrix_prep.py ../configs/D_padt-translit_xlmr_test.cfg
 
+python3 B_data-matrix_prep.py ../configs/B_mudt-full_mudt_bertu_orig.cfg
+python3 B_data-matrix_prep.py ../configs/B_mudt-full_mudt_mbert_orig.cfg
+python3 B_data-matrix_prep.py ../configs/B_mudt-full_mudt_xlmr_orig.cfg
+
 python3 B_data-matrix_prep.py ../configs/D_gsd_camembert_test.cfg
 python3 B_data-matrix_prep.py ../configs/D_gsd_beto_test.cfg
 python3 B_data-matrix_prep.py ../configs/D_gsd_mbert_test.cfg
@@ -387,6 +391,10 @@ do
   python3 test_model.py C_padt-full_padt-egy_mbert_${noise} D_padt_mbert_test
   python3 test_model.py C_padt-full_padt-egy_xlmr_${noise} D_padt_xlmr_test
 
+  python3 run.py -c ../configs/C_mudt-full_mudt_bertu_${noise}.cfg --test_per_epoch --save_model
+  python3 run.py -c ../configs/C_mudt-full_mudt_mbert_${noise}.cfg --test_per_epoch --save_model
+  python3 run.py -c ../configs/C_mudt-full_mudt_xlmr_${noise}.cfg --test_per_epoch --save_model
+
   python3 test_model.py C_padt-translit-full_padt-translit_bertu_${noise} D_padt-translit_bertu_test
   python3 test_model.py C_padt-translit-full_padt-translit_mbert_${noise} D_padt-translit_mbert_test
   python3 test_model.py C_padt-translit-full_padt-translit_xlmr_${noise} D_padt-translit_xlmr_test
@@ -407,20 +415,34 @@ do
   python3 test_model.py C_tdt-full_tdt-sav_xlmr_${noise} D_tdt_xlmr_test
 done
 
+# Reformat results files
+for train_data in "gsd"
+do
+  nice -n 1 python3 clean_up_results.py "../results/C_${train_data}-full*"
+done
+
+
+for train_data in "padt"
+do
+  echo "Calculating data stats for transfer from ${train_data}"
+  nice -n 1 python3 data_stats.py "../results/C_${train_data}-full*" ../results/stats-${train_data}.tsv
+done
+
+for train_data in "padt" "padt-translit" "alpino" "nno" "nob" "gsd"
 ```
 
 va
-export CUDA_VISIBLE_DEVICES=MIG-70b9af57-a4e4-59c6-8d6a-8b88673dec7d
+export CUDA_VISIBLE_DEVICES=MIG-cde26571-d967-57fe-bac7-029266b95b51
 
-for noise in "orig" "rand15" "rand35" "rand55" "rand75" "rand95"
+for noise in "rand75" "rand95"
 do
-  python3 test_model.py C_tdt-full_tdt-sav_xlmr_${noise} D_tdt_xlmr_test
+  python3 run.py -c ../configs/C_mudt-full_mudt_mbert_${noise}.cfg --test_per_epoch --save_model
 done
 
 
 
 
-
+ "rand35" "rand55" "rand75" "rand95"
 
 Old stuff below; ignore (will be removed):
 
@@ -484,4 +506,8 @@ export CUDA_VISIBLE_DEVICES=MIG-b765791e-00bd-51cd-90d2-ccf46d0093d2
 
 5/1
 export CUDA_VISIBLE_DEVICES=MIG-0f3b4979-897a-55f3-bf40-ea1672341ea6
+
+7/0
+export CUDA_VISIBLE_DEVICES=MIG-70b9af57-a4e4-59c6-8d6a-8b88673dec7d
+
 

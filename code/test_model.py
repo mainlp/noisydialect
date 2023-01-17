@@ -15,6 +15,8 @@ def load_config_and_data(train_config_name, test_config_name,
     config = Config()
     config.load(results_folder + "/" + train_config_name
                 + "/" + train_config_name + ".cfg")
+    config.prepare_input_train = False
+    config.prepare_input_dev = False
     test_config = Config()
     test_config.load(config_folder + "/" + test_config_name + ".cfg")
     config.name_test = test_config.name_test

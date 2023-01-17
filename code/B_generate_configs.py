@@ -103,6 +103,7 @@ if __name__ == "__main__":
             "C_nno-full_nno-west_norbert_orig.cfg",
             "C_padt-full_padt-egy_arabert_orig.cfg",
             "C_padt-translit-full_padt-translit_bertu_orig.cfg",
+            "C_mudt-full_mudt_bertu_orig.cfg",
             "C_tdt-full_tdt-sav_finbert_orig.cfg",
         )
         configs = models(confs)
@@ -121,6 +122,7 @@ if __name__ == "__main__":
         )
         configs = models(confs, True)
     else:
+        # noiseonly
         configs = ("C_hdt-full_hdt-noah_bertje_orig",
                    "C_alpino-full_alpino-noah_gbert_orig",
                    "C_gsd-full_gsd-rpic_beto_orig",
@@ -129,5 +131,6 @@ if __name__ == "__main__":
                    "C_tdt-full_tdt-sav_bert_orig",
                    "C_nno-full_nno-west_bert_orig",
                    "C_nno-full_nno-west_finbert_orig",
-                   "C_nno-full_nno-west_arabert_orig",)
+                   "C_nno-full_nno-west_arabert_orig",
+                   )
         noise(configs)
