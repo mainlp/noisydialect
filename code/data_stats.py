@@ -7,29 +7,47 @@ from config import Config
 from data import Data
 
 
+def print_line(f_out, setup_name, seed, name_train, target_name,
+               train_stats, target_stats, f1, acc):
+    f_out.write("\t".join((setup_name, str(seed), name_train, target_name)))
+    f_out.write("\t")
+    for i in range(len(train_stats)):
+        f_out.write("\t".join((
+            str(train_stats[i]), str(target_stats[i]),
+            str(target_stats[i] - train_stats[i]))))
+        f_out.write("\t")
+    f_out.write("\t".join((str(target_stats[-i]) for i in range(4, 0, -1))))
+    f_out.write("\t")
+    f_out.write("\t".join((f1, acc)))
+    f_out.write("\n")
+
+
 def data_stats(input_pattern, out_file):
     saved_data_stats = {}
     with open(out_file, "w+", encoding="utf8") as f_out:
-        f_out.write("\t".join((
-            "SETUP_NAME", "TRAIN_SET", "DEV_SET",
-            "SUBTOKEN_RATIO_TRAIN", "SUBTOKEN_RATIO_DEV",
+        print("\t".join((
+            "SETUP_NAME", "SEED",
+            "TRAIN_SET", "TARGET_SET",
+            "SUBTOKEN_RATIO_TRAIN", "SUBTOKEN_RATIO_TARGET",
             "SUBTOKEN_RATIO_DIFF",
-            "UNK_RATIO_TRAIN", "UNK_RATIO_DEV", "UNK_RATIO_DIFF",
-            "TTR_TRAIN", "TTR_DEV", "TTR_DIFF",
-            "SPLIT_TOKEN_RATIO_TRAIN", "SPLIT_TOKEN_RATIO_DEV",
+            "UNK_RATIO_TRAIN", "UNK_RATIO_TARGET", "UNK_RATIO_DIFF",
+            "TTR_TRAIN", "TTR_TARGET", "TTR_DIFF",
+            "SPLIT_TOKEN_RATIO_TRAIN", "SPLIT_TOKEN_RATIO_TARGET",
             "SPLIT_TOKEN_RATIO_DIFF",
-            "DEV_SUBTOKS_IN_TRAIN", "DEV_SUBTOK_TYPES_IN_TRAIN",
-            "DEV_WORD_TOKENS_IN_TRAIN", "DEV_WORD_TYPES_IN_TRAIN",
-            "F1_MACRO_AVG_DEV", "F1_MACRO_STD_DEV",
-            "ACCURACY_AVG_DEV", "ACCURACY_STD_DEV",
+            "TARGET_SUBTOKS_IN_TRAIN", "TARGET_SUBTOK_TYPES_IN_TRAIN",
+            "TARGET_WORD_TOKENS_IN_TRAIN", "TARGET_WORD_TYPES_IN_TRAIN",
+            "F1_MACRO", "ACCURACY",
         )))
-        f_out.write("\n")
+        print("\n")
         folders = sorted(glob(input_pattern))
         for folder in folders:
             setup_name = folder.rsplit("/", 1)[1]
             config = Config()
             config.load(folder + "/" + setup_name + ".cfg")
             tokenizer = AutoTokenizer.from_pretrained(config.tokenizer_name)
+            train_stats = None
+            train_tok_counter = None
+            train_word_counter = None
             if config.noise_type is None:
                 try:
                     train_data = Data(name=config.name_train,
@@ -44,103 +62,96 @@ def data_stats(input_pattern, out_file):
                                train_data.type_token_ratio(),
                                train_data.split_token_ratio(
                                    subtoken_rep=config.subtoken_rep))
-            else:
-                # Get the averages of the different noise initializations
-                train_stats = [0.0, 0.0, 0.0, 0.0]
-                n_runs = 0
-                success = True
-                for seed in config.random_seeds:
-                    try:
-                        train_data = Data(
-                            name=config.name_train + "_" + str(seed),
-                            load_parent_dir="../data/", verbose=False)
-                        train_data.calculate_toks_orig_cutoff(tokenizer,
-                                                              config.T)
-                        train_stats[0] += train_data.subtok_ratio()
-                        train_stats[1] += train_data.unk_ratio()
-                        train_stats[2] += train_data.type_token_ratio()
-                        train_stats[3] += train_data.split_token_ratio(
-                            subtoken_rep=config.subtoken_rep)
-                        n_runs += 1
-                    except FileNotFoundError:
-                        success = False
-                        print("!! Could not load " + config.name_train)
-                        break
-                if not success:
-                    continue
-                for i in range(len(train_stats)):
-                    train_stats[i] = train_stats[i] / n_runs
-            train_tok_counter = train_data.subtok_counter()
-            train_word_counter = train_data.word_counter()
-            dev_stats = []
-            dev_names = config.name_dev.split(",")
-            for cur_dev_name in dev_names:
-                cur_dev_data = Data(name=cur_dev_name,
-                                    load_parent_dir="../data/",
-                                    verbose=False)
-                cur_dev_data.calculate_toks_orig_cutoff(tokenizer, config.T)
-                if cur_dev_name in saved_data_stats:
-                    cur_dev_stats = saved_data_stats[cur_dev_name]
-                else:
-                    cur_dev_stats = [cur_dev_data.subtok_ratio(),
-                                     cur_dev_data.unk_ratio(),
-                                     cur_dev_data.type_token_ratio(),
-                                     cur_dev_data.split_token_ratio(
-                                         subtoken_rep=config.subtoken_rep)]
-                    saved_data_stats[cur_dev_name] = cur_dev_stats
-                subtoks_in_train, subtok_types_in_train =\
-                    cur_dev_data.subtoks_present_in_other(train_tok_counter)
-                cur_dev_stats.append(subtoks_in_train)
-                cur_dev_stats.append(subtok_types_in_train)
-                words_in_train, word_types_in_train =\
-                    cur_dev_data.words_present_in_other(train_word_counter)
-                cur_dev_stats.append(words_in_train)
-                cur_dev_stats.append(word_types_in_train)
-                dev_stats.append(cur_dev_stats)
+                train_tok_counter = train_data.subtok_counter()
+                train_word_counter = train_data.word_counter()
+
+            max_epoch = str(config.n_epochs)
             scores = {}
-            try:
-                with open(folder + "/results_AVG.tsv") as f_in:
+            for seed in config.random_seeds:
+                seed_scores = {}
+                with open(folder + "/results_"
+                          + str(config.random_seeds[0]) + ".tsv") as f_in:
                     for line in f_in:
                         line = line.strip()
                         if not line:
                             continue
                         cells = line.split("\t")
-                        run_and_metric = cells[0]
-                        if run_and_metric.endswith(str(config.n_epochs)):
-                            for dev_name in dev_names:
-                                if run_and_metric.startswith(dev_name):
-                                    metric = run_and_metric.rsplit("_", 2)[1]
-                                    try:
-                                        scores[dev_name][metric] = (
-                                            cells[1], cells[2])
-                                    except KeyError:
-                                        scores[dev_name] = {
-                                            metric: (cells[1], cells[2])}
-                                    break
-            except FileNotFoundError:
-                for dev_name in dev_names:
-                    scores[dev_name] = {"acc": ("-1", "-1"),
-                                        "f1": ("-1", "-1")}
-            for cur_dev_name, cur_dev_stats in zip(dev_names, dev_stats):
-                try:
-                    cur_scores = scores[cur_dev_name]
-                except KeyError:
-                    print("!! No (reformatted) scores for " + cur_dev_name)
-                    continue
-                f_out.write("\t".join((setup_name, config.name_train,
-                                       cur_dev_name)))
-                f_out.write("\t")
-                for i in range(len(train_stats)):
-                    f_out.write("\t".join((
-                        str(train_stats[i]), str(cur_dev_stats[i]),
-                        str(cur_dev_stats[i] - train_stats[i]))))
-                    f_out.write("\t")
-                f_out.write("\t".join((str(cur_dev_stats[-i])
-                                       for i in range(4, 0, -1))))
-                f_out.write("\t")
-                f_out.write("\t".join((*cur_scores["f1"], *cur_scores["acc"])))
-                f_out.write("\n")
-            print("-- Finished " + setup_name)
+                        target_name, metric, ep = cells[0].rsplit("_", 2)
+                        if not (ep[-1] == "x" or ep.endswith(max_epoch)):
+                            continue
+                        try:
+                            seed_scores[target_name][metric] = cells[1]
+                        except KeyError:
+                            seed_scores[target_name] = {metric: cells[1]}
+                scores[seed] = seed_scores
+
+            for target_name in scores[config.random_seeds[0]]:
+                # Get the target data
+                target_data = Data(name=target_name,
+                                   load_parent_dir="../data/",
+                                   verbose=False)
+                target_data.calculate_toks_orig_cutoff(tokenizer, config.T)
+                if target_name in saved_data_stats:
+                    target_stats = saved_data_stats[target_name]
+                else:
+                    target_stats = [target_data.subtok_ratio(),
+                                    target_data.unk_ratio(),
+                                    target_data.type_token_ratio(),
+                                    target_data.split_token_ratio(
+                                        subtoken_rep=config.subtoken_rep)]
+                    saved_data_stats[target_name] = target_stats
+
+                if train_stats:
+                    # The training data don't depend on the seed
+                    cur_target_stats = []
+                    for stat in target_stats:
+                        cur_target_stats.append(stat)
+                    subtoks_in_train, subtok_types_in_train =\
+                        target_data.subtoks_present_in_other(train_tok_counter)
+                    cur_target_stats.append(subtoks_in_train)
+                    cur_target_stats.append(subtok_types_in_train)
+                    words_in_train, word_types_in_train =\
+                        target_data.words_present_in_other(train_word_counter)
+                    cur_target_stats.append(words_in_train)
+                    cur_target_stats.append(word_types_in_train)
+                    for seed in config.random_seeds:
+                        cur_scores = scores[seed][target_name]
+                        print_line(f_out, setup_name, seed, config.name_train,
+                                   target_name, train_stats, cur_target_stats,
+                                   cur_scores["f1"], cur_scores["acc"])
+                else:
+                    # The training data depend on the seed
+                    for seed in config.random_seeds:
+                        train_data = Data(
+                            name=config.name_train + "_" + str(seed),
+                            load_parent_dir="../data/", verbose=False)
+                        train_data.calculate_toks_orig_cutoff(tokenizer,
+                                                              config.T)
+                        train_stats = (train_data.subtok_ratio(),
+                                       train_data.unk_ratio(),
+                                       train_data.type_token_ratio(),
+                                       train_data.split_token_ratio(
+                                           subtoken_rep=config.subtoken_rep))
+                        train_tok_counter = train_data.subtok_counter()
+                        train_word_counter = train_data.word_counter()
+                        cur_target_stats = []
+                        for stat in target_stats:
+                            cur_target_stats.append(stat)
+                        subtoks_in_train, subtok_types_in_train =\
+                            target_data.subtoks_present_in_other(
+                                train_tok_counter)
+                        cur_target_stats.append(subtoks_in_train)
+                        cur_target_stats.append(subtok_types_in_train)
+                        words_in_train, word_types_in_train =\
+                            target_data.words_present_in_other(
+                                train_word_counter)
+                        cur_target_stats.append(words_in_train)
+                        cur_target_stats.append(word_types_in_train)
+                        cur_scores = scores[seed][target_name]
+                        print_line(f_out, setup_name, seed, config.name_train,
+                                   target_name, train_stats, cur_target_stats,
+                                   cur_scores["f1"], cur_scores["acc"])
+        print("-- Finished " + setup_name)
 
 
 if __name__ == "__main__":
