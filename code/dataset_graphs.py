@@ -162,6 +162,9 @@ def process_data_stats(filename):
     df[["PLM", "noise"]] = df.TRAIN_SET.str.split(
         "_", 2).str[2].str.split("_", expand=True)
     df["PLM"] = df["PLM"].apply(lambda x: pretty_print_plm(x))
+    df["PLM_target"] = df.TARGET_SET.str.split("_", 3).str[2]
+    df["PLM_target"] = df["PLM_target"].apply(lambda x: pretty_print_plm(x))
+    df = df.drop(df[df.PLM != df.PLM_target].index)
     df["target"] = df["TARGET_SET"].apply(
         lambda x: pretty_print_target(x.split("_", 2)[1]))
     df["setup"] = df["PLM"] + " " + df["train"] + "→" + df["target"]
@@ -169,8 +172,10 @@ def process_data_stats(filename):
     for diff in ("SUBTOKEN_RATIO_DIFF", "UNK_RATIO_DIFF",
                  "TTR_DIFF", "SPLIT_TOKEN_RATIO_DIFF"):
         df[diff.lower() + "_abs"] = df[diff].apply(lambda x: abs(x))
-    missing_data = df[df.ACCURACY == -1][["SETUP_NAME", "SEED", "TARGET_SET"]]
-    df.drop(missing_data.index)
+    missing_data = pd.concat((df[df.ACCURACY == -1],
+                              df[df.ACCURACY.isnull()]))[
+        ["SETUP_NAME", "SEED", "TARGET_SET"]]
+    df = df.drop(missing_data.index)
     return df, missing_data
 
 
@@ -230,17 +235,18 @@ def plot(df, y_score, token_metric, palette_name, png_name):
         token_plot.set_xticks([0, 15, 35, 55, 75, 95])
 
         # Add correlation info
-        df_sub = df[df.setup == setup]
-        if len(df_sub[hue]) >= 2:
+        if len(df_for_setup[hue]) >= 2:
             label = ""
             try:
-                r, r_p = pearsonr(df_sub[hue], df_sub[y_score])
+                r, r_p = pearsonr(df_for_setup[hue],
+                                  df_for_setup[y_score])
                 label = f"r = {r:.2f} (p = {r_p:.2f})\n"
             except ValueError:
                 r, r_p = "??", "??"
                 label = "r = ?? (p = ??)\n"
             try:
-                rho, rho_p = spearmanr(df_sub[hue], (df_sub[y_score]))
+                rho, rho_p = spearmanr(df_for_setup[hue],
+                                       df_for_setup[y_score])
                 label += f"ρ = {rho:.2f} (p = {rho_p:.2f})"
             except ValueError:
                 rho, rho_p = "??", "??"
@@ -345,8 +351,10 @@ if __name__ == "__main__":
         print("Processing " + stats_file)
         df, missing_data = process_data_stats(stats_file)
         if not missing_data.empty:
+            print(missing_data)
             with open("../results/correlation_missing.log", "a") as f_o:
                 f_o.write(str(missing_data))
+                f_o.write("\n")
         train_name = df.train.unique()[0]
         target_name = "_".join(df.target.unique()).replace(" ", "-")
         for token_metric in token_metrics:
