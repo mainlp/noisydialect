@@ -113,7 +113,10 @@ def data_stats(input_pattern, out_file):
                     cur_target_stats.append(words_in_train)
                     cur_target_stats.append(word_types_in_train)
                     for seed in config.random_seeds:
-                        cur_scores = scores[seed][target_name]
+                        try:
+                            cur_scores = scores[seed][target_name]
+                        except KeyError:
+                            cur_scores = {"f1": "-1", "acc": "-1"}
                         print_line(f_out, setup_name, seed,
                                    config.name_train, target_name,
                                    train_stats_fixed, cur_target_stats,
@@ -146,7 +149,10 @@ def data_stats(input_pattern, out_file):
                                 train_word_counter)
                         cur_target_stats.append(words_in_train)
                         cur_target_stats.append(word_types_in_train)
-                        cur_scores = scores[seed][target_name]
+                        try:
+                            cur_scores = scores[seed][target_name]
+                        except KeyError:
+                            cur_scores = {"f1": "-1", "acc": "-1"}
                         print_line(f_out, setup_name, seed, config.name_train,
                                    target_name, train_stats, cur_target_stats,
                                    cur_scores["f1"], cur_scores["acc"])

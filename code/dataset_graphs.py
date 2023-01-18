@@ -82,26 +82,21 @@ def pretty_print_train(train):
 
 
 def train2monolingual(train):
-    train = train.lower()
-    if train == "gsd":
+    if train == "French":
         return "CamemBERT"
     if train == "ancora-spa":
-        return "BETO"
-    if train == "hdt":
+        return "Spanish"
+    if train == "German":
         return "GBERT"
-    if train == "ndt-nno" or train == "ndt-nob":
+    if train == "Nynorsk" or train == "Bokmål":
         return "NorBERT"
-    if train == "tdt":
+    if train == "Finnish":
         return "FinBERT"
-    if train == "padt":
+    if train == "MSA":
         return "AraBERT"
-    if train == "padt-translit":
-        return "?"
-    if train == "mudt":
+    if train == "Maltese":
         return "BERTu"
-    if train == "hdt":
-        return "GBERT"
-    if train == "alpino":
+    if train == "Dutch":
         return "BERTje"
     return "?"
 
@@ -162,20 +157,21 @@ def process_data_stats(filename):
         lambda x: x.TARGET_SET.startswith("dev_" + x.train)
         or x.TARGET_SET.startswith("test_" + x.train),
         axis=1)
+    df["train"] = df["train"].apply(lambda x: pretty_print_train(x))
     df.drop(df[df.target_is_stdlang].index, inplace=True)
     df[["PLM", "noise"]] = df.TRAIN_SET.str.split(
         "_", 2).str[2].str.split("_", expand=True)
     df["PLM"] = df["PLM"].apply(lambda x: pretty_print_plm(x))
     df["target"] = df["TARGET_SET"].apply(
         lambda x: pretty_print_target(x.split("_", 2)[1]))
-    df["setup"] = df["PLM"] + " " + df["target"]
+    df["setup"] = df["PLM"] + " " + df["train"] + "→" + df["target"]
     df["noise"] = df["noise"].apply(lambda x: 0 if x == "orig" else int(x[4:]))
     for diff in ("SUBTOKEN_RATIO_DIFF", "UNK_RATIO_DIFF",
                  "TTR_DIFF", "SPLIT_TOKEN_RATIO_DIFF"):
         df[diff.lower() + "_abs"] = df[diff].apply(lambda x: abs(x))
-    for col in ("F1_MACRO", "ACCURACY"):
-        df[col] = df[col].replace(-1, np.nan)
-    return df
+    missing_data = df[df.ACCURACY == -1][["SETUP_NAME", "SEED", "TARGET_SET"]]
+    df.drop(missing_data.index)
+    return df, missing_data
 
 
 def plot(df, y_score, token_metric, palette_name, png_name):
@@ -236,12 +232,20 @@ def plot(df, y_score, token_metric, palette_name, png_name):
         # Add correlation info
         df_sub = df[df.setup == setup]
         if len(df_sub[hue]) >= 2:
-            r, r_p = pearsonr(df_sub[hue], df_sub[y_score])
-            rho, rho_p = spearmanr(df_sub[hue], (df_sub[y_score]))
-            axes[row + 1, col].text(
-                0, y_pos_corr,
-                f"r = {r:.2f} (p = {r_p:.2f})\nρ = {rho:.2f} (p = {rho_p:.2f})",
-                fontsize=9)
+            label = ""
+            try:
+                r, r_p = pearsonr(df_sub[hue], df_sub[y_score])
+                label = f"r = {r:.2f} (p = {r_p:.2f})\n"
+            except ValueError:
+                r, r_p = "??", "??"
+                label = "r = ?? (p = ??)\n"
+            try:
+                rho, rho_p = spearmanr(df_sub[hue], (df_sub[y_score]))
+                label += f"ρ = {rho:.2f} (p = {rho_p:.2f})"
+            except ValueError:
+                rho, rho_p = "??", "??"
+                label += "ρ = ?? (p = ??)"
+            axes[row + 1, col].text(0, y_pos_corr, label, fontsize=9)
             try:
                 corr_stats[target][plm] = (rho, rho_p)
             except KeyError:
@@ -307,11 +311,13 @@ def plot(df, y_score, token_metric, palette_name, png_name):
             stats_xlmr = corr_stats[target]["XLM-R"]
         except KeyError:
             stats_xlmr = ("", "")
-        stats.append("\t".join((
-            pretty_print_train(train), target,
+        stat = "\t".join((
+            train, target,
             str(stats_mono[0]), str(stats_mono[1]),
             str(stats_mbert[0]), str(stats_mbert[1]),
-            str(stats_xlmr[0]), str(stats_xlmr[1]))))
+            str(stats_xlmr[0]), str(stats_xlmr[1])))
+        print(stat)
+        stats.append(stat)
     return stats
 
 
@@ -331,11 +337,16 @@ if __name__ == "__main__":
                      "TARGET_WORD_TOKENS_IN_TRAIN",
                      "TARGET_WORD_TYPES_IN_TRAIN")
 
+    with open("../results/correlation_missing.log", "w+") as f_o:
+        pass
     palette_name = "plasma"  # "plasma", "hot", "YlGnBu_r"
     metric2stats = {}
     for stats_file in glob("../results/stats-*"):
         print("Processing " + stats_file)
-        df = process_data_stats(stats_file)
+        df, missing_data = process_data_stats(stats_file)
+        if not missing_data.empty:
+            with open("../results/correlation_missing.log", "a") as f_o:
+                f_o.write(str(missing_data))
         train_name = df.train.unique()[0]
         target_name = "_".join(df.target.unique()).replace(" ", "-")
         for token_metric in token_metrics:
