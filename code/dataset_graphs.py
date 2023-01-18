@@ -21,11 +21,18 @@ def pretty_print_plm(plm):
     plm = plm[0].upper() + plm[1:]
     return plm
 
+def pretty_print_target(target):
+    target = target.lower()
+    if target == "rpic":
+        return "Picard"
+    if target == "roci":
+        return "Occitan"
+    return target
 
 def pretty_score_label(y_score):
-    if y_score == "F1_MACRO_AVG_DEV":
+    if y_score == "F1_MACRO":
         return "F1 macro"
-    if y_score == "ACCURACY_AVG_DEV":
+    if y_score ==  "ACCURACY":
         return "Accuracy"
     return y_score
 
@@ -39,14 +46,14 @@ def pretty_tokenization_label(token_metric):
         return "Subtoken-level TTR (train)"
     if token_metric == "split_token_ratio":
         return "Split-word ratio (train)"
-    if token_metric == "DEV_SUBTOK_TYPES_IN_TRAIN":
-        return "% of dev subtoken types also in train"
-    if token_metric == "DEV_SUBTOKS_IN_TRAIN":
-        return "% of dev subtokens also in train"
-    if token_metric == "DEV_WORD_TYPES_IN_TRAIN":
-        return "% of dev word types also in train"
-    if token_metric == "DEV_WORD_TOKENS_IN_TRAIN":
-        return "% of dev word tokens also in train"
+    if token_metric == "TARGET_SUBTOK_TYPES_IN_TRAIN":
+        return "% of target subtoken types also in train"
+    if token_metric == "TARGET_SUBTOKS_IN_TRAIN":
+        return "% of target subtokens also in train"
+    if token_metric == "TARGET_WORD_TYPES_IN_TRAIN":
+        return "% of target word types also in train"
+    if token_metric == "TARGET_WORD_TOKENS_IN_TRAIN":
+        return "% of target word tokens also in train"
     return token_metric
 
 
@@ -59,33 +66,39 @@ def pretty_colorbar_label(hue):
         return "Absolute subtoken-level TTR difference"
     if hue.startswith("split_token_ratio"):
         return "Absolute split word ratio difference"
-    if hue == "DEV_SUBTOK_TYPES_IN_TRAIN":
-        return "% of dev subtoken types also in train"
-    if hue == "DEV_SUBTOKS_IN_TRAIN":
-        return "% of dev subtokens also in train"
-    if hue == "DEV_WORD_TYPES_IN_TRAIN":
-        return "% of dev word types also in train"
-    if hue == "DEV_WORD_TOKENS_IN_TRAIN":
-        return "% of dev word tokens also in train"
+    if hue == "TARGET_SUBTOK_TYPES_IN_TRAIN":
+        return "% of target subtoken types also in train"
+    if hue == "TARGET_SUBTOKS_IN_TRAIN":
+        return "% of target subtokens also in train"
+    if hue == "TARGET_WORD_TYPES_IN_TRAIN":
+        return "% of target word types also in train"
+    if hue == "TARGET_WORD_TOKENS_IN_TRAIN":
+        return "% of target word tokens also in train"
     return hue
 
 
 def process_data_stats(filename):
     df = pd.read_csv(filename, sep='\t')
-    df["dev_is_stdlang"] = df.apply(
-        lambda x: x.DEV_SET.startswith(
-            "dev_" + x.TRAIN_SET.split("_", 1)[1].split("-", 1)[0]), axis=1)
-    df.drop(df[df.dev_is_stdlang].index, inplace=True)
+    df["target_is_stdlang"] = df.apply(
+        lambda x: x.TARGET_SET.startswith(
+            "dev_" + x.TRAIN_SET.split("_", 1)[1].split("-", 1)[0])
+                  or x.TARGET_SET.startswith(
+            "test_" + x.TRAIN_SET.split("_", 1)[1].split("-", 1)[0]),
+        axis=1)
+    df.drop(df[df.target_is_stdlang].index, inplace=True)
     df[["PLM", "noise"]] = df.TRAIN_SET.str.split(
         "_", 2).str[2].str.split("_", expand=True)
     df["PLM"] = df["PLM"].apply(lambda x: pretty_print_plm(x))
+    df["target"] = df["TARGET_SET"].apply(
+        lambda x: pretty_print_target(x.split("_", 2)[1]))
+    df["setup"] = df["PLM"] + "_" + df["target"]
     df["noise"] = df["noise"].apply(lambda x: 0 if x == "orig" else int(x[4:]))
     for diff in ("SUBTOKEN_RATIO_DIFF", "UNK_RATIO_DIFF",
                  "TTR_DIFF", "SPLIT_TOKEN_RATIO_DIFF"):
         df[diff.lower() + "_abs"] = df[diff].apply(lambda x: abs(x))
-    for col in ("F1_MACRO_AVG_DEV", "F1_MACRO_STD_DEV",
-                "ACCURACY_AVG_DEV", "ACCURACY_STD_DEV"):
+    for col in ("F1_MACRO", "ACCURACY"):
         df[col] = df[col].replace(-1, np.nan)
+
     return df
 
 
@@ -205,17 +218,16 @@ if __name__ == "__main__":
     palette_name = "plasma"  # "plasma", "hot", "YlGnBu_r"
     for stats_file in glob("../results/stats-*"):
         df = process_data_stats(stats_file)
-        plms = list(OrderedDict.fromkeys(df['PLM']))
         train_name = list(df.TRAIN_SET.apply(lambda x: x.split("_", 2)[1]))[0]
-        dev_name = list(df.DEV_SET.apply(lambda x: x.split("_", 2)[1]))[0]
+        target_name = list(df.TARGET_SET.apply(lambda x: x.split("_", 2)[1]))[0]
         for token_metric in token_metrics:
-            if token_metric.startswith("DEV"):
+            if token_metric.startswith("TARGET"):
                 palette = reverse_palette(palette_name)
             else:
                 palette = palette_name
             folder = "../figures/" + token_metric.lower()
             Path(folder).mkdir(parents=True, exist_ok=True)
-            for y_score in ("F1_MACRO_AVG_DEV", "ACCURACY_AVG_DEV"):
+            for y_score in ("F1_MACRO", "ACCURACY"):
                 score_short = "f1" if y_score.startswith("F1") else "acc"
-                png_name = f"{folder}/{train_name}_{dev_name}_{score_short}_{token_metric}.png"
+                png_name = f"{folder}/{train_name}_{target_name}_{score_short}_{token_metric}.png"
                 plot(df, y_score, token_metric, palette, png_name)

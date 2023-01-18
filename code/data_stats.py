@@ -25,9 +25,8 @@ def print_line(f_out, setup_name, seed, name_train, target_name,
 def data_stats(input_pattern, out_file):
     saved_data_stats = {}
     with open(out_file, "w+", encoding="utf8") as f_out:
-        print("\t".join((
-            "SETUP_NAME", "SEED",
-            "TRAIN_SET", "TARGET_SET",
+        f_out.write("\t".join((
+            "SETUP_NAME", "SEED", "TRAIN_SET", "TARGET_SET",
             "SUBTOKEN_RATIO_TRAIN", "SUBTOKEN_RATIO_TARGET",
             "SUBTOKEN_RATIO_DIFF",
             "UNK_RATIO_TRAIN", "UNK_RATIO_TARGET", "UNK_RATIO_DIFF",
@@ -38,7 +37,7 @@ def data_stats(input_pattern, out_file):
             "TARGET_WORD_TOKENS_IN_TRAIN", "TARGET_WORD_TYPES_IN_TRAIN",
             "F1_MACRO", "ACCURACY",
         )))
-        print("\n")
+        f_out.write("\n")
         folders = sorted(glob(input_pattern))
         for folder in folders:
             setup_name = folder.rsplit("/", 1)[1]
