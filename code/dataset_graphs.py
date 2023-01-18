@@ -1,4 +1,3 @@
-from collections import OrderedDict
 from glob import glob
 import math
 from pathlib import Path
@@ -28,6 +27,30 @@ def pretty_print_target(target):
         return "Picard"
     if target == "roci":
         return "Occitan"
+    if target == "rals":
+        return "Alsatian G."
+    if target == "noah":
+        return "Swiss German"
+    if target == "dar-egy":
+        return "Egyptian A."
+    if target == "dar-glf":
+        return "Gulf Arabic"
+    if target == "dar-mgr":
+        return "Maghrebi A."
+    if target == "dar-lev":
+        return "Levantine A."
+    if target == "narabizi" or target == "narbizi":  # Typo
+        return "Algerian Arabizi"
+    if target == "lia-west":
+        return "West N."
+    if target == "lia-east":
+        return "East N."
+    if target == "lia-north":
+        return "North N."
+    if target == "lia-west":
+        return "West N."
+    if target == "lsdc":
+        return "Low Saxon"
     return target
 
 
@@ -35,13 +58,13 @@ def pretty_print_train(train):
     train = train.lower()
     if train == "gsd":
         return "French"
-    if train == "ancoraspa":
+    if train == "ancora-spa":
         return "Spanish"
     if train == "hdt":
         return "German"
-    if train == "nno":
+    if train == "ndt-nno":
         return "Nynorsk"
-    if train == "nob":
+    if train == "ndt-nob":
         return "Bokmål"
     if train == "tdt":
         return "Finnish"
@@ -62,11 +85,11 @@ def train2monolingual(train):
     train = train.lower()
     if train == "gsd":
         return "CamemBERT"
-    if train == "ancoraspa":
+    if train == "ancora-spa":
         return "BETO"
     if train == "hdt":
         return "GBERT"
-    if train == "nno" or train == "nob":
+    if train == "ndt-nno" or train == "ndt-nob":
         return "NorBERT"
     if train == "tdt":
         return "FinBERT"
@@ -86,7 +109,7 @@ def train2monolingual(train):
 def pretty_score_label(y_score):
     if y_score == "F1_MACRO":
         return "F1 macro"
-    if y_score ==  "ACCURACY":
+    if y_score == "ACCURACY":
         return "Accuracy"
     return y_score
 
@@ -134,10 +157,10 @@ def pretty_colorbar_label(hue):
 def process_data_stats(filename):
     df = pd.read_csv(filename, sep='\t')
     df["train"] = df["TRAIN_SET"].apply(
-        lambda x: x.split("_", 1)[1].split("-", 1)[0])
+        lambda x: x.split("_", 2)[1].replace("-full", ""))
     df["target_is_stdlang"] = df.apply(
         lambda x: x.TARGET_SET.startswith("dev_" + x.train)
-                  or x.TARGET_SET.startswith("test_" + x.train),
+        or x.TARGET_SET.startswith("test_" + x.train),
         axis=1)
     df.drop(df[df.target_is_stdlang].index, inplace=True)
     df[["PLM", "noise"]] = df.TRAIN_SET.str.split(
@@ -170,7 +193,6 @@ def plot(df, y_score, token_metric, palette_name, png_name):
                              figsize=(12, 12), sharey="row", sharex="col",
                              gridspec_kw={
                                  "width_ratios": width_ratios},)
-
     y_pos_corr = 1.15 * (df[y_tok].max() - df[y_tok].min()) + df[y_tok].min()
 
     vmin = df[hue].min()
@@ -228,7 +250,11 @@ def plot(df, y_score, token_metric, palette_name, png_name):
         # Remove visual clutter
         for j in (row, row + 1):
             ax = axes[j, col]
-            ax.get_legend().remove()
+            try:
+                ax.get_legend().remove()
+            except AttributeError:
+                print("Already removed: " + setup + " "
+                      + str(j) + ", " + str(col))
             ax.xaxis.grid()
             ax.spines['top'].set_visible(False)
             ax.spines['right'].set_visible(False)
@@ -305,15 +331,13 @@ if __name__ == "__main__":
                      "TARGET_WORD_TOKENS_IN_TRAIN",
                      "TARGET_WORD_TYPES_IN_TRAIN")
 
-
     palette_name = "plasma"  # "plasma", "hot", "YlGnBu_r"
     metric2stats = {}
-    # for stats_file in glob("../results/stats-gsd*"):
     for stats_file in glob("../results/stats-*"):
+        print("Processing " + stats_file)
         df = process_data_stats(stats_file)
-        train_name = list(df.TRAIN_SET.apply(lambda x: x.split("_", 2)[1]))[0]
-        target_name = list(df.TARGET_SET.apply(lambda x: x.split("_", 2)[1]))[0]
-    #     token_metrics = ("TARGET_SUBTOKS_IN_TRAIN",) # TODO DEL
+        train_name = df.train.unique()[0]
+        target_name = "_".join(df.target.unique()).replace(" ", "-")
         for token_metric in token_metrics:
             if token_metric.startswith("TARGET"):
                 palette = reverse_palette(palette_name)
@@ -327,8 +351,6 @@ if __name__ == "__main__":
                 stats = plot(df, y_score, token_metric, palette, png_name)
                 _stats = metric2stats.get(token_metric + "_" + y_score, [])
                 metric2stats[token_metric + "_" + y_score] = _stats + stats
-    #         break # TODO DEL
-    #     break  # TODO DEL
 
     for metric in metric2stats:
         filename = "../results/correlation_" + metric + ".tsv"

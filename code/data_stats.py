@@ -44,7 +44,7 @@ def data_stats(input_pattern, out_file):
             config = Config()
             config.load(folder + "/" + setup_name + ".cfg")
             tokenizer = AutoTokenizer.from_pretrained(config.tokenizer_name)
-            train_stats = None
+            train_stats_fixed = None
             train_tok_counter = None
             train_word_counter = None
             if config.noise_type is None:
@@ -56,11 +56,11 @@ def data_stats(input_pattern, out_file):
                     print("!! Could not load " + config.name_train)
                     continue
                 train_data.calculate_toks_orig_cutoff(tokenizer, config.T)
-                train_stats = (train_data.subtok_ratio(),
-                               train_data.unk_ratio(),
-                               train_data.type_token_ratio(),
-                               train_data.split_token_ratio(
-                                   subtoken_rep=config.subtoken_rep))
+                train_stats_fixed = (train_data.subtok_ratio(),
+                                     train_data.unk_ratio(),
+                                     train_data.type_token_ratio(),
+                                     train_data.split_token_ratio(
+                                         subtoken_rep=config.subtoken_rep))
                 train_tok_counter = train_data.subtok_counter()
                 train_word_counter = train_data.word_counter()
 
@@ -68,8 +68,7 @@ def data_stats(input_pattern, out_file):
             scores = {}
             for seed in config.random_seeds:
                 seed_scores = {}
-                with open(folder + "/results_"
-                          + str(config.random_seeds[0]) + ".tsv") as f_in:
+                with open(folder + "/results_" + str(seed) + ".tsv") as f_in:
                     for line in f_in:
                         line = line.strip()
                         if not line:
@@ -100,7 +99,7 @@ def data_stats(input_pattern, out_file):
                                         subtoken_rep=config.subtoken_rep)]
                     saved_data_stats[target_name] = target_stats
 
-                if train_stats:
+                if train_stats_fixed:
                     # The training data don't depend on the seed
                     cur_target_stats = []
                     for stat in target_stats:
@@ -115,8 +114,9 @@ def data_stats(input_pattern, out_file):
                     cur_target_stats.append(word_types_in_train)
                     for seed in config.random_seeds:
                         cur_scores = scores[seed][target_name]
-                        print_line(f_out, setup_name, seed, config.name_train,
-                                   target_name, train_stats, cur_target_stats,
+                        print_line(f_out, setup_name, seed,
+                                   config.name_train, target_name,
+                                   train_stats_fixed, cur_target_stats,
                                    cur_scores["f1"], cur_scores["acc"])
                 else:
                     # The training data depend on the seed

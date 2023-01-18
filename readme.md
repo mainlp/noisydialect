@@ -395,9 +395,9 @@ do
   python3 run.py -c ../configs/C_mudt-full_mudt_mbert_${noise}.cfg --test_per_epoch --save_model
   python3 run.py -c ../configs/C_mudt-full_mudt_xlmr_${noise}.cfg --test_per_epoch --save_model
 
-  python3 run.py -c ../configs/C_padt-translit-full_padt-translit_bertu_${noise} --test_per_epoch --save_model
-  python3 run.py -c ../configs/C_padt-translit-full_padt-translit_mbert_${noise} --test_per_epoch --save_model
-  python3 run.py -c ../configs/C_padt-translit-full_padt-translit_xlmr_${noise} --test_per_epoch --save_model
+  python3 run.py -c ../configs/C_padt-translit-full_padt-translit_bertu_${noise}.cfg --test_per_epoch --save_model
+  python3 run.py -c ../configs/C_padt-translit-full_padt-translit_mbert_${noise}.cfg --test_per_epoch --save_model
+  python3 run.py -c ../configs/C_padt-translit-full_padt-translit_xlmr_${noise}.cfg --test_per_epoch --save_model
 
   python3 test_model.py C_padt-translit-full_padt-translit_bertu_${noise} D_padt-translit_bertu_test
   python3 test_model.py C_padt-translit-full_padt-translit_mbert_${noise} D_padt-translit_mbert_test
@@ -419,34 +419,32 @@ do
   python3 test_model.py C_tdt-full_tdt-sav_xlmr_${noise} D_tdt_xlmr_test
 done
 
-# Reformat results files
-for train_data in "padt" "padt-translit" "alpino" "nno" "nob" "gsd" "ancoraspa"
+# Reformat result files and calculate data stats
+for train_data in "padt" "padt-translit" "alpino" "nno" "nob" "gsd" "ancoraspa" "tdt" "hdt" "mudt"
 do
   nice -n 1 python3 clean_up_results.py "../results/C_${train_data}-full*"
-done
-
-
-for train_data in "ancoraspa"
-do
   echo "Calculating data stats for transfer from ${train_data}"
   nice -n 1 python3 data_stats.py "../results/C_${train_data}-full*" ../results/stats-${train_data}.tsv
 done
 
-for train_data in "padt" "padt-translit" "alpino" "nno" "nob" "gsd" "ancoraspa"
 ```
 
-va
-export CUDA_VISIBLE_DEVICES=MIG-cde26571-d967-57fe-bac7-029266b95b51
 
-for noise in "orig" "rand15"
+
+for train_data in "hdt"
 do
-  python3 run.py -c ../configs/C_padt-translit-full_padt-translit_mbert_${noise} --test_per_epoch --save_model
+  nice -n 1 python3 data_stats.py "../results/C_${train_data}-full*" ../results/stats-${train_data}.tsv
+  date
 done
 
 
 
 
- "rand35" "rand55" "rand75" "rand95"
+nice -n 5 python3 test_model.py C_hdt-full_hdt-noah_gbert_rand75 D_hdt_gbert_test
+
+
+
+"orig" "rand15" "rand35" "rand55" "rand75" "rand95"
 
 Old stuff below; ignore (will be removed):
 
