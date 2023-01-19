@@ -3,7 +3,6 @@ import math
 from pathlib import Path
 
 import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
 import seaborn as sns
 from scipy.stats import pearsonr, spearmanr
@@ -51,6 +50,18 @@ def pretty_print_target(target):
         return "West N."
     if target == "lsdc":
         return "Low Saxon"
+    if target == "murre-lou":
+        return "SW Finnish"
+    if target == "murre-lvä":
+        return "SW transition area"
+    if target == "murre-häm":
+        return "Tavastian F."
+    if target == "murre-poh":
+        return "Ostrobothnian F."
+    if target == "murre-sav":
+        return "Savonian F."
+    if target == "murre-kaa":
+        return "SE Finnish"
     return target
 
 
@@ -84,8 +95,8 @@ def pretty_print_train(train):
 def train2monolingual(train):
     if train == "French":
         return "CamemBERT"
-    if train == "ancora-spa":
-        return "Spanish"
+    if train == "ancora-spa" or train == "ancoraspa":
+        return "BETO"
     if train == "German":
         return "GBERT"
     if train == "Nynorsk" or train == "Bokmål":
@@ -162,6 +173,9 @@ def process_data_stats(filename):
     df[["PLM", "noise"]] = df.TRAIN_SET.str.split(
         "_", 2).str[2].str.split("_", expand=True)
     df["PLM"] = df["PLM"].apply(lambda x: pretty_print_plm(x))
+    df["PLM_mono"] = df.train.apply(lambda x: train2monolingual(x))
+    df["used_multi"] = df.PLM.apply(lambda x: x == "mBERT" or x == "XLM-R")
+    df = df[(df.PLM == df.PLM_mono) | (df.used_multi)]
     df["PLM_target"] = df.TARGET_SET.str.split("_", 3).str[2]
     df["PLM_target"] = df["PLM_target"].apply(lambda x: pretty_print_plm(x))
     df = df.drop(df[df.PLM != df.PLM_target].index)
@@ -189,11 +203,15 @@ def plot(df, y_score, token_metric, palette_name, png_name):
 
     target2row = {tgt: i * 2 for i, tgt in enumerate(df["target"].unique())}
     plm2col = {col: i for i, col in enumerate(df["PLM"].unique())}
-    width_ratios = [4 for _ in range(len(plm2col))] + [1]
-    fig, axes = plt.subplots(2 * len(target2row), len(plm2col) + 1,
-                             figsize=(12, 12), sharey="row", sharex="col",
-                             gridspec_kw={
-                                 "width_ratios": width_ratios},)
+    n_targets = len(target2row)
+    n_plms = len(plm2col)
+    width_ratios = [4 for _ in range(n_plms)] + [1]
+    fig, axes = plt.subplots(
+        2 * n_targets, n_plms + 1,
+        figsize=((n_plms + 1) * 3, n_targets * 5),
+        sharey="row", sharex="col",
+        gridspec_kw={"width_ratios": width_ratios}
+    )
     y_pos_corr = 1.15 * (df[y_tok].max() - df[y_tok].min()) + df[y_tok].min()
 
     vmin = df[hue].min()
@@ -333,6 +351,32 @@ def reverse_palette(palette_name):
     return palette_name + "_r"
 
 
+def sort_score(item):
+    if item.startswith("German"):
+        if "Low Saxon" in item:
+            return 0.5
+        return 0
+    if item.startswith("Dutch"):
+        return 1
+    if item.startswith("Bokmål"):
+        return 2
+    if item.startswith("Nynorsk"):
+        return 3
+    if item.startswith("French"):
+        if "Occitan" in item:
+            return 4.5
+        return 4
+    if item.startswith("Spanish"):
+        return 5
+    if item.startswith("MSA ("):
+        return 7
+    if item.startswith("MSA"):
+        return 6
+    if item.startswith("Maltese"):
+        return 8
+    return 9
+
+
 if __name__ == "__main__":
     sns.set_theme(style="whitegrid")
 
@@ -371,11 +415,21 @@ if __name__ == "__main__":
                 _stats = metric2stats.get(token_metric + "_" + y_score, [])
                 metric2stats[token_metric + "_" + y_score] = _stats + stats
 
+    old_setups = ("Spanish  ancoraspa", "Spanish    Picard",
+                  "Dutch    Swiss German", "Dutch   Alsatian G.",)
+
     for metric in metric2stats:
         filename = "../results/correlation_" + metric + ".tsv"
         with open(filename, "w+", encoding="utf8") as f_out:
             print("Writing correlation stats to " + filename)
             f_out.write("TRAIN\tTARGET\tRHO_MONOLINGUAL\tP_MONOLINGUAL\t"
                         "RHO_MBERT\tP_MBERT\tRHO_XLMR\tP_XLMR\n")
-            for s in metric2stats[metric]:
-                f_out.write(s + "\n")
+            stats = metric2stats[metric]
+            for s in sorted(stats, key=lambda x: sort_score(x)):
+                skip_item = False
+                for old in old_setups:
+                    if s.startswith(old):
+                        skip_item = True
+                        break
+                if not skip_item:
+                    f_out.write(s + "\n")
