@@ -69,7 +69,7 @@ def pretty_print_train(train):
     train = train.lower()
     if train == "gsd":
         return "French"
-    if train == "ancora-spa":
+    if train == "ancora-spa" or train == "ancoraspa":
         return "Spanish"
     if train == "hdt":
         return "German"
@@ -95,7 +95,7 @@ def pretty_print_train(train):
 def train2monolingual(train):
     if train == "French":
         return "CamemBERT"
-    if train == "ancora-spa" or train == "ancoraspa":
+    if train == "Spanish":
         return "BETO"
     if train == "German":
         return "GBERT"

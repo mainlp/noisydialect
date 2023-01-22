@@ -190,23 +190,23 @@ python3 B_corpus_stats.py ../datasets/train_TDT_UPOS.tsv,../datasets/dev_TDT_UPO
 4. A simple grid search for hyperparameters:
 ```
 # Data prep (the created folders will be reused later)
-python3 B_data-matrix_prep.py ../configs/B_padt-full_padt-egy_arabert_orig.cfg
-python3 B_data-matrix_prep.py ../configs/B_tdt-full_tdt-sav_finbert_orig.cfg
-python3 B_data-matrix_prep.py ../configs/B_hdt-full_hdt-noah_gbert_orig.cfg
-python3 B_data-matrix_prep.py ../configs/B_padt-full_padt-egy_xlmr_orig.cfg
-python3 B_data-matrix_prep.py ../configs/B_tdt-full_tdt-sav_xlmr_orig.cfg
-python3 B_data-matrix_prep.py ../configs/B_hdt-full_hdt-noah_xlmr_orig.cfg
+python3 B_data-matrix_prep.py ../configs/gridsearch/B_padt-full_padt-egy_arabert_orig.cfg
+python3 B_data-matrix_prep.py ../configs/gridsearch/B_tdt-full_tdt-sav_finbert_orig.cfg
+python3 B_data-matrix_prep.py ../configs/gridsearch/B_hdt-full_hdt-noah_gbert_orig.cfg
+python3 B_data-matrix_prep.py ../configs/gridsearch/B_padt-full_padt-egy_xlmr_orig.cfg
+python3 B_data-matrix_prep.py ../configs/gridsearch/B_tdt-full_tdt-sav_xlmr_orig.cfg
+python3 B_data-matrix_prep.py ../configs/gridsearch/B_hdt-full_hdt-noah_xlmr_orig.cfg
 
 python3 B_create_configs.py --hyperparams
 
 for sfx in "2e-05_16" "3e-05_16" "2e-05_32" "3e-05_32"
 do
-  python3 run.py -c ../configs/B_hyperparams_tdt-full_tdt-sav_finbert_orig_${sfx}.cfg --test_per_epoch
-  python3 run.py -c ../configs/B_hyperparams_tdt-full_tdt-sav_xlmr_orig_${sfx}.cfg --test_per_epoch
-  python3 run.py -c ../configs/B_hyperparams_hdt-full_hdt-noah_gbert_orig_${sfx}.cfg --test_per_epoch
-  python3 run.py -c ../configs/B_hyperparams_hdt-full_hdt-noah_xlmr_orig_${sfx}.cfg --test_per_epoch
-  python3 run.py -c ../configs/B_hyperparams_padt-full_padt-egy_arabert_orig_${sfx}.cfg --test_per_epoch
-  python3 run.py -c ../configs/B_hyperparams_padt-full_padt-egy_xlmr_orig_${sfx}.cfg --test_per_epoch
+  python3 run.py -c ../configs/gridsearch/B_hyperparams_tdt-full_tdt-sav_finbert_orig_${sfx}.cfg --test_per_epoch
+  python3 run.py -c ../configs/gridsearch/B_hyperparams_tdt-full_tdt-sav_xlmr_orig_${sfx}.cfg --test_per_epoch
+  python3 run.py -c ../configs/gridsearch/B_hyperparams_hdt-full_hdt-noah_gbert_orig_${sfx}.cfg --test_per_epoch
+  python3 run.py -c ../configs/gridsearch/B_hyperparams_hdt-full_hdt-noah_xlmr_orig_${sfx}.cfg --test_per_epoch
+  python3 run.py -c ../configs/gridsearch/B_hyperparams_padt-full_padt-egy_arabert_orig_${sfx}.cfg --test_per_epoch
+  python3 run.py -c ../configs/gridsearch/B_hyperparams_padt-full_padt-egy_xlmr_orig_${sfx}.cfg --test_per_epoch
 done
 
 # Reformat results files
@@ -430,13 +430,19 @@ done
 ```
 
 
-
-for train_data in "hdt"
+for train_data in "padt"
 do
+  nice -n 1 python3 clean_up_results.py "../results/C_${train_data}-full*"
+  echo "Calculating data stats for transfer from ${train_data}"
   nice -n 1 python3 data_stats.py "../results/C_${train_data}-full*" ../results/stats-${train_data}.tsv
-  date
 done
 
+
+
+nice -n 1 python3 data_stats.py "../results/C_${train_data}-full*" ../results/stats-hdt-gbert15.tsv
+
+
+python3 run.py -c ../configs/C_hdt-full_hdt-noah_gbert_rand15_56789.cfg --test_per_epoch --save_model
 
 
 

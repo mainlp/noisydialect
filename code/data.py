@@ -327,7 +327,7 @@ class Data:
 
     def alphabet(self):
         return {c for sent in self.toks_orig for tok in sent for c in tok
-                if c != ' '}
+                if c.isalpha()}
 
     def dummy_idx(self):
         if self.pos2idx:
@@ -356,6 +356,8 @@ class Data:
 
     @staticmethod
     def noisy_indices(sent_toks, percentage_noisy):
+        # Only include words with alphabetic content.
+        # isalpha() also works for Arabic!
         poss_indices = [i for i, tok in enumerate(sent_toks)
                         if any(c.isalpha() for c in tok)]
         idx_noisy = random.sample(
