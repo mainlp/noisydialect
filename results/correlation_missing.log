@@ -1,0 +1,83 @@
+                          SETUP_NAME   SEED                 TARGET_SET
+74  C_nob-full_nob-west_mbert_rand15  56789   test_lia-east_mbert_orig
+79  C_nob-full_nob-west_mbert_rand15  56789  test_lia-north_mbert_orig
+73  C_nob-full_nob-west_mbert_rand15  45678   test_lia-east_mbert_orig
+78  C_nob-full_nob-west_mbert_rand15  45678  test_lia-north_mbert_orig
+74  C_nob-full_nob-west_mbert_rand15  56789   test_lia-east_mbert_orig
+79  C_nob-full_nob-west_mbert_rand15  56789  test_lia-north_mbert_orig
+73  C_nob-full_nob-west_mbert_rand15  45678   test_lia-east_mbert_orig
+78  C_nob-full_nob-west_mbert_rand15  45678  test_lia-north_mbert_orig
+                           SETUP_NAME   SEED            TARGET_SET
+341  C_hdt-full_hdt-noah_mbert_rand55  56789  test_rals_mbert_orig
+351  C_hdt-full_hdt-noah_mbert_rand55  56789  test_lsdc_mbert_orig
+516   C_hdt-full_hdt-noah_xlmr_rand55  56789   test_rals_xlmr_orig
+521   C_hdt-full_hdt-noah_xlmr_rand55  56789   test_lsdc_xlmr_orig
+341  C_hdt-full_hdt-noah_mbert_rand55  56789  test_rals_mbert_orig
+351  C_hdt-full_hdt-noah_mbert_rand55  56789  test_lsdc_mbert_orig
+516   C_hdt-full_hdt-noah_xlmr_rand55  56789   test_rals_xlmr_orig
+521   C_hdt-full_hdt-noah_xlmr_rand55  56789   test_lsdc_xlmr_orig
+                                       SETUP_NAME   SEED  \
+181  C_padt-translit-full_padt-translit_xlmr_orig  23456   
+182  C_padt-translit-full_padt-translit_xlmr_orig  34567   
+183  C_padt-translit-full_padt-translit_xlmr_orig  45678   
+184  C_padt-translit-full_padt-translit_xlmr_orig  56789   
+186  C_padt-translit-full_padt-translit_xlmr_orig  23456   
+187  C_padt-translit-full_padt-translit_xlmr_orig  34567   
+188  C_padt-translit-full_padt-translit_xlmr_orig  45678   
+189  C_padt-translit-full_padt-translit_xlmr_orig  56789   
+196  C_padt-translit-full_padt-translit_xlmr_orig  23456   
+197  C_padt-translit-full_padt-translit_xlmr_orig  34567   
+198  C_padt-translit-full_padt-translit_xlmr_orig  45678   
+199  C_padt-translit-full_padt-translit_xlmr_orig  56789   
+180  C_padt-translit-full_padt-translit_xlmr_orig  12345   
+185  C_padt-translit-full_padt-translit_xlmr_orig  12345   
+195  C_padt-translit-full_padt-translit_xlmr_orig  12345   
+181  C_padt-translit-full_padt-translit_xlmr_orig  23456   
+182  C_padt-translit-full_padt-translit_xlmr_orig  34567   
+183  C_padt-translit-full_padt-translit_xlmr_orig  45678   
+184  C_padt-translit-full_padt-translit_xlmr_orig  56789   
+186  C_padt-translit-full_padt-translit_xlmr_orig  23456   
+187  C_padt-translit-full_padt-translit_xlmr_orig  34567   
+188  C_padt-translit-full_padt-translit_xlmr_orig  45678   
+189  C_padt-translit-full_padt-translit_xlmr_orig  56789   
+196  C_padt-translit-full_padt-translit_xlmr_orig  23456   
+197  C_padt-translit-full_padt-translit_xlmr_orig  34567   
+198  C_padt-translit-full_padt-translit_xlmr_orig  45678   
+199  C_padt-translit-full_padt-translit_xlmr_orig  56789   
+180  C_padt-translit-full_padt-translit_xlmr_orig  12345   
+185  C_padt-translit-full_padt-translit_xlmr_orig  12345   
+195  C_padt-translit-full_padt-translit_xlmr_orig  12345   
+
+                 TARGET_SET  
+181  test_dar-glf_xlmr_orig  
+182  test_dar-glf_xlmr_orig  
+183  test_dar-glf_xlmr_orig  
+184  test_dar-glf_xlmr_orig  
+186  test_dar-lev_xlmr_orig  
+187  test_dar-lev_xlmr_orig  
+188  test_dar-lev_xlmr_orig  
+189  test_dar-lev_xlmr_orig  
+196  test_dar-mgr_xlmr_orig  
+197  test_dar-mgr_xlmr_orig  
+198  test_dar-mgr_xlmr_orig  
+199  test_dar-mgr_xlmr_orig  
+180  test_dar-glf_xlmr_orig  
+185  test_dar-lev_xlmr_orig  
+195  test_dar-mgr_xlmr_orig  
+181  test_dar-glf_xlmr_orig  
+182  test_dar-glf_xlmr_orig  
+183  test_dar-glf_xlmr_orig  
+184  test_dar-glf_xlmr_orig  
+186  test_dar-lev_xlmr_orig  
+187  test_dar-lev_xlmr_orig  
+188  test_dar-lev_xlmr_orig  
+189  test_dar-lev_xlmr_orig  
+196  test_dar-mgr_xlmr_orig  
+197  test_dar-mgr_xlmr_orig  
+198  test_dar-mgr_xlmr_orig  
+199  test_dar-mgr_xlmr_orig  
+180  test_dar-glf_xlmr_orig  
+185  test_dar-lev_xlmr_orig  
+195  test_dar-mgr_xlmr_orig  
+                         SETUP_NAME   SEED               TARGET_SET
+300  C_nno-full_nno-west_mbert_orig  12345  dev_lia-west_mbert_orig
