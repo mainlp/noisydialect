@@ -124,11 +124,11 @@ def pretty_tokenization_label(token_metric):
     if token_metric == "subtoken_ratio":
         return "Subtoken ratio (train)"
     if token_metric == "unk_ratio":
-        return "Subtoken-level UNK ratio (train)"
+        return "Subtoken-level UNK ratio"
     if token_metric == "ttr":
-        return "Subtoken-level TTR (train)"
+        return "Subtoken-level TTR"
     if token_metric == "split_token_ratio":
-        return "Split-word ratio (train)"
+        return "Split word ratio"
     if token_metric == "TARGET_SUBTOK_TYPES_IN_TRAIN":
         return "% of target subtoken types also in train"
     if token_metric == "TARGET_SUBTOKS_IN_TRAIN":
@@ -223,7 +223,10 @@ def process_data_stats(filename):
     return df, missing_data
 
 
-def plot(df, y_score, token_metric, palette_name, png_name):
+def plot(df, y_score, token_metric, palette_name, png_name,
+         analyze_correlation=True, color_bar_vertical=True,
+         full_setup_in_title=True,
+         custom_score_ticklabels=None, custom_tok_ticklabels=None):
     if (token_metric.startswith("TARGET_")
         or token_metric.endswith("ratio_ratio")
         or token_metric == "ttr_ratio"):
@@ -237,12 +240,26 @@ def plot(df, y_score, token_metric, palette_name, png_name):
     plm2col = {col: i for i, col in enumerate(df["PLM"].unique())}
     n_targets = len(target2row)
     n_plms = len(plm2col)
-    width_ratios = [4 for _ in range(n_plms)] + [1]
+    n_cols = n_plms
+    n_rows = 2 * n_targets
+    width_ratios = [4 for _ in range(n_cols)]
+    height_ratios = [x for doub in [(4, 3.5) for _ in range(n_targets)] for x in doub]
+    if color_bar_vertical:
+        width_ratios += [1]
+        n_cols += 1
+    else:
+        height_ratios += [1]
+        n_rows += 1
     fig, axes = plt.subplots(
-        2 * n_targets, n_plms + 1,
-        figsize=((n_plms + 1) * 3, n_targets * 6),
+        n_rows, n_cols,
+        figsize=(n_cols * 2.5, n_rows * 2.2),
         sharey="row", sharex="col",
-        gridspec_kw={"width_ratios": width_ratios}
+        gridspec_kw={"width_ratios": width_ratios,
+                     "height_ratios": height_ratios,
+                     # vertical/horizontal space between
+                     # subplots:
+#                      "hspace": 0.1, 
+                     "wspace": 0.14}
     )
     y_pos_corr = 1.15 * (df[y_tok].max() - df[y_tok].min()) + df[y_tok].min()
 
@@ -265,7 +282,10 @@ def plot(df, y_score, token_metric, palette_name, png_name):
             hue=hue, palette=palette,
             ax=axes[row, col],
         )
-        score_plot.set_title(setup)
+        if full_setup_in_title:
+            score_plot.set_title(setup)
+        else:
+            score_plot.set_title(plm)
 
         # Draw lines indicating where the optimal values
         # (train ratio == target ratio) would be.
@@ -287,32 +307,33 @@ def plot(df, y_score, token_metric, palette_name, png_name):
         token_plot.set_xticks([0, 15, 35, 55, 75, 95])
 
         # Add correlation info
-        label = ""
-        try:
-            avg_score = df_for_setup[y_score].mean()
-        except ValueError:
-            avg_score = "??"
-        try:
-            r, r_p = pearsonr(df_for_setup[hue],
-                              df_for_setup[y_score])
-            label = f"r = {r:.2f} (p = {r_p:.2f})\n"
-        except ValueError:
-            r, r_p = "??", "??"
-            label = "r = ?? (p = ??)\n"
-        try:
-            rho, rho_p = spearmanr(df_for_setup[hue],
-                                   df_for_setup[y_score])
-            label += f"ρ = {rho:.2f} (p = {rho_p:.2f})"
-        except ValueError:
-            rho, rho_p = "??", "??"
-            label += "ρ = ?? (p = ??)"
-        try:
-            corr_stats[target][plm] = [
-                str(avg_score), str(rho), str(rho_p)]
-        except KeyError:
-            corr_stats[target] = {
-                plm: [str(avg_score), str(rho), str(rho_p)]}
-        axes[row + 1, col].text(0, y_pos_corr, label, fontsize=9)
+        if analyze_correlation:
+            label = ""
+            try:
+                avg_score = df_for_setup[y_score].mean()
+            except ValueError:
+                avg_score = "??"
+            try:
+                r, r_p = pearsonr(df_for_setup[hue],
+                                  df_for_setup[y_score])
+                label = f"r = {r:.2f} (p = {r_p:.2f})\n"
+            except ValueError:
+                r, r_p = "??", "??"
+                label = "r = ?? (p = ??)\n"
+            try:
+                rho, rho_p = spearmanr(df_for_setup[hue],
+                                       df_for_setup[y_score])
+                label += f"ρ = {rho:.2f} (p = {rho_p:.2f})"
+            except ValueError:
+                rho, rho_p = "??", "??"
+                label += "ρ = ?? (p = ??)"
+            try:
+                corr_stats[target][plm] = [
+                    str(avg_score), str(rho), str(rho_p)]
+            except KeyError:
+                corr_stats[target] = {
+                    plm: [str(avg_score), str(rho), str(rho_p)]}
+            axes[row + 1, col].text(0, y_pos_corr, label, fontsize=9)
         
         acc_averages = []
         measure_train_averages = []
@@ -332,8 +353,9 @@ def plot(df, y_score, token_metric, palette_name, png_name):
             measure_train_averages.append(avg_measure_train)
             axes[row + 1, col].text(noise + 2, avg_measure_train,
                                 f"{avg_measure_train:.2f}", fontsize=9)
-        saved_scores = corr_stats[target][plm]
-        corr_stats[target][plm] = [saved_scores[0]] + [str(a) for a in acc_averages] + saved_scores[1:]
+        if analyze_correlation:
+            saved_scores = corr_stats[target][plm]
+            corr_stats[target][plm] = [saved_scores[0]] + [str(a) for a in acc_averages] + saved_scores[1:]
         if target_measure:
             tr_lt_tgt0 = measure_train_averages[0] < target_measure
             tr_lt_tgt15 = measure_train_averages[1] < target_measure
@@ -355,8 +377,7 @@ def plot(df, y_score, token_metric, palette_name, png_name):
                 improvement = "'="
                 verdict = "Inconclusive"
             max_acc = max(acc_averages)
-            best_noise = (0, 15, 35, 55, 75, 95)[
-                acc_averages.index(max_acc)]
+            best_noise = noise_lvls[acc_averages.index(max_acc)]
             summary = (str(tr_lt_tgt0), str(tr_lt_tgt15),
                        str(acc_0), str(acc_15), str(acc_0_std),
                        improvement, verdict,
@@ -382,65 +403,111 @@ def plot(df, y_score, token_metric, palette_name, png_name):
         axes[row + 1, col].set_xlabel(None)
 
     # Update the axis labels
-    for i in range(len(target2row)):
-        axes[i * 2, 0].set_ylabel(pretty_score_label(y_score))
-        axes[i * 2 + 1, 0].set_ylabel(pretty_tokenization_label(token_metric))
+    for i in range(n_targets):
+        row1 = i * 2
+        row2 = row1 + 1
+        # Add y axis labels to the leftmost figures
+        axes[row1, 0].set_ylabel(pretty_score_label(y_score))
+        axes[row2, 0].set_ylabel(pretty_tokenization_label(token_metric))
+        axes[row1, 0].tick_params(axis='y', which='major', pad=-2)
+        axes[row2, 0].tick_params(axis='y', which='major', pad=-2)
+        if custom_score_ticklabels:
+            axes[row1, 0].set_yticklabels(custom_score_ticklabels)
+        if custom_tok_ticklabels:
+            axes[row2, 0].set_yticklabels(custom_tok_ticklabels)
+        if color_bar_vertical:
+            # Clean the column to be used for the colourbar
+            axes[row1, -1].axis("off")
+            axes[row2, -1].axis("off")
+    if color_bar_vertical:
         fig.text(0.5, 0, "Noise (%)", ha='center')
-        axes[i * 2, -1].axis("off")
-        axes[i * 2 + 1, -1].axis("off")
+    else:
+        fig.text(0.5, (0.4 + 1 * height_ratios[-1]) / sum(height_ratios),
+                 "Noise (%)", ha='center')
+        # Clean the row to be used for the colourbar
+        # Add the noise ticks instead to the row above
+        for j in range(n_plms):
+            axes[-1, j].axis("off")
+            axes[n_rows - 2, j].xaxis.set_tick_params(labelbottom=True)
 
     # Add colour bar
+    if color_bar_vertical:
+        cbar_axes = [axes[i, -1] for i in range(n_targets)]
+        orientation = "vertical"
+        aspect = 35
+        shrink = 1
+        fraction = 1.3 / n_rows
+        labelpad = 0
+    else:
+        cbar_axes = [axes[-1, j] for j in range(n_plms)]
+        orientation = "horizontal"
+        aspect = 35
+        shrink = 0.75
+        fraction = 0.5 / n_cols
+        labelpad = -10.0
     points = plt.scatter([], [], c=[],
-                         vmin=vmin, vmax=vmax,
+                         vmin=0,  # vmin=vmin,
+                         vmax=vmax,
                          cmap=plt.cm.get_cmap(palette_name))
     cbar = plt.colorbar(points,
-                        ax=[axes[i, -1] for i in range(len(target2row))],
-                        aspect=35,
-                        shrink=0.7,
+                        orientation=orientation,
+                        ax=cbar_axes,
+                        aspect=aspect,
+                        shrink=shrink,
+                        fraction=fraction,
                         pad=0,)
     cbar.ax.tick_params(right=False)
-    cbar.ax.tick_params(axis='y', pad=0)
-    cbar.ax.set_yticks([math.ceil(vmin * 100) / 100,
-                        math.floor(vmax * 100) / 100])
-
-    cbar.set_label(pretty_colorbar_label(hue), fontsize=11)
-
+    if color_bar_vertical:
+        cbar.ax.tick_params(axis='y', pad=0)
+        cbar.ax.set_yticks([0,  # vmin,
+                            vmax])
+        cbar.ax.set_yticklabels([0,  # math.ceil(vmin * 100) / 100,
+                                 math.floor(vmax * 100) / 100])
+    else:
+        cbar.ax.tick_params(axis='x', pad=1)
+        cbar.ax.set_xticks([0,  # vmin,
+                            vmax])
+        cbar.ax.set_xticklabels([0, #math.ceil(vmin * 100) / 100,
+                                 math.floor(vmax * 100) / 100], fontsize=11)
+    cbar.set_label(pretty_colorbar_label(hue), fontsize=11,
+                   labelpad=labelpad)
     plt.show()
     if png_name:
-        fig.savefig(png_name)
+        fig.savefig(png_name, pad_inches=0)
 
-    # print correlation stats
-    train = df_for_setup["train"].unique()[0]
-    mono = train2monolingual(train)
+    # Make correlation stats print-ready
     stats_c = []
     stats_m = []
-    for target in corr_stats:
-        try:
-            stats_c_mono = corr_stats[target][mono]
-            stats_m_mono = measure_stats[target][mono]
-        except KeyError:
-            stats_c_mono = ("", "", "", "", "", "", "", "", "")
-            stats_m_mono = ("", "", "", "", "", "", "", "", "")
-        try:
-            stats_c_mbert = corr_stats[target]["mBERT"]
-            stats_m_mbert = measure_stats[target]["mBERT"]
-        except KeyError:
-            stats_c_mbert = ("", "", "", "", "", "", "", "", "")
-            stats_m_mbert = ("", "", "", "", "", "", "", "", "")
-        try:
-            stats_c_xlmr = corr_stats[target]["XLM-R"]
-            stats_m_xlmr = measure_stats[target]["XLM-R"]
-        except KeyError:
-            stats_c_xlmr = ("", "", "", "", "", "", "", "", "")
-            stats_m_xlmr = ("", "", "", "", "", "", "", "", "")
-        stat_c = "\t".join((train, target, *stats_c_mono,
-                            *stats_c_mbert, *stats_c_xlmr))
-        stat_m = "\t".join((train, target, *stats_m_mono,
-                            *stats_m_mbert, *stats_m_xlmr))
-        print(stat_c)
-        print(stat_m)
-        stats_c.append(stat_c)
-        stats_m.append(stat_m)
+    if analyze_correlation:
+        train = df_for_setup["train"].unique()[0]
+        mono = train2monolingual(train)
+        for target in corr_stats:
+            try:
+                stats_c_mono = corr_stats[target][mono]
+                stats_m_mono = measure_stats[target][mono]
+            except KeyError:
+                stats_c_mono = ("", "", "", "", "", "", "", "", "")
+                stats_m_mono = ("", "", "", "", "", "", "", "", "")
+            try:
+                stats_c_mbert = corr_stats[target]["mBERT"]
+                stats_m_mbert = measure_stats[target]["mBERT"]
+            except KeyError:
+                stats_c_mbert = ("", "", "", "", "", "", "", "", "")
+                stats_m_mbert = ("", "", "", "", "", "", "", "", "")
+            try:
+                stats_c_xlmr = corr_stats[target]["XLM-R"]
+                stats_m_xlmr = measure_stats[target]["XLM-R"]
+            except KeyError:
+                stats_c_xlmr = ("", "", "", "", "", "", "", "", "")
+                stats_m_xlmr = ("", "", "", "", "", "", "", "", "")
+            stat_c = "\t".join((train, target, *stats_c_mono,
+                                *stats_c_mbert, *stats_c_xlmr))
+            stat_m = "\t".join((train, target, *stats_m_mono,
+                                *stats_m_mbert, *stats_m_xlmr))
+            print(stat_c)
+            print(stat_m)
+            stats_c.append(stat_c)
+            stats_m.append(stat_m)
     return stats_c, stats_m
 
 
@@ -452,6 +519,8 @@ def reverse_palette(palette_name):
 
 if __name__ == "__main__":
     sns.set_theme(style="whitegrid")
+
+    # Correlation stats and figures for all set-ups
 
     token_metrics = (
         "subtoken_ratio",
@@ -537,3 +606,19 @@ if __name__ == "__main__":
                         break
                 if not skip_item:
                     f_out.write(s + "\n")
+
+    # Prettier figure for article
+    df, _ = process_data_stats("../results/stats-padt.tsv")
+    df["target_not_egy"] = df.apply(
+        lambda x: "egy" not in x.TARGET_SET, axis=1)
+    df.drop(df[df.target_not_egy].index, inplace=True)
+    df["model_is_xlmr"] = df.apply(
+        lambda x: "xlm" in x.SETUP_NAME, axis=1)
+    df.drop(df[df.model_is_xlmr].index, inplace=True)
+    plot(df, "ACCURACY", "split_token_ratio", palette_name,
+         png_name="../figures/egy.png",
+         analyze_correlation=False, color_bar_vertical=False,
+         full_setup_in_title=False,
+         custom_score_ticklabels=("", "", 0.5, "", 0.6, "", 0.7),
+         custom_tok_ticklabels=("", 0.3, "", 0.5, "", 0.7),
+         )
