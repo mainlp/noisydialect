@@ -62,7 +62,7 @@ def pretty_print_target(target):
         return "Savonian F."
     if target == "murre-kaa":
         return "SE Finnish"
-    return target
+    return pretty_print_train(target)
 
 
 def pretty_print_train(train):
@@ -160,6 +160,32 @@ def pretty_colorbar_label(hue):
     return hue
 
 
+def sort_score(item):
+    if item.startswith("German"):
+        if "Low Saxon" in item:
+            return 0.5
+        return 0
+    if item.startswith("Dutch"):
+        return 1
+    if item.startswith("Bokmål"):
+        return 2
+    if item.startswith("Nynorsk"):
+        return 3
+    if item.startswith("French"):
+        if "Occitan" in item:
+            return 4.5
+        return 4
+    if item.startswith("Spanish"):
+        return 5
+    if item.startswith("MSA ("):
+        return 7
+    if item.startswith("MSA"):
+        return 6
+    if item.startswith("Maltese"):
+        return 8
+    return 9
+
+
 def process_data_stats(filename):
     df = pd.read_csv(filename, sep='\t')
     df["train"] = df["TRAIN_SET"].apply(
@@ -169,7 +195,7 @@ def process_data_stats(filename):
         or x.TARGET_SET.startswith("test_" + x.train),
         axis=1)
     df["train"] = df["train"].apply(lambda x: pretty_print_train(x))
-    df.drop(df[df.target_is_stdlang].index, inplace=True)
+#     df.drop(df[df.target_is_stdlang].index, inplace=True)
     df[["PLM", "noise"]] = df.TRAIN_SET.str.split(
         "_", 2).str[2].str.split("_", expand=True)
     df["PLM"] = df["PLM"].apply(lambda x: pretty_print_plm(x))
@@ -186,15 +212,21 @@ def process_data_stats(filename):
     for diff in ("SUBTOKEN_RATIO_DIFF", "UNK_RATIO_DIFF",
                  "TTR_DIFF", "SPLIT_TOKEN_RATIO_DIFF"):
         df[diff.lower() + "_abs"] = df[diff].apply(lambda x: abs(x))
+        df[diff.lower().replace("diff", "ratio")] = df[diff.replace("DIFF", "TARGET")] / df[diff.replace("DIFF", "TRAIN")]
+        df[diff.replace("DIFF", "RATIO_TARGET")] = 1.0
     missing_data = pd.concat((df[df.ACCURACY == -1],
-                              df[df.ACCURACY.isnull()]))[
+                              df[df.ACCURACY.isnull()],
+                              df[df.F1_MACRO == -1],
+                              df[df.F1_MACRO.isnull()]))[
         ["SETUP_NAME", "SEED", "TARGET_SET"]]
     df = df.drop(missing_data.index)
     return df, missing_data
 
 
 def plot(df, y_score, token_metric, palette_name, png_name):
-    if token_metric.startswith("TARGET_"):
+    if (token_metric.startswith("TARGET_")
+        or token_metric.endswith("ratio_ratio")
+        or token_metric == "ttr_ratio"):
         hue = token_metric
         y_tok = token_metric
     else:
@@ -208,7 +240,7 @@ def plot(df, y_score, token_metric, palette_name, png_name):
     width_ratios = [4 for _ in range(n_plms)] + [1]
     fig, axes = plt.subplots(
         2 * n_targets, n_plms + 1,
-        figsize=((n_plms + 1) * 3, n_targets * 5),
+        figsize=((n_plms + 1) * 3, n_targets * 6),
         sharey="row", sharex="col",
         gridspec_kw={"width_ratios": width_ratios}
     )
@@ -220,7 +252,7 @@ def plot(df, y_score, token_metric, palette_name, png_name):
                ((x - vmin) / (vmax - vmin))
                for x in df[hue]}
     corr_stats = {}
-
+    measure_stats = {}
     for setup, df_for_setup in df.groupby("setup"):
         target = df_for_setup["target"].unique()[0]
         plm = df_for_setup["PLM"].unique()[0]
@@ -235,14 +267,16 @@ def plot(df, y_score, token_metric, palette_name, png_name):
         )
         score_plot.set_title(setup)
 
+        # Draw lines indicating where the optimal values
+        # (train ratio == target ratio) would be.
+        target_measure = None
         if not token_metric.startswith("TARGET_"):
-            # Draw lines indicating where the optimal values
-            # (train ratio == target ratio) would be.
             y_target = token_metric.upper() + "_TARGET"
             zero_diff_col = plt.cm.get_cmap(palette_name)(0)
-            axes[row + 1, col].axhline(
-                df.loc[df['setup'] == setup, y_target].iloc[0],
-                c=zero_diff_col)
+            target_measure = df.loc[df['setup'] == setup, y_target].iloc[0]
+            axes[row + 1, col].axhline(target_measure, c=zero_diff_col)
+            axes[row + 1, col].text(100, target_measure,
+                                f"{target_measure:.2f}", fontsize=9)
 
         # Plot the tokenization measure
         token_plot = sns.scatterplot(
@@ -253,27 +287,84 @@ def plot(df, y_score, token_metric, palette_name, png_name):
         token_plot.set_xticks([0, 15, 35, 55, 75, 95])
 
         # Add correlation info
-        if len(df_for_setup[hue]) >= 2:
-            label = ""
+        label = ""
+        try:
+            avg_score = df_for_setup[y_score].mean()
+        except ValueError:
+            avg_score = "??"
+        try:
+            r, r_p = pearsonr(df_for_setup[hue],
+                              df_for_setup[y_score])
+            label = f"r = {r:.2f} (p = {r_p:.2f})\n"
+        except ValueError:
+            r, r_p = "??", "??"
+            label = "r = ?? (p = ??)\n"
+        try:
+            rho, rho_p = spearmanr(df_for_setup[hue],
+                                   df_for_setup[y_score])
+            label += f"ρ = {rho:.2f} (p = {rho_p:.2f})"
+        except ValueError:
+            rho, rho_p = "??", "??"
+            label += "ρ = ?? (p = ??)"
+        try:
+            corr_stats[target][plm] = [
+                str(avg_score), str(rho), str(rho_p)]
+        except KeyError:
+            corr_stats[target] = {
+                plm: [str(avg_score), str(rho), str(rho_p)]}
+        axes[row + 1, col].text(0, y_pos_corr, label, fontsize=9)
+        
+        acc_averages = []
+        measure_train_averages = []
+        noise_lvls = (0, 15, 35, 55, 75, 95)
+        acc_0_std = None
+        for noise in noise_lvls:
+            avg_acc = df_for_setup[
+                df_for_setup.noise == noise][y_score].mean()
+            acc_averages.append(avg_acc)
+            axes[row, col].text(noise + 2, avg_acc,
+                                f"{avg_acc:.2f}", fontsize=9)
+            if noise == 0:
+                acc_0_std = df_for_setup[
+                    df_for_setup.noise == noise][y_score].std()
+            avg_measure_train = df_for_setup[
+                df_for_setup.noise == noise][y_tok].mean()
+            measure_train_averages.append(avg_measure_train)
+            axes[row + 1, col].text(noise + 2, avg_measure_train,
+                                f"{avg_measure_train:.2f}", fontsize=9)
+        saved_scores = corr_stats[target][plm]
+        corr_stats[target][plm] = [saved_scores[0]] + [str(a) for a in acc_averages] + saved_scores[1:]
+        if target_measure:
+            tr_lt_tgt0 = measure_train_averages[0] < target_measure
+            tr_lt_tgt15 = measure_train_averages[1] < target_measure
+            acc_0 = acc_averages[0]
+            acc_15 = acc_averages[1]
+            if acc_15 > acc_0 + acc_0_std:
+                improvement = "'+"
+                if tr_lt_tgt0:
+                    verdict = "Great!"
+                else:
+                    verdict = "Missed opportunity"
+            elif acc_0 - acc_0_std > acc_15:
+                improvement = "'-"
+                if tr_lt_tgt0:
+                    verdict = "Loss!"
+                else:
+                    verdict = "Good"
+            else:
+                improvement = "'="
+                verdict = "Inconclusive"
+            max_acc = max(acc_averages)
+            best_noise = (0, 15, 35, 55, 75, 95)[
+                acc_averages.index(max_acc)]
+            summary = (str(tr_lt_tgt0), str(tr_lt_tgt15),
+                       str(acc_0), str(acc_15), str(acc_0_std),
+                       improvement, verdict,
+                       str(max_acc), str(best_noise))
             try:
-                r, r_p = pearsonr(df_for_setup[hue],
-                                  df_for_setup[y_score])
-                label = f"r = {r:.2f} (p = {r_p:.2f})\n"
-            except ValueError:
-                r, r_p = "??", "??"
-                label = "r = ?? (p = ??)\n"
-            try:
-                rho, rho_p = spearmanr(df_for_setup[hue],
-                                       df_for_setup[y_score])
-                label += f"ρ = {rho:.2f} (p = {rho_p:.2f})"
-            except ValueError:
-                rho, rho_p = "??", "??"
-                label += "ρ = ?? (p = ??)"
-            axes[row + 1, col].text(0, y_pos_corr, label, fontsize=9)
-            try:
-                corr_stats[target][plm] = (rho, rho_p)
+                measure_stats[target][plm] = summary
             except KeyError:
-                corr_stats[target] = {plm: (rho, rho_p)}
+                measure_stats[target] = {plm: summary}
 
         # Remove visual clutter
         for j in (row, row + 1):
@@ -321,28 +412,36 @@ def plot(df, y_score, token_metric, palette_name, png_name):
     # print correlation stats
     train = df_for_setup["train"].unique()[0]
     mono = train2monolingual(train)
-    stats = []
+    stats_c = []
+    stats_m = []
     for target in corr_stats:
         try:
-            stats_mono = corr_stats[target][mono]
+            stats_c_mono = corr_stats[target][mono]
+            stats_m_mono = measure_stats[target][mono]
         except KeyError:
-            stats_mono = ("", "")
+            stats_c_mono = ("", "", "", "", "", "", "", "", "")
+            stats_m_mono = ("", "", "", "", "", "", "", "", "")
         try:
-            stats_mbert = corr_stats[target]["mBERT"]
+            stats_c_mbert = corr_stats[target]["mBERT"]
+            stats_m_mbert = measure_stats[target]["mBERT"]
         except KeyError:
-            stats_mbert = ("", "")
+            stats_c_mbert = ("", "", "", "", "", "", "", "", "")
+            stats_m_mbert = ("", "", "", "", "", "", "", "", "")
         try:
-            stats_xlmr = corr_stats[target]["XLM-R"]
+            stats_c_xlmr = corr_stats[target]["XLM-R"]
+            stats_m_xlmr = measure_stats[target]["XLM-R"]
         except KeyError:
-            stats_xlmr = ("", "")
-        stat = "\t".join((
-            train, target,
-            str(stats_mono[0]), str(stats_mono[1]),
-            str(stats_mbert[0]), str(stats_mbert[1]),
-            str(stats_xlmr[0]), str(stats_xlmr[1])))
-        print(stat)
-        stats.append(stat)
-    return stats
+            stats_c_xlmr = ("", "", "", "", "", "", "", "", "")
+            stats_m_xlmr = ("", "", "", "", "", "", "", "", "")
+        stat_c = "\t".join((train, target, *stats_c_mono,
+                            *stats_c_mbert, *stats_c_xlmr))
+        stat_m = "\t".join((train, target, *stats_m_mono,
+                            *stats_m_mbert, *stats_m_xlmr))
+        print(stat_c)
+        print(stat_m)
+        stats_c.append(stat_c)
+        stats_m.append(stat_m)
+    return stats_c, stats_m
 
 
 def reverse_palette(palette_name):
@@ -351,54 +450,38 @@ def reverse_palette(palette_name):
     return palette_name + "_r"
 
 
-def sort_score(item):
-    if item.startswith("German"):
-        if "Low Saxon" in item:
-            return 0.5
-        return 0
-    if item.startswith("Dutch"):
-        return 1
-    if item.startswith("Bokmål"):
-        return 2
-    if item.startswith("Nynorsk"):
-        return 3
-    if item.startswith("French"):
-        if "Occitan" in item:
-            return 4.5
-        return 4
-    if item.startswith("Spanish"):
-        return 5
-    if item.startswith("MSA ("):
-        return 7
-    if item.startswith("MSA"):
-        return 6
-    if item.startswith("Maltese"):
-        return 8
-    return 9
-
-
 if __name__ == "__main__":
     sns.set_theme(style="whitegrid")
 
-    token_metrics = ("subtoken_ratio", "unk_ratio",
-                     "split_token_ratio", "ttr",
-                     "TARGET_SUBTOKS_IN_TRAIN",
-                     "TARGET_SUBTOK_TYPES_IN_TRAIN",
-                     "TARGET_WORD_TOKENS_IN_TRAIN",
-                     "TARGET_WORD_TYPES_IN_TRAIN")
+    token_metrics = (
+        "subtoken_ratio",
+        "unk_ratio",
+        "split_token_ratio",
+        "ttr",
+        "subtoken_ratio_ratio",
+        "split_token_ratio_ratio", "ttr_ratio",
+        "TARGET_SUBTOKS_IN_TRAIN",
+        "TARGET_SUBTOK_TYPES_IN_TRAIN",
+        "TARGET_WORD_TOKENS_IN_TRAIN",
+        "TARGET_WORD_TYPES_IN_TRAIN",
+    )
 
-    with open("../results/correlation_missing.log", "w+") as f_o:
-        pass
+    # with open("../results/correlation_missing.log", "w+") as f_o:
+    #     pass
     palette_name = "plasma"  # "plasma", "hot", "YlGnBu_r"
-    metric2stats = {}
+    metric2stats_c = {}
+    metric2stats_m = {}
+    # for stats_file in glob("../results/stats-nob*"):
     for stats_file in glob("../results/stats-*"):
+        if "mudt" in stats_file or "translit" in stats_file:
+            continue
         print("Processing " + stats_file)
         df, missing_data = process_data_stats(stats_file)
-        if not missing_data.empty:
-            print(missing_data)
-            with open("../results/correlation_missing.log", "a") as f_o:
-                f_o.write(str(missing_data))
-                f_o.write("\n")
+    #     if not missing_data.empty:
+    #         print(missing_data)
+    #         with open("../results/correlation_missing.log", "a") as f_o:
+    #             f_o.write(str(missing_data))
+    #             f_o.write("\n")
         train_name = df.train.unique()[0]
         target_name = "_".join(df.target.unique()).replace(" ", "-")
         for token_metric in token_metrics:
@@ -411,20 +494,41 @@ if __name__ == "__main__":
             for y_score in ("F1_MACRO", "ACCURACY"):
                 score_short = "f1" if y_score.startswith("F1") else "acc"
                 png_name = f"{folder}/{train_name}_{target_name}_{score_short}_{token_metric}.png"
-                stats = plot(df, y_score, token_metric, palette, png_name)
-                _stats = metric2stats.get(token_metric + "_" + y_score, [])
-                metric2stats[token_metric + "_" + y_score] = _stats + stats
+                stats_c, stats_m = plot(df, y_score, token_metric,
+                                        palette, png_name)
+                _stats_c = metric2stats_c.get(token_metric + "_" + y_score, [])
+                _stats_m = metric2stats_m.get(token_metric + "_" + y_score, [])
+                metric2stats_c[token_metric + "_" + y_score] = _stats_c + stats_c
+                metric2stats_m[token_metric + "_" + y_score] = _stats_m + stats_m
 
-    old_setups = ("Spanish  ancoraspa", "Spanish    Picard",
-                  "Dutch    Swiss German", "Dutch   Alsatian G.",)
+    old_setups = ("Spanish\tancoraspa", "Spanish\tPicard",
+                  "Dutch\tSwiss German", "Dutch\tAlsatian G.",)
 
-    for metric in metric2stats:
+    for metric in metric2stats_c:
         filename = "../results/correlation_" + metric + ".tsv"
         with open(filename, "w+", encoding="utf8") as f_out:
             print("Writing correlation stats to " + filename)
-            f_out.write("TRAIN\tTARGET\tRHO_MONOLINGUAL\tP_MONOLINGUAL\t"
-                        "RHO_MBERT\tP_MBERT\tRHO_XLMR\tP_XLMR\n")
-            stats = metric2stats[metric]
+            f_out.write("TRAIN\tTARGET")
+            for model in ("MONOLINGUAL", "MBERT", "XLMR"):
+                f_out.write(f"\tAVG_ALL_{model}\tAVG_0_{model}\tAVG_15_{model}")
+                f_out.write(f"\tAVG_35_{model}\tAVG_55_{model}\tAVG_75_{model}")
+                f_out.write(f"\tAVG_95_{model}\tRHO_{model}\tP_{model}")
+            f_out.write("\n")
+            stats = metric2stats_c[metric]
+            for s in sorted(stats, key=lambda x: sort_score(x)):
+                skip_item = False
+                for old in old_setups:
+                    if s.startswith(old):
+                        skip_item = True
+                        break
+                if not skip_item:
+                    f_out.write(s + "\n")
+
+    for metric in metric2stats_m:
+        filename = "../results/binary_" + metric + ".tsv"
+        with open(filename, "w+", encoding="utf8") as f_out:
+            print("Writing correlation stats to " + filename)
+            stats = metric2stats_m[metric]
             for s in sorted(stats, key=lambda x: sort_score(x)):
                 skip_item = False
                 for old in old_setups:
