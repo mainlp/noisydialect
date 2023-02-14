@@ -285,7 +285,8 @@ def ara(in_file, out_file, include_tag_details=True, print_mapping=False,
         "PART+PROG_PART": "PART+X",
     }
 
-    part2sconj_forms = ("إن", "ان،", "أن،")
+    part2sconj_forms = ["إن", "ان", "أن"]  # PADT SCONJ forms
+    part2sconj_forms += ["إِن", "إِنَّ", "أَن", "أَنَّ"]  # PADT SCONJ lemmas
     tag_map = {}
     n_not_split = 0
     n_segments_ok = 0
