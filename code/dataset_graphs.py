@@ -212,7 +212,8 @@ def process_data_stats(filename):
     for diff in ("SUBTOKEN_RATIO_DIFF", "UNK_RATIO_DIFF",
                  "TTR_DIFF", "SPLIT_TOKEN_RATIO_DIFF"):
         df[diff.lower() + "_abs"] = df[diff].apply(lambda x: abs(x))
-        df[diff.lower().replace("diff", "ratio")] = df[diff.replace("DIFF", "TARGET")] / df[diff.replace("DIFF", "TRAIN")]
+        df[diff.lower().replace("diff", "ratio")] = df[
+            diff.replace("DIFF", "TARGET")] / df[diff.replace("DIFF", "TRAIN")]
         df[diff.replace("DIFF", "RATIO_TARGET")] = 1.0
     missing_data = pd.concat((df[df.ACCURACY == -1],
                               df[df.ACCURACY.isnull()],
@@ -229,7 +230,7 @@ def plot(df, y_score, token_metric, palette_name, png_name,
          custom_score_ticklabels=None, custom_tok_ticklabels=None):
     if (token_metric.startswith("TARGET_")
         or token_metric.endswith("ratio_ratio")
-        or token_metric == "ttr_ratio"):
+            or token_metric == "ttr_ratio"):
         hue = token_metric
         y_tok = token_metric
     else:
@@ -243,7 +244,8 @@ def plot(df, y_score, token_metric, palette_name, png_name,
     n_cols = n_plms
     n_rows = 2 * n_targets
     width_ratios = [4 for _ in range(n_cols)]
-    height_ratios = [x for doub in [(4, 3.5) for _ in range(n_targets)] for x in doub]
+    height_ratios = [x for doub in [(4, 3.5) for _ in range(n_targets)]
+                     for x in doub]
     if color_bar_vertical:
         width_ratios += [1]
         n_cols += 1
@@ -258,13 +260,17 @@ def plot(df, y_score, token_metric, palette_name, png_name,
                      "height_ratios": height_ratios,
                      # vertical/horizontal space between
                      # subplots:
-#                      "hspace": 0.1, 
+                     # "hspace": 0.1,
                      "wspace": 0.14}
     )
     y_pos_corr = 1.15 * (df[y_tok].max() - df[y_tok].min()) + df[y_tok].min()
 
-    vmin = df[hue].min()
-    vmax = df[hue].max()
+    if token_metric.startswith("TARGET_"):
+        vmax = 1.0
+        vmin = df[hue].min()
+    else:
+        vmin = 0.0
+        vmax = df[hue].max()
     palette = {x: plt.cm.get_cmap(palette_name)
                ((x - vmin) / (vmax - vmin))
                for x in df[hue]}
@@ -296,7 +302,7 @@ def plot(df, y_score, token_metric, palette_name, png_name,
             target_measure = df.loc[df['setup'] == setup, y_target].iloc[0]
             axes[row + 1, col].axhline(target_measure, c=zero_diff_col)
             axes[row + 1, col].text(100, target_measure,
-                                f"{target_measure:.2f}", fontsize=9)
+                                    f"{target_measure:.2f}", fontsize=9)
 
         # Plot the tokenization measure
         token_plot = sns.scatterplot(
@@ -334,7 +340,7 @@ def plot(df, y_score, token_metric, palette_name, png_name,
                 corr_stats[target] = {
                     plm: [str(avg_score), str(rho), str(rho_p)]}
             axes[row + 1, col].text(0, y_pos_corr, label, fontsize=9)
-        
+
         acc_averages = []
         measure_train_averages = []
         noise_lvls = (0, 15, 35, 55, 75, 95)
@@ -350,42 +356,17 @@ def plot(df, y_score, token_metric, palette_name, png_name,
                     df_for_setup.noise == noise][y_score].std()
             avg_measure_train = df_for_setup[
                 df_for_setup.noise == noise][y_tok].mean()
-            measure_train_averages.append(avg_measure_train)
+            measure_train_averages.append(str(avg_measure_train))
             axes[row + 1, col].text(noise + 2, avg_measure_train,
-                                f"{avg_measure_train:.2f}", fontsize=9)
+                                    f"{avg_measure_train:.2f}", fontsize=9)
         if analyze_correlation:
             saved_scores = corr_stats[target][plm]
-            corr_stats[target][plm] = [saved_scores[0]] + [str(a) for a in acc_averages] + saved_scores[1:]
-        if target_measure:
-            tr_lt_tgt0 = measure_train_averages[0] < target_measure
-            tr_lt_tgt15 = measure_train_averages[1] < target_measure
-            acc_0 = acc_averages[0]
-            acc_15 = acc_averages[1]
-            if acc_15 > acc_0 + acc_0_std:
-                improvement = "'+"
-                if tr_lt_tgt0:
-                    verdict = "Great!"
-                else:
-                    verdict = "Missed opportunity"
-            elif acc_0 - acc_0_std > acc_15:
-                improvement = "'-"
-                if tr_lt_tgt0:
-                    verdict = "Loss!"
-                else:
-                    verdict = "Good"
-            else:
-                improvement = "'="
-                verdict = "Inconclusive"
-            max_acc = max(acc_averages)
-            best_noise = noise_lvls[acc_averages.index(max_acc)]
-            summary = (str(tr_lt_tgt0), str(tr_lt_tgt15),
-                       str(acc_0), str(acc_15), str(acc_0_std),
-                       improvement, verdict,
-                       str(max_acc), str(best_noise))
-            try:
-                measure_stats[target][plm] = summary
-            except KeyError:
-                measure_stats[target] = {plm: summary}
+            corr_stats[target][plm] = [saved_scores[0]] \
+                + [str(a) for a in acc_averages] + saved_scores[1:]
+        try:
+            measure_stats[target][plm] = measure_train_averages
+        except KeyError:
+            measure_stats[target] = {plm: measure_train_averages}
 
         # Remove visual clutter
         for j in (row, row + 1):
@@ -459,15 +440,13 @@ def plot(df, y_score, token_metric, palette_name, png_name,
     cbar.ax.tick_params(right=False)
     if color_bar_vertical:
         cbar.ax.tick_params(axis='y', pad=0)
-        cbar.ax.set_yticks([0,  # vmin,
-                            vmax])
-        cbar.ax.set_yticklabels([0,  # math.ceil(vmin * 100) / 100,
+        cbar.ax.set_yticks([vmin, vmax])
+        cbar.ax.set_yticklabels([math.ceil(vmin * 100) / 100,
                                  math.floor(vmax * 100) / 100])
     else:
         cbar.ax.tick_params(axis='x', pad=1)
-        cbar.ax.set_xticks([0,  # vmin,
-                            vmax])
-        cbar.ax.set_xticklabels([0, #math.ceil(vmin * 100) / 100,
+        cbar.ax.set_xticks([vmin, vmax])
+        cbar.ax.set_xticklabels([math.ceil(vmin * 100) / 100,
                                  math.floor(vmax * 100) / 100], fontsize=11)
     cbar.set_label(pretty_colorbar_label(hue), fontsize=11,
                    labelpad=labelpad)
@@ -475,7 +454,7 @@ def plot(df, y_score, token_metric, palette_name, png_name,
     if png_name:
         fig.savefig(png_name, pad_inches=0)
 
-    # Make correlation stats print-ready
+    # Make correlation/result stats print-ready
     stats_c = []
     stats_m = []
     if analyze_correlation:
@@ -487,19 +466,19 @@ def plot(df, y_score, token_metric, palette_name, png_name,
                 stats_m_mono = measure_stats[target][mono]
             except KeyError:
                 stats_c_mono = ("", "", "", "", "", "", "", "", "")
-                stats_m_mono = ("", "", "", "", "", "", "", "", "")
+                stats_m_mono = ("", "", "", "", "", "", "")
             try:
                 stats_c_mbert = corr_stats[target]["mBERT"]
                 stats_m_mbert = measure_stats[target]["mBERT"]
             except KeyError:
                 stats_c_mbert = ("", "", "", "", "", "", "", "", "")
-                stats_m_mbert = ("", "", "", "", "", "", "", "", "")
+                stats_m_mbert = ("", "", "", "", "", "", "")
             try:
                 stats_c_xlmr = corr_stats[target]["XLM-R"]
                 stats_m_xlmr = measure_stats[target]["XLM-R"]
             except KeyError:
                 stats_c_xlmr = ("", "", "", "", "", "", "", "", "")
-                stats_m_xlmr = ("", "", "", "", "", "", "", "", "")
+                stats_m_xlmr = ("", "", "", "", "", "", "")
             stat_c = "\t".join((train, target, *stats_c_mono,
                                 *stats_c_mbert, *stats_c_xlmr))
             stat_m = "\t".join((train, target, *stats_m_mono,
@@ -527,8 +506,7 @@ if __name__ == "__main__":
         "unk_ratio",
         "split_token_ratio",
         "ttr",
-        "subtoken_ratio_ratio",
-        "split_token_ratio_ratio", "ttr_ratio",
+        # "subtoken_ratio_ratio", "split_token_ratio_ratio", "ttr_ratio",
         "TARGET_SUBTOKS_IN_TRAIN",
         "TARGET_SUBTOK_TYPES_IN_TRAIN",
         "TARGET_WORD_TOKENS_IN_TRAIN",
@@ -566,9 +544,12 @@ if __name__ == "__main__":
                 stats_c, stats_m = plot(df, y_score, token_metric,
                                         palette, png_name)
                 _stats_c = metric2stats_c.get(token_metric + "_" + y_score, [])
-                _stats_m = metric2stats_m.get(token_metric + "_" + y_score, [])
                 metric2stats_c[token_metric + "_" + y_score] = _stats_c + stats_c
-                metric2stats_m[token_metric + "_" + y_score] = _stats_m + stats_m
+                if y_score == "ACCURACY":
+                    # This is independent of the score metric, so only keep
+                    # track of it once.
+                    _stats_m = metric2stats_m.get(token_metric, [])
+                    metric2stats_m[token_metric] = _stats_m + stats_m
 
     old_setups = ("Spanish\tancoraspa", "Spanish\tPicard",
                   "Dutch\tSwiss German", "Dutch\tAlsatian G.",)
@@ -579,8 +560,9 @@ if __name__ == "__main__":
             print("Writing correlation stats to " + filename)
             f_out.write("TRAIN\tTARGET")
             for model in ("MONOLINGUAL", "MBERT", "XLMR"):
-                f_out.write(f"\tAVG_ALL_{model}\tAVG_0_{model}\tAVG_15_{model}")
-                f_out.write(f"\tAVG_35_{model}\tAVG_55_{model}\tAVG_75_{model}")
+                f_out.write(f"\tAVG_ALL_{model}\tAVG_0_{model}")
+                f_out.write(f"\tAVG_15_{model}\tAVG_35_{model}")
+                f_out.write(f"\tAVG_55_{model}\tAVG_75_{model}")
                 f_out.write(f"\tAVG_95_{model}\tRHO_{model}\tP_{model}")
             f_out.write("\n")
             stats = metric2stats_c[metric]
@@ -594,9 +576,15 @@ if __name__ == "__main__":
                     f_out.write(s + "\n")
 
     for metric in metric2stats_m:
-        filename = "../results/binary_" + metric + ".tsv"
+        filename = "../results/averages_" + metric + ".tsv"
+        print("Writing measure averages to " + filename)
         with open(filename, "w+", encoding="utf8") as f_out:
-            print("Writing correlation stats to " + filename)
+            f_out.write("TRAIN\tTARGET")
+            for model in ("MONOLINGUAL", "MBERT", "XLMR"):
+                f_out.write(f"\tAVG_0_{model}\tAVG_15_{model}")
+                f_out.write(f"\tAVG_35_{model}\tAVG_55_{model}")
+                f_out.write(f"\tAVG_75_{model}\tAVG_95_{model}")
+            f_out.write("\n")
             stats = metric2stats_m[metric]
             for s in sorted(stats, key=lambda x: sort_score(x)):
                 skip_item = False
