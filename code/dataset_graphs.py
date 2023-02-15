@@ -506,7 +506,7 @@ if __name__ == "__main__":
         "unk_ratio",
         "split_token_ratio",
         "ttr",
-        # "subtoken_ratio_ratio", "split_token_ratio_ratio", "ttr_ratio",
+        "subtoken_ratio_ratio", "split_token_ratio_ratio", "ttr_ratio",
         "TARGET_SUBTOKS_IN_TRAIN",
         "TARGET_SUBTOK_TYPES_IN_TRAIN",
         "TARGET_WORD_TOKENS_IN_TRAIN",
