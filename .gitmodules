@@ -22,9 +22,6 @@
 [submodule "datasets/UD_Arabic-PADT"]
 	path = datasets/UD_Arabic-PADT
 	url = git@github.com:UniversalDependencies/UD_Arabic-PADT.git
-[submodule "datasets/UD_Maltese-MUDT"]
-	path = datasets/UD_Maltese-MUDT
-	url = git@github.com:UniversalDependencies/UD_Maltese-MUDT.git
 [submodule "datasets/dialectal_arabic_resources"]
 	path = datasets/dialectal_arabic_resources
 	url = git@github.com:qcri/dialectal_arabic_resources.git

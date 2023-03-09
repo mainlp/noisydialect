@@ -1,3 +1,14 @@
+# Does manipulating tokenization aid cross-lingual transfer? A study on POS tagging for non-standardized languages
+
+[Add text here, also links to submodule repos]
+
+```
+citation TBD
+```
+
+## Usage for replication
+
+
 0. Use the `--recursive` flag while cloning (the `datasets` folder contains git submodules):
 
 ```
@@ -15,11 +26,6 @@ pip install torch==1.12.1+cu116 -f https://download.pytorch.org/whl/torch_stable
 1. Retrieve the datasets that weren't included in any submodules.
 
 ```
-# NArabizi
-wget https://parsiti.github.io/NArabizi/NArabizi_Treebank.tar.gz
-tar -xzf NArabizi_Treebank.tar.gz -C datasets/
-rm NArabizi_Treebank.tar.gz 
-
 # RESTAURE Alsatian
 wget https://zenodo.org/record/2536041/files/Corpus_Release2_090119.zip
 unzip -d datasets/Restaure_Alsatian/ Corpus_Release2_090119.zip
@@ -61,17 +67,11 @@ cd code
 # Arabic lects #
 ################
 
-# UD_Arabic-PADT (original and transliterated) & UD_Maltese-MUDT
+# UD_Arabic-PADT
 for split in "train" "dev" "test"
 do 
   python3 A_corpus_prep.py --type ud --dir ../datasets/UD_Arabic-PADT/ --files ar_padt-ud-${split}.conllu --out ../datasets/${split}_PADT_UPOS.tsv
-  python3 A_corpus_prep.py --type ud --dir ../datasets/UD_Arabic-PADT/ --files ar_padt-ud-${split}.conllu --out ../datasets/${split}_PADT-translit_UPOS.tsv --translit
-  python3 A_corpus_prep.py --type ud --dir ../datasets/UD_Maltese-MUDT/ --files mt_mudt-ud-${split}.conllu --out ../datasets/${split}_MUDT_UPOS.tsv
 done
-
-# NArabizi treebank
-python3 A_corpus_prep.py --type narabizi --dir ../datasets/NArabizi_Treebank/Release_ACL2020/Gold_annotation --files test.NArabizi_treebank.conllu --out ../datasets/NArabizi_Treebank/test.NArabizi_treebank_cleaned.conllu --tagset ../datasets/tagset_upos.txt
-python3 A_corpus_prep.py --type ud --dir ../datasets/NArabizi_Treebank/ --files test.NArabizi_treebank_cleaned.conllu --out ../datasets/test_NArabizi_UPOS.tsv
 
 # dialectal_arabic_resources 
 # Optional preliminary check:
@@ -334,17 +334,6 @@ python3 B_data-matrix_prep.py ../configs/D_padt_arabert_test.cfg
 python3 B_data-matrix_prep.py ../configs/D_padt_mbert_test.cfg
 python3 B_data-matrix_prep.py ../configs/D_padt_xlmr_test.cfg
 
-python3 B_data-matrix_prep.py ../configs/B_padt-translit-full_padt-translit_bertu_orig.cfg
-python3 B_data-matrix_prep.py ../configs/B_padt-translit-full_padt-translit_mbert_orig.cfg
-python3 B_data-matrix_prep.py ../configs/B_padt-translit-full_padt-translit_xlmr_orig.cfg
-python3 B_data-matrix_prep.py ../configs/D_padt-translit_bertu_test.cfg
-python3 B_data-matrix_prep.py ../configs/D_padt-translit_mbert_test.cfg
-python3 B_data-matrix_prep.py ../configs/D_padt-translit_xlmr_test.cfg
-
-python3 B_data-matrix_prep.py ../configs/B_mudt-full_mudt_bertu_orig.cfg
-python3 B_data-matrix_prep.py ../configs/B_mudt-full_mudt_mbert_orig.cfg
-python3 B_data-matrix_prep.py ../configs/B_mudt-full_mudt_xlmr_orig.cfg
-
 python3 B_data-matrix_prep.py ../configs/D_gsd_camembert_test.cfg
 python3 B_data-matrix_prep.py ../configs/D_gsd_beto_test.cfg
 python3 B_data-matrix_prep.py ../configs/D_gsd_mbert_test.cfg
@@ -391,18 +380,6 @@ do
   python3 test_model.py C_padt-full_padt-egy_mbert_${noise} D_padt_mbert_test
   python3 test_model.py C_padt-full_padt-egy_xlmr_${noise} D_padt_xlmr_test
 
-  python3 run.py -c ../configs/C_mudt-full_mudt_bertu_${noise}.cfg --test_per_epoch --save_model
-  python3 run.py -c ../configs/C_mudt-full_mudt_mbert_${noise}.cfg --test_per_epoch --save_model
-  python3 run.py -c ../configs/C_mudt-full_mudt_xlmr_${noise}.cfg --test_per_epoch --save_model
-
-  python3 run.py -c ../configs/C_padt-translit-full_padt-translit_bertu_${noise}.cfg --test_per_epoch --save_model
-  python3 run.py -c ../configs/C_padt-translit-full_padt-translit_mbert_${noise}.cfg --test_per_epoch --save_model
-  python3 run.py -c ../configs/C_padt-translit-full_padt-translit_xlmr_${noise}.cfg --test_per_epoch --save_model
-
-  python3 test_model.py C_padt-translit-full_padt-translit_bertu_${noise} D_padt-translit_bertu_test
-  python3 test_model.py C_padt-translit-full_padt-translit_mbert_${noise} D_padt-translit_mbert_test
-  python3 test_model.py C_padt-translit-full_padt-translit_xlmr_${noise} D_padt-translit_xlmr_test
-
   python3 test_model.py C_gsd-full_gsd-rpic_camembert_${noise} D_gsd_camembert_test
   python3 test_model.py C_gsd-full_gsd-rpic_beto_${noise} D_gsd_beto_test
   python3 test_model.py C_gsd-full_gsd-rpic_mbert_${noise} D_gsd_mbert_test
@@ -420,7 +397,7 @@ do
 done
 
 # Reformat result files and calculate data stats
-for train_data in "padt" "padt-translit" "alpino" "nno" "nob" "gsd" "ancoraspa" "tdt" "hdt" "mudt"
+for train_data in "padt" "alpino" "nno" "nob" "gsd" "ancoraspa" "tdt" "hdt"
 do
   nice -n 1 python3 clean_up_results.py "../results/C_${train_data}-full*"
   echo "Calculating data stats for transfer from ${train_data}"
@@ -428,94 +405,3 @@ do
 done
 
 ```
-
-
-for train_data in "padt"
-do
-  nice -n 1 python3 clean_up_results.py "../results/C_${train_data}-full*"
-  echo "Calculating data stats for transfer from ${train_data}"
-  nice -n 1 python3 data_stats.py "../results/C_${train_data}-full*" ../results/stats-${train_data}.tsv
-done
-
-
-
-nice -n 1 python3 data_stats.py "../results/C_${train_data}-full*" ../results/stats-hdt-gbert15.tsv
-
-
-python3 run.py -c ../configs/C_hdt-full_hdt-noah_gbert_rand15_56789.cfg --test_per_epoch --save_model
-
-
-
-nice -n 5 python3 test_model.py C_hdt-full_hdt-noah_gbert_rand75 D_hdt_gbert_test
-
-
-
-"orig" "rand15" "rand35" "rand55" "rand75" "rand95"
-
-Old stuff below; ignore (will be removed):
-
-
- "gsd" "ancoraspa" "nob" "nno" "padt" "tdt"
-
-
-va
-export CUDA_VISIBLE_DEVICES=MIG-9ada8eeb-cf73-5a32-b182-861914ff2eac
-for train_data in "alpino"
-do
-  echo "Calculating data stats for transfer from ${train_data}"
-  python3 data_stats.py "../results/C_${train_data}*" ../results/stats-${train_data}.tsv
-done
-
-
-
-
-for noise in "orig" "rand15" "rand35"
-do
-  python3 run.py -c ../configs/C_alpino-full_alpino-noah_xlmr_${noise}.cfg --test_per_epoch --save_model
-done
-
-va
-
- "rand55" 
-
-
-va
-export CUDA_VISIBLE_DEVICES=MIG-5fbcc07b-421b-57d3-aae8-792ad6be10d2
-python3 run.py -c ../configs/C_alpino-full_alpino-noah_bertje_rand55.cfg --test_per_epoch --save_model
-
-
-
-
-python3 run.py -c ../configs/C_nno-full_nno-west_mbert_orig-56789.cfg --test_per_epoch --save_model
-
-
-
-
-0/0
-export CUDA_VISIBLE_DEVICES=MIG-9ada8eeb-cf73-5a32-b182-861914ff2eac
-
-
-3/0
-export CUDA_VISIBLE_DEVICES=MIG-feee0c61-26ec-5616-bb59-b6d777cc4f34
-
-3/1
-export CUDA_VISIBLE_DEVICES=MIG-c0386dcc-84bf-55a0-bb83-93d415e7a9e3
-
-4/0
-export CUDA_VISIBLE_DEVICES=MIG-cde26571-d967-57fe-bac7-029266b95b51
-
-4/1
-export CUDA_VISIBLE_DEVICES=MIG-5fbcc07b-421b-57d3-aae8-792ad6be10d2
-
-
-1/0
-export CUDA_VISIBLE_DEVICES=MIG-b765791e-00bd-51cd-90d2-ccf46d0093d2
-
-
-5/1
-export CUDA_VISIBLE_DEVICES=MIG-0f3b4979-897a-55f3-bf40-ea1672341ea6
-
-7/0
-export CUDA_VISIBLE_DEVICES=MIG-70b9af57-a4e4-59c6-8d6a-8b88673dec7d
-
-
