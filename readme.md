@@ -74,18 +74,12 @@ do
 done
 
 # dialectal_arabic_resources 
-# Optional preliminary check:
-python3 A_check_arabic_segmentation.py ../datasets/dialectal_arabic_resources/seg_plus_pos_egy.txt ../datasets/dialectal_arabic_resources/seg_plus_pos_lev.txt ../datasets/dialectal_arabic_resources/seg_plus_pos_glf.txt ../datasets/dialectal_arabic_resources/seg_plus_pos_mgr.txt  > ../logs/arabic_preprocessing.log 
-# The actual data conversion:
-python3 A_corpus_prep.py --type ara --dir ../datasets/dialectal_arabic_resources/ --files seg_plus_pos_egy.txt --out ../datasets/dev_dar-egy_UPOS.tsv
-python3 A_corpus_prep.py --type ara --dir ../datasets/dialectal_arabic_resources/ --files seg_plus_pos_glf.txt --out ../datasets/test_dar-glf_UPOS.tsv
-python3 A_corpus_prep.py --type ara --dir ../datasets/dialectal_arabic_resources/ --files seg_plus_pos_lev.txt --out ../datasets/test_dar-lev_UPOS.tsv
-python3 A_corpus_prep.py --type ara --dir ../datasets/dialectal_arabic_resources/ --files seg_plus_pos_mgr.txt --out ../datasets/test_dar-mgr_UPOS.tsv
-# Optional checks:
-python3 A_validate_input_file.py ../datasets/dev_dar-egy.tsv ../datasets/tagset_upos.txt
-python3 A_validate_input_file.py ../datasets/test_dar-glf.tsv ../datasets/tagset_upos.txt
-python3 A_validate_input_file.py ../datasets/test_dar-lev.tsv ../datasets/tagset_upos.txt
-python3 A_validate_input_file.py ../datasets/test_dar-mgr.tsv ../datasets/tagset_upos.txt
+cd datasets/qcri_dialectal_arabic_resources_UPOS
+python3 convert.py --type ara --dir dialectal_arabic_resources/ --files seg_plus_pos_egy.txt --out ../../datasets/dev_dar-egy_UPOS.tsv
+python3 convert.py --type ara --dir dialectal_arabic_resources/ --files seg_plus_pos_glf.txt --out ../../datasets/test_dar-glf_UPOS.tsv
+python3 convert.py --type ara --dir dialectal_arabic_resources/ --files seg_plus_pos_lev.txt --out ../../datasets/test_dar-lev_UPOS.tsv
+python3 convert.py --type ara --dir dialectal_arabic_resources/ --files seg_plus_pos_mgr.txt --out ../../datasets/test_dar-mgr_UPOS.tsv
+cd ../..
 
 
 #######################
