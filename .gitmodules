@@ -49,3 +49,6 @@
 [submodule "datasets/qcri_dialectal-arabic-resources_UPOS"]
 	path = datasets/qcri_dialectal-arabic-resources_UPOS
 	url = git@github.com:mainlp/qcri_dialectal-arabic-resources_UPOS.git
+[submodule "datasets/Lauseopin-arkiston-murrekorpus_UPOS"]
+	path = datasets/Lauseopin-arkiston-murrekorpus_UPOS
+	url = git@github.com:mainlp/Lauseopin-arkiston-murrekorpus_UPOS.git

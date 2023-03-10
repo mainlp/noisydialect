@@ -44,18 +44,18 @@ unzip -d datasets/ corpus_picard_restaure.zip
 mv datasets/corpus_picard_restaure datasets/Restaure_Picard
 rm corpus_picard_restaure.zip
 
-# LA-Murre
-wget https://korp.csc.fi/download/la-murre/vrt/la-murre-vrt.zip
-unzip -d datasets/ la-murre-vrt.zip
-rm la-murre-vrt.zip
-
 # UD_Norwegian-NynorskLIA_dialect
 cd datasets/UD_Norwegian-NynorskLIA_dialect
 ./run.sh
 cd ../..
+
+# LA-murre
+wget https://korp.csc.fi/download/la-murre/vrt/la-murre-vrt.zip
+unzip -d datasets/ la-murre-vrt.zip
+rm la-murre-vrt.zip
 ```
 
-The RESTAURE corpora are released under the [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) license.
+Both RESTAURE corpora are released under the [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) license.
 The LA-murre corpus is released under the [CC BY-ND 4.0](https://creativecommons.org/licenses/by-nd/4.0/) license.
 
 2. Convert the corpora into a common format: (This creates files named `{train,dev,test}_CORPUS_TAGSET.tsv` in the `datasets` folder.)
@@ -153,7 +153,8 @@ do
 done
 
 # Lauseopin arkiston murrekorpus
-python3 A_prep_lamurre.py
+cd datasets/Lauseopin-arkiston-murrekorpus_UPOS
+python3 convert.py --infiles "../LA-murre-vrt/lam_*.vrt --outdir ".." --groupby "region" --dev "SAV"
 ```
 
 3. Figure out which sentence length to use: (The results are used for the configs later on.)

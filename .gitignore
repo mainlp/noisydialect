@@ -6,11 +6,8 @@ data/
 notes/
 datasets/*.tsv
 datasets/Restaure*
-datasets/KenPos
-datasets/LA-murre-vrt
 */lightning_logs/
 *BACKUP*
-*.vrt
 results_old/
 results/*predictions*
 results/*pt
