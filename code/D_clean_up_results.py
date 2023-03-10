@@ -4,7 +4,7 @@ import sys
 
 import numpy as np
 
-from model import score
+from C_model import score
 
 
 def average_scores(directory):

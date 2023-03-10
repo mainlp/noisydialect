@@ -3,8 +3,8 @@ import sys
 
 from transformers import AutoTokenizer
 
-from config import Config
-from data import Data
+from C_config import Config
+from C_data import Data
 
 
 def print_line(f_out, setup_name, seed, name_train, target_name,

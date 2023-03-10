@@ -2,8 +2,8 @@
 Used for creating the input matrices for the experiments where the data
 aren't modified; this prevents some data prep/loading redundancies later on.
 """
-from config import Config
-from datamodule import PosDataModule
+from C_config import Config
+from C_datamodule import PosDataModule
 
 import sys
 

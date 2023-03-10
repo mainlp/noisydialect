@@ -8,6 +8,9 @@ citation TBD
 
 ## Usage for replication
 
+*Note:* This currently assumes a distinction between dev and test data, for consistency with the output currently in the `results` and `figures` folders.
+However, we would recommend making all of the dialect/LRL data `test` files, and to evaluate the models immediately against them (rather than saving the models first and loading them again later for the predictions, which can be slow).
+This would require mentioning the test files in the configuration files right away and preparing the corresponding input matrices earlier (currently step 7). Then you can also skip the `C_test_model.py` runs (currently in step 8).
 
 0. Use the `--recursive` flag while cloning (the `datasets` folder contains git submodules):
 
@@ -196,12 +199,12 @@ python3 B_create_configs.py --hyperparams
 
 for sfx in "2e-05_16" "3e-05_16" "2e-05_32" "3e-05_32"
 do
-  python3 run.py -c ../configs/gridsearch/B_hyperparams_tdt-full_tdt-sav_finbert_orig_${sfx}.cfg --test_per_epoch
-  python3 run.py -c ../configs/gridsearch/B_hyperparams_tdt-full_tdt-sav_xlmr_orig_${sfx}.cfg --test_per_epoch
-  python3 run.py -c ../configs/gridsearch/B_hyperparams_hdt-full_hdt-noah_gbert_orig_${sfx}.cfg --test_per_epoch
-  python3 run.py -c ../configs/gridsearch/B_hyperparams_hdt-full_hdt-noah_xlmr_orig_${sfx}.cfg --test_per_epoch
-  python3 run.py -c ../configs/gridsearch/B_hyperparams_padt-full_padt-egy_arabert_orig_${sfx}.cfg --test_per_epoch
-  python3 run.py -c ../configs/gridsearch/B_hyperparams_padt-full_padt-egy_xlmr_orig_${sfx}.cfg --test_per_epoch
+  python3 C_run.py -c ../configs/gridsearch/B_hyperparams_tdt-full_tdt-sav_finbert_orig_${sfx}.cfg --test_per_epoch
+  python3 C_run.py -c ../configs/gridsearch/B_hyperparams_tdt-full_tdt-sav_xlmr_orig_${sfx}.cfg --test_per_epoch
+  python3 C_run.py -c ../configs/gridsearch/B_hyperparams_hdt-full_hdt-noah_gbert_orig_${sfx}.cfg --test_per_epoch
+  python3 C_run.py -c ../configs/gridsearch/B_hyperparams_hdt-full_hdt-noah_xlmr_orig_${sfx}.cfg --test_per_epoch
+  python3 C_run.py -c ../configs/gridsearch/B_hyperparams_padt-full_padt-egy_arabert_orig_${sfx}.cfg --test_per_epoch
+  python3 C_run.py -c ../configs/gridsearch/B_hyperparams_padt-full_padt-egy_xlmr_orig_${sfx}.cfg --test_per_epoch
 done
 
 # Reformat results files
@@ -244,46 +247,46 @@ python3 B_create_configs.py --noiseonly
 
 for noise in "orig" "rand15" "rand35" "rand55" "rand75" "rand95"
 do
-  python3 run.py -c ../configs/C_hdt-full_hdt-noah_gbert_${noise}.cfg --test_per_epoch --save_model
-  python3 run.py -c ../configs/C_hdt-full_hdt-noah_bertje_${noise}.cfg --test_per_epoch --save_model
-  python3 run.py -c ../configs/C_hdt-full_hdt-noah_mbert_${noise}.cfg --tes_per_epoch --save_model
-  python3 run.py -c ../configs/C_hdt-full_hdt-noah_xlmr_${noise}.cfg --test_per_epoch --save_model
+  python3 C_run.py -c ../configs/C_hdt-full_hdt-noah_gbert_${noise}.cfg --test_per_epoch --save_model
+  python3 C_run.py -c ../configs/C_hdt-full_hdt-noah_bertje_${noise}.cfg --test_per_epoch --save_model
+  python3 C_run.py -c ../configs/C_hdt-full_hdt-noah_mbert_${noise}.cfg --tes_per_epoch --save_model
+  python3 C_run.py -c ../configs/C_hdt-full_hdt-noah_xlmr_${noise}.cfg --test_per_epoch --save_model
 
-  python3 run.py -c ../configs/C_alpino-full_alpino-noah_bertje_${noise}.cfg --test_per_epoch --save_model
-  python3 run.py -c ../configs/C_alpino-full_alpino-noah_gbert_${noise}.cfg --test_per_epoch --save_model
-  python3 run.py -c ../configs/C_alpino-full_alpino-noah_mbert_${noise}.cfg --test_per_epoch --save_model
-  python3 run.py -c ../configs/C_alpino-full_alpino-noah_xlmr_${noise}.cfg --test_per_epoch --save_model
+  python3 C_run.py -c ../configs/C_alpino-full_alpino-noah_bertje_${noise}.cfg --test_per_epoch --save_model
+  python3 C_run.py -c ../configs/C_alpino-full_alpino-noah_gbert_${noise}.cfg --test_per_epoch --save_model
+  python3 C_run.py -c ../configs/C_alpino-full_alpino-noah_mbert_${noise}.cfg --test_per_epoch --save_model
+  python3 C_run.py -c ../configs/C_alpino-full_alpino-noah_xlmr_${noise}.cfg --test_per_epoch --save_model
   
-  python3 run.py -c ../configs/C_gsd-full_gsd-rpic_camembert_${noise}.cfg --test_per_epoch --save_model
-  python3 run.py -c ../configs/C_gsd-full_gsd-rpic_beto_${noise}.cfg --test_per_epoch --save_model
-  python3 run.py -c ../configs/C_gsd-full_gsd-rpic_mbert_${noise}.cfg --test_per_epoch --save_model
-  python3 run.py -c ../configs/C_gsd-full_gsd-rpic_xlmr_${noise}.cfg --test_per_epoch --save_model
+  python3 C_run.py -c ../configs/C_gsd-full_gsd-rpic_camembert_${noise}.cfg --test_per_epoch --save_model
+  python3 C_run.py -c ../configs/C_gsd-full_gsd-rpic_beto_${noise}.cfg --test_per_epoch --save_model
+  python3 C_run.py -c ../configs/C_gsd-full_gsd-rpic_mbert_${noise}.cfg --test_per_epoch --save_model
+  python3 C_run.py -c ../configs/C_gsd-full_gsd-rpic_xlmr_${noise}.cfg --test_per_epoch --save_model
   
-  python3 run.py -c ../configs/C_ancoraspa-full_ancoraspa-rpic_beto_${noise}.cfg --test_per_epoch --save_model
-  python3 run.py -c ../configs/C_ancoraspa-full_ancoraspa-rpic_camembert_${noise}.cfg --test_per_epoch --save_model
-  python3 run.py -c ../configs/C_ancoraspa-full_ancoraspa-rpic_mbert_${noise}.cfg --test_per_epoch --save_model
-  python3 run.py -c ../configs/C_ancoraspa-full_ancoraspa-rpic_xlmr_${noise}.cfg --test_per_epoch --save_model
+  python3 C_run.py -c ../configs/C_ancoraspa-full_ancoraspa-rpic_beto_${noise}.cfg --test_per_epoch --save_model
+  python3 C_run.py -c ../configs/C_ancoraspa-full_ancoraspa-rpic_camembert_${noise}.cfg --test_per_epoch --save_model
+  python3 C_run.py -c ../configs/C_ancoraspa-full_ancoraspa-rpic_mbert_${noise}.cfg --test_per_epoch --save_model
+  python3 C_run.py -c ../configs/C_ancoraspa-full_ancoraspa-rpic_xlmr_${noise}.cfg --test_per_epoch --save_model
 
-  python3 run.py -c ../configs/C_nob-full_nob-west_norbert_${noise}.cfg --test_per_epoch --save_model
-  python3 run.py -c ../configs/C_nob-full_nob-west_mbert_${noise}.cfg --test_per_epoch --save_model
-  python3 run.py -c ../configs/C_nob-full_nob-west_xlmr_${noise}.cfg --test_per_epoch --save_model
+  python3 C_run.py -c ../configs/C_nob-full_nob-west_norbert_${noise}.cfg --test_per_epoch --save_model
+  python3 C_run.py -c ../configs/C_nob-full_nob-west_mbert_${noise}.cfg --test_per_epoch --save_model
+  python3 C_run.py -c ../configs/C_nob-full_nob-west_xlmr_${noise}.cfg --test_per_epoch --save_model
 
-  python3 run.py -c ../configs/C_nno-full_nno-west_norbert_${noise}.cfg --test_per_epoch --save_model
-  python3 run.py -c ../configs/C_nno-full_nno-west_bert_${noise}.cfg --test_per_epoch --save_model
-  python3 run.py -c ../configs/C_nno-full_nno-west_arabert_${noise}.cfg --test_per_epoch --save_model
-  python3 run.py -c ../configs/C_nno-full_nno-west_finbert_${noise}.cfg --test_per_epoch --save_model
-  python3 run.py -c ../configs/C_nno-full_nno-west_mbert_${noise}.cfg --test_per_epoch --save_model
-  python3 run.py -c ../configs/C_nno-full_nno-west_xlmr_${noise}.cfg --test_per_epoch --save_model
+  python3 C_run.py -c ../configs/C_nno-full_nno-west_norbert_${noise}.cfg --test_per_epoch --save_model
+  python3 C_run.py -c ../configs/C_nno-full_nno-west_bert_${noise}.cfg --test_per_epoch --save_model
+  python3 C_run.py -c ../configs/C_nno-full_nno-west_arabert_${noise}.cfg --test_per_epoch --save_model
+  python3 C_run.py -c ../configs/C_nno-full_nno-west_finbert_${noise}.cfg --test_per_epoch --save_model
+  python3 C_run.py -c ../configs/C_nno-full_nno-west_mbert_${noise}.cfg --test_per_epoch --save_model
+  python3 C_run.py -c ../configs/C_nno-full_nno-west_xlmr_${noise}.cfg --test_per_epoch --save_model
 
-  python3 run.py -c ../configs/C_padt-full_padt-egy_arabert_${noise}.cfg --test_per_epoch --save_model
-  python3 run.py -c ../configs/C_padt-full_padt-egy_mbert_${noise}.cfg --test_per_epoch --save_model
-  python3 run.py -c ../configs/C_padt-full_padt-egy_xlmr_${noise}.cfg --test_per_epoch --save_model
+  python3 C_run.py -c ../configs/C_padt-full_padt-egy_arabert_${noise}.cfg --test_per_epoch --save_model
+  python3 C_run.py -c ../configs/C_padt-full_padt-egy_mbert_${noise}.cfg --test_per_epoch --save_model
+  python3 C_run.py -c ../configs/C_padt-full_padt-egy_xlmr_${noise}.cfg --test_per_epoch --save_model
 
-  python3 run.py -c ../configs/C_tdt-full_tdt-sav_finbert_${noise}.cfg --test_per_epoch --save_model
-  python3 run.py -c ../configs/C_tdt-full_tdt-sav_estbert_${noise}.cfg --test_per_epoch --save_model
-  python3 run.py -c ../configs/C_tdt-full_tdt-sav_bert_${noise}.cfg --test_per_epoch --save_model
-  python3 run.py -c ../configs/C_tdt-full_tdt-sav_mbert_${noise}.cfg --test_per_epoch --save_model
-  python3 run.py -c ../configs/C_tdt-full_tdt-sav_xlmr_${noise}.cfg --test_per_epoch --save_model
+  python3 C_run.py -c ../configs/C_tdt-full_tdt-sav_finbert_${noise}.cfg --test_per_epoch --save_model
+  python3 C_run.py -c ../configs/C_tdt-full_tdt-sav_estbert_${noise}.cfg --test_per_epoch --save_model
+  python3 C_run.py -c ../configs/C_tdt-full_tdt-sav_bert_${noise}.cfg --test_per_epoch --save_model
+  python3 C_run.py -c ../configs/C_tdt-full_tdt-sav_mbert_${noise}.cfg --test_per_epoch --save_model
+  python3 C_run.py -c ../configs/C_tdt-full_tdt-sav_xlmr_${noise}.cfg --test_per_epoch --save_model
 done
 
 # Reformat results files
@@ -351,52 +354,53 @@ python3 B_data-matrix_prep.py ../configs/D_tdt_xlmr_test.cfg
 
 for noise in "orig" "rand15" "rand35" "rand55" "rand75" "rand95"
 do
-  python3 test_model.py C_hdt-full_hdt-noah_gbert_${noise} D_hdt_gbert_test
-  python3 test_model.py C_hdt-full_hdt-noah_bertje_${noise} D_hdt_bertje_test
-  python3 test_model.py C_hdt-full_hdt-noah_mbert_${noise} D_hdt_mbert_test
-  python3 test_model.py C_hdt-full_hdt-noah_xlmr_${noise} D_hdt_xlmr_test
+  python3 C_test_model.py C_hdt-full_hdt-noah_gbert_${noise} D_hdt_gbert_test
+  python3 C_test_model.py C_hdt-full_hdt-noah_bertje_${noise} D_hdt_bertje_test
+  python3 C_test_model.py C_hdt-full_hdt-noah_mbert_${noise} D_hdt_mbert_test
+  python3 C_test_model.py C_hdt-full_hdt-noah_xlmr_${noise} D_hdt_xlmr_test
 
-  python3 test_model.py C_alpino-full_alpino-noah_bertje_${noise} D_alpino_bertje_test
-  python3 test_model.py C_alpino-full_alpino-noah_gbert_${noise} D_alpino_gbert_test
-  python3 test_model.py C_alpino-full_alpino-noah_mbert_${noise} D_alpino_mbert_test
-  python3 test_model.py C_alpino-full_alpino-noah_xlmr_${noise} D_alpino_xlmr_test
+  python3 C_test_model.py C_alpino-full_alpino-noah_bertje_${noise} D_alpino_bertje_test
+  python3 C_test_model.py C_alpino-full_alpino-noah_gbert_${noise} D_alpino_gbert_test
+  python3 C_test_model.py C_alpino-full_alpino-noah_mbert_${noise} D_alpino_mbert_test
+  python3 C_test_model.py C_alpino-full_alpino-noah_xlmr_${noise} D_alpino_xlmr_test
 
-  python3 test_model.py C_nno-full_nno-west_norbert_${noise} D_nno_norbert_test
-  python3 test_model.py C_nno-full_nno-west_arabert_${noise} D_nno_arabert_test
-  python3 test_model.py C_nno-full_nno-west_finbert_${noise} D_nno_finbert_test
-  python3 test_model.py C_nno-full_nno-west_mbert_${noise} D_nno_mbert_test
-  python3 test_model.py C_nno-full_nno-west_xlmr_${noise} D_nno_xlmr_test
+  python3 C_test_model.py C_nno-full_nno-west_norbert_${noise} D_nno_norbert_test
+  python3 C_test_model.py C_nno-full_nno-west_arabert_${noise} D_nno_arabert_test
+  python3 C_test_model.py C_nno-full_nno-west_finbert_${noise} D_nno_finbert_test
+  python3 C_test_model.py C_nno-full_nno-west_mbert_${noise} D_nno_mbert_test
+  python3 C_test_model.py C_nno-full_nno-west_xlmr_${noise} D_nno_xlmr_test
 
-  python3 test_model.py C_nob-full_nob-west_norbert_${noise} D_nob_norbert_test
-  python3 test_model.py C_nob-full_nob-west_mbert_${noise} D_nob_mbert_test
-  python3 test_model.py C_nob-full_nob-west_xlmr_${noise} D_nob_xlmr_test
+  python3 C_test_model.py C_nob-full_nob-west_norbert_${noise} D_nob_norbert_test
+  python3 C_test_model.py C_nob-full_nob-west_mbert_${noise} D_nob_mbert_test
+  python3 C_test_model.py C_nob-full_nob-west_xlmr_${noise} D_nob_xlmr_test
 
-  python3 test_model.py C_padt-full_padt-egy_arabert_${noise} D_padt_arabert_test
-  python3 test_model.py C_padt-full_padt-egy_mbert_${noise} D_padt_mbert_test
-  python3 test_model.py C_padt-full_padt-egy_xlmr_${noise} D_padt_xlmr_test
+  python3 C_test_model.py C_padt-full_padt-egy_arabert_${noise} D_padt_arabert_test
+  python3 C_test_model.py C_padt-full_padt-egy_mbert_${noise} D_padt_mbert_test
+  python3 C_test_model.py C_padt-full_padt-egy_xlmr_${noise} D_padt_xlmr_test
 
-  python3 test_model.py C_gsd-full_gsd-rpic_camembert_${noise} D_gsd_camembert_test
-  python3 test_model.py C_gsd-full_gsd-rpic_beto_${noise} D_gsd_beto_test
-  python3 test_model.py C_gsd-full_gsd-rpic_mbert_${noise} D_gsd_mbert_test
-  python3 test_model.py C_gsd-full_gsd-rpic_xlmr_${noise} D_gsd_xlmr_test
+  python3 C_test_model.py C_gsd-full_gsd-rpic_camembert_${noise} D_gsd_camembert_test
+  python3 C_test_model.py C_gsd-full_gsd-rpic_beto_${noise} D_gsd_beto_test
+  python3 C_test_model.py C_gsd-full_gsd-rpic_mbert_${noise} D_gsd_mbert_test
+  python3 C_test_model.py C_gsd-full_gsd-rpic_xlmr_${noise} D_gsd_xlmr_test
 
-  python3 test_model.py C_ancoraspa-full_ancoraspa-rpic_beto_${noise} D_ancoraspa_beto_test
-  python3 test_model.py C_ancoraspa-full_ancoraspa-rpic_camembert_${noise} D_ancoraspa_camembert_test
-  python3 test_model.py C_ancoraspa-full_ancoraspa-rpic_mbert_${noise} D_ancoraspa_mbert_test
-  python3 test_model.py C_ancoraspa-full_ancoraspa-rpic_xlmr_${noise} D_ancoraspa_xlmr_test
+  python3 C_test_model.py C_ancoraspa-full_ancoraspa-rpic_beto_${noise} D_ancoraspa_beto_test
+  python3 C_test_model.py C_ancoraspa-full_ancoraspa-rpic_camembert_${noise} D_ancoraspa_camembert_test
+  python3 C_test_model.py C_ancoraspa-full_ancoraspa-rpic_mbert_${noise} D_ancoraspa_mbert_test
+  python3 C_test_model.py C_ancoraspa-full_ancoraspa-rpic_xlmr_${noise} D_ancoraspa_xlmr_test
 
-  python3 test_model.py C_tdt-full_tdt-sav_finbert_${noise} D_tdt_finbert_test
-  python3 test_model.py C_tdt-full_tdt-sav_bert_${noise} D_tdt_bert_test
-  python3 test_model.py C_tdt-full_tdt-sav_mbert_${noise} D_tdt_mbert_test
-  python3 test_model.py C_tdt-full_tdt-sav_xlmr_${noise} D_tdt_xlmr_test
+  python3 C_test_model.py C_tdt-full_tdt-sav_finbert_${noise} D_tdt_finbert_test
+  python3 C_test_model.py C_tdt-full_tdt-sav_bert_${noise} D_tdt_bert_test
+  python3 C_test_model.py C_tdt-full_tdt-sav_mbert_${noise} D_tdt_mbert_test
+  python3 C_test_model.py C_tdt-full_tdt-sav_xlmr_${noise} D_tdt_xlmr_test
 done
 
 # Reformat result files and calculate data stats
 for train_data in "padt" "alpino" "nno" "nob" "gsd" "ancoraspa" "tdt" "hdt"
 do
-  nice -n 1 python3 clean_up_results.py "../results/C_${train_data}-full*"
+  nice -n 1 python3 D_clean_up_results.py "../results/C_${train_data}-full*"
   echo "Calculating data stats for transfer from ${train_data}"
-  nice -n 1 python3 data_stats.py "../results/C_${train_data}-full*" ../results/stats-${train_data}.tsv
+  nice -n 1 python3 D_data_stats.py "../results/C_${train_data}-full*" ../results/stats-${train_data}.tsv
 done
 
+python3 D_dataset_graphs.py
 ```

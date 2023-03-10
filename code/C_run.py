@@ -1,7 +1,7 @@
-from clean_up_results import average_scores
-from config import Config
-from datamodule import PosDataModule
-from model import Classifier
+from D_clean_up_results import average_scores
+from C_config import Config
+from C_datamodule import PosDataModule
+from C_model import Classifier
 
 from argparse import ArgumentParser
 from pathlib import Path

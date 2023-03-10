@@ -1,5 +1,5 @@
-from data import Data
-from tokenizer import SCATokenizer
+from C_data import Data
+from C_tokenizer import SCATokenizer
 
 import pytorch_lightning as pl
 from torch.utils.data import DataLoader

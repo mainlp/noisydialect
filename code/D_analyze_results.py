@@ -1,10 +1,10 @@
 from collections import Counter
 import sys
 
-from data import DUMMY_POS
-import matplotlib.pyplot as plt
-from model import filter_predictions
+from C_data import DUMMY_POS
+from C_model import filter_predictions
 
+import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.metrics import ConfusionMatrixDisplay, classification_report,\
     confusion_matrix, accuracy_score, f1_score
@@ -74,7 +74,7 @@ def tag_distributions_confusion_matrix(predictions_file, tagset_file,
 
 if __name__ == "__main__":
     if len(sys.argv) < 3:
-        print("Usage: analyze.py PRED_FILE TAGSET_FILE [--nop] [--incl]")
+        print("Usage: D_analyze_results.py PRED_FILE TAGSET_FILE [--nop] [--incl]")
         print("(--nop = don't visualize the confusion matrix)")
         print("(--incl = include DUMMY_POS in the confusion matrix)")
         sys.exit(1)

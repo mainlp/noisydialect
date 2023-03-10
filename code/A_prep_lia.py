@@ -1,5 +1,3 @@
-
-
 def get_entries(input_files, upos=True, ortho=False, verbose=True):
     if upos:
         pos_idx = 3

@@ -1,6 +1,6 @@
-from config import Config
-from datamodule import PosDataModule
-from model import Classifier
+from C_config import Config
+from C_datamodule import PosDataModule
+from C_model import Classifier
 
 import sys
 

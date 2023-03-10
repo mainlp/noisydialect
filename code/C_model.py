@@ -1,5 +1,5 @@
-from data import DUMMY_POS
-from embeddings import CombinedEmbeddings
+from C_data import DUMMY_POS
+from C_embeddings import CombinedEmbeddings
 
 import copy
 import sys

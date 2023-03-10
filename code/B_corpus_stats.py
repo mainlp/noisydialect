@@ -1,4 +1,4 @@
-from data import Data
+from C_data import Data
 
 import sys
 
