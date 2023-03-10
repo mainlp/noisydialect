@@ -52,3 +52,6 @@
 [submodule "datasets/Lauseopin-arkiston-murrekorpus_UPOS"]
 	path = datasets/Lauseopin-arkiston-murrekorpus_UPOS
 	url = git@github.com:mainlp/Lauseopin-arkiston-murrekorpus_UPOS.git
+[submodule "datasets/convert-restaure-occitan"]
+	path = datasets/convert-restaure-occitan
+	url = git@github.com:mainlp/convert-restaure-occitan.git

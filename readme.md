@@ -138,11 +138,13 @@ do
 done
 
 # Restaure_Picard
+# The glosscomp flag is to exclude sentences that are written in French rather than Picard (i.e. where the (French) gloss of the sentence is identical to the sentence itself).
 python3 A_corpus_prep.py --type ud --glob "../datasets/Restaure_Picard/picud/*" --out ../datasets/dev_RPic_UPOS.tsv --glosscomp
 
 # Restaure_Occitan
-python3 A_corpus_prep.py --type ud --glob "../datasets/Restaure_Occitan/*" --out ../datasets/test_ROci_UPOS.tsv
-
+cd datasets/convert-restaure-occitan
+python3 convert.py --glob "../Restaure_Occitan/*" --out "../test_ROci_UPOS.tsv"
+cd ../..
 
 ####################
 # Finnish dialects #
@@ -158,6 +160,7 @@ done
 # Lauseopin arkiston murrekorpus
 cd datasets/Lauseopin-arkiston-murrekorpus_UPOS
 python3 convert.py --infiles "../LA-murre-vrt/lam_*.vrt --outdir ".." --groupby "region" --dev "SAV"
+cd ../..
 ```
 
 3. Figure out which sentence length to use: (The results are used for the configs later on.)

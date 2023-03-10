@@ -7,27 +7,6 @@ Sentence boundaries are indicated by empty lines.
 
 from argparse import ArgumentParser
 from glob import glob
-import re
-
-occitan_contractions = {"al": ("a", "lo"), "als": ("a", "los"),
-                        "au": ("a", "lo"), "aus": ("a", "los"),
-                        "ai": ("a", "lei"), "ais": ("a", "lei"),
-                        "ath": ("a", "eth"), "ara": ("a", "era"),
-                        "del": ("de", "lo"), "dels": ("de", "los"),
-                        "dei": ("de", "lei"), "des": ("de", "les"),
-                        "dau": ("de", "lo"), "daus": ("de", "los"),
-                        "deu": ("de", "lo"), "deus": ("de", "los"),
-                        "deth": ("de", "eth"),
-                        "dera": ("de", "era"), "deras": ("de", "eras"),
-                        "pel": ("per", "lo"), "pels": ("per", "los"),
-                        "peu": ("per", "lo"), "peus": ("per", "los"),
-                        "peth": ("per", "eth"), "pera": ("per", "era"),
-                        "sul": ("sus", "lo"), "suls": ("sus", "los"),
-                        "suu": ("sus", "lo"), "suus": ("sus", "los"),
-                        "tau": ("tà", "lo"), "taus": ("tà", "los"),
-                        "tath": ("tà", "eth"),
-                        "entau": ("entà", "lo"), "entaus": ("entà", "los"),
-                        }
 
 
 def ud(input_files, out_file, tagfix, upos=True, translit=False,
@@ -94,20 +73,9 @@ def ud(input_files, out_file, tagfix, upos=True, translit=False,
                         form = form.strip()
                         pos = cells[pos_idx]
                         if "+" in pos:
-                            print("Splitting " + pos + " and " + form
-                                  + " (Incompatible w/ translit or glosscomp)")
-                            try:
-                                lemmas = occitan_contractions[form.lower()]
-                                for i, (subpos, lemma) in enumerate(
-                                        zip(pos.split("+"), lemmas)):
-                                    subpos = tagfix.get(subpos, subpos)
-                                    if i == 0 and form[0] == form[0].upper():
-                                        lemma = lemma[0].upper() + lemma[1:]
-                                    sent.append((lemma, subpos, filename))
-                            except IndexError:
-                                print("Unknown lemma: " + form)
-                                print("Skipping sentence!")
-                                skip_sent = True
+                            print("Unknown POS tag: " + form + " " + pos)
+                            print("Skipping sentence!")
+                            skip_sent = True
                         else:
                             pos = tagfix.get(pos, pos)
                             if not pos:
@@ -203,48 +171,10 @@ def noah_excl(in_file, out_file, excl_file):
     print(f"Skipped {n_skipped} sentences.")
 
 
-def preprocess_narabizi(in_file, out_file, tagset_file):
-    # Fix mixed UTF-8/MacRoman encoding and whitespace issues
-    tags = set()
-    with open(tagset_file, encoding="utf8") as f:
-        for line in f:
-            tag = line.strip()
-            if tag:
-                tags.add(tag)
-    with open(out_file, 'w+', encoding="utf8") as f_out:
-        with open(in_file, encoding="mac-roman") as f_in:
-            for line in f_in:
-                if not line.startswith("#") and len(line) > 1:
-                    line = re.sub("\\s\\s+", "\t", line)
-                    for tag in tags:
-                        line = line.replace(" " + tag, "\t" + tag)
-                    cells = line.split("\t")
-                    if not cells[3] in tags:
-                        if len(cells) < 10:
-                            lemma_pos = "\t".join(cells[1].rsplit(" ", 1))
-                            line = cells[0] + "\t" + lemma_pos + "\t" +\
-                                "\t".join(cells[2:])
-                            print("Split '" + cells[1] + "'")
-                        elif len(cells) > 10:
-                            line = "\t".join(cells[0:2]) + "\t" +\
-                                cells[2] + " " + cells[3] + "\t" +\
-                                "\t".join(cells[4:])
-                            print("Merged '" + cells[2] + "' and '"
-                                  + cells[3] + "'")
-                        cells = line.split("\t")
-                    if len(cells) != 10:
-                        print(line)
-                try:
-                    line = line.encode("mac-roman").decode()
-                except UnicodeDecodeError:
-                    pass
-                f_out.write(line)
-
-
 if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("--type",
-                        choices=["ud", "noah", "narabizi"])
+                        choices=["ud", "noah"])
     parser.add_argument("--dir", default="",
                         help="data directory root")
     parser.add_argument("--files", default="",
@@ -255,7 +185,8 @@ if __name__ == "__main__":
     parser.add_argument("--out", help="output file")
     parser.add_argument("--excl", default="",
                         help="exclude sentences from the following file "
-                             "(only relevant for NOAH)")
+                             "(only relevant for NOAH, "
+                             "when UD Swiss German UZH is also used)")
     parser.add_argument("--xpos", dest="upos", action="store_false",
                         default=True)
     parser.add_argument("--ortho", action="store_true", default=False,
@@ -263,8 +194,6 @@ if __name__ == "__main__":
                              "words with phonetic annotations")
     parser.add_argument("--tigerize", action="store_true", default=False)
     parser.add_argument("--translit", action="store_true", default=False)
-    parser.add_argument("--tagset", default="",
-                        help="tagset file (only relevant for NArabizi)")
     parser.add_argument("--glosscomp", action="store_true", default=False)
     parser.add_argument("--incl_source_file", action="store_true",
                         default=False)
@@ -287,5 +216,3 @@ if __name__ == "__main__":
             noah_excl(args.dir + "/" + args.files, args.out, args.excl)
         else:
             noah(args.dir + "/" + args.files, args.out)
-    elif args.type == "narabizi":
-        preprocess_narabizi(args.dir + "/" + args.files, args.out, args.tagset)
