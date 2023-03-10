@@ -52,11 +52,6 @@ class Config:
                  T=-1,
                  subtoken_rep=None,  # {first, last, all}
                  tokenizer_name=None,
-                 # If use_sca_tokenizer == True, tokenizer_name is
-                 # the name of the base tokenizer from which the
-                 # SCATokenizer is built.
-                 use_sca_tokenizer=False,
-                 sca_sibling_weighting=None,  # {mean, relative}
                  # None -> no noise.
                  # {add_random_noise, add_custom_noise_general}
                  noise_type=None,

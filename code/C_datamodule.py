@@ -1,5 +1,4 @@
 from C_data import Data
-from C_tokenizer import SCATokenizer
 
 import pytorch_lightning as pl
 from torch.utils.data import DataLoader
@@ -27,12 +26,8 @@ class PosDataModule(pl.LightningDataModule):
             self.test_names = []
         self.test_sfx = test_sfx
         self.tokenizer = None
-        self.use_sca_tokenizer = config.use_sca_tokenizer
-        if self.use_sca_tokenizer:
-            self.tokenizer = SCATokenizer(config.tokenizer_name)
-        else:
-            self.tokenizer = AutoTokenizer.from_pretrained(
-                config.tokenizer_name)
+        self.tokenizer = AutoTokenizer.from_pretrained(
+            config.tokenizer_name)
 
     def idx2pos(self):
         return {self.pos2idx[pos]: pos for pos in self.pos2idx}
@@ -55,8 +50,7 @@ class PosDataModule(pl.LightningDataModule):
             train.add_noise(self.config.noise_type, self.config.noise_lvl,
                             alphabet)
             train.prepare_xy(self.tokenizer, self.config.T,
-                             self.config.subtoken_rep,
-                             alias_tokenizer=self.use_sca_tokenizer)
+                             self.config.subtoken_rep)
             train.save(self.config.data_parent_dir)
             print(f"Subtoken ratio ({self.train_name}): {train.subtok_ratio(return_all=True)}")
             print(f"UNK ratio ({self.train_name}): {train.unk_ratio(return_all=True)}")
@@ -82,8 +76,7 @@ class PosDataModule(pl.LightningDataModule):
                 # dev.add_noise(self.config.noise_type,
                 #               self.config.noise_lvl, alphabet)
                 dev.prepare_xy(self.tokenizer, self.config.T,
-                               self.config.subtoken_rep,
-                               alias_tokenizer=self.use_sca_tokenizer)
+                               self.config.subtoken_rep)
                 dev.save(self.config.data_parent_dir)
                 print(f"Subtoken ratio ({dev_name}): {dev.subtok_ratio(return_all=True)}")
                 print(f"UNK ratio ({dev_name}): {dev.unk_ratio(return_all=True)}")
@@ -100,8 +93,7 @@ class PosDataModule(pl.LightningDataModule):
                             max_sents=self.config.max_sents_test,
                             subset_selection=self.config.subset_selection)
                 test.prepare_xy(self.tokenizer, self.config.T,
-                                self.config.subtoken_rep,
-                                alias_tokenizer=self.use_sca_tokenizer)
+                                self.config.subtoken_rep)
                 test.save(self.config.data_parent_dir)
                 print(f"Subtoken ratio ({test_name}): {test.subtok_ratio(return_all=True)}")
                 print(f"UNK ratio ({test_name}): {test.unk_ratio(return_all=True)}")
