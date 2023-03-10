@@ -10,7 +10,6 @@ class Config:
                 'reinit_train_each_seed', \
                 'reinit_dev_each_seed', 'reinit_test_each_seed', \
                 'subtoken_rep', 'tokenizer_name', \
-                'use_sca_tokenizer', 'sca_sibling_weighting', \
                 'noise_type', 'noise_lvl', \
                 'data_parent_dir', 'bert_name', 'plm_type',\
                 'classifier_dropout', 'n_epochs', 'batch_size', \
@@ -22,7 +21,7 @@ class Config:
     floats = ('noise_lvl', 'classifier_dropout', 'learning_rate')
     bools = ('prepare_input_train', 'prepare_input_dev', 'prepare_input_test',
              'reinit_train_each_seed', 'reinit_dev_each_seed',
-             'reinit_test_each_seed', 'use_sca_tokenizer')
+             'reinit_test_each_seed')
     lists_of_ints = ('random_seeds')
 
     def __init__(self,
@@ -93,8 +92,6 @@ class Config:
         self.reinit_test_each_seed = reinit_test_each_seed
         self.subtoken_rep = subtoken_rep
         self.tokenizer_name = tokenizer_name
-        self.use_sca_tokenizer = use_sca_tokenizer
-        self.sca_sibling_weighting = sca_sibling_weighting
         self.noise_type = noise_type
         self.noise_lvl = noise_lvl
         self.data_parent_dir = data_parent_dir

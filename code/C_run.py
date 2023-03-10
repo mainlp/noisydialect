@@ -9,7 +9,6 @@ import sys
 
 import pytorch_lightning as pl
 import torch
-from transformers import BertTokenizer
 
 
 def main(config_path, gpus=[0], dryrun=False,
@@ -35,9 +34,6 @@ def main(config_path, gpus=[0], dryrun=False,
             if line:
                 pos2idx[line] = i
 
-    if config.use_sca_tokenizer and config.sca_sibling_weighting == 'relative':
-        orig_tokenizer = BertTokenizer.from_pretrained(config.tokenizer_name)
-
     if config.random_seeds:
         gen = enumerate(config.random_seeds)
     else:
@@ -61,17 +57,6 @@ def main(config_path, gpus=[0], dryrun=False,
                            train_sfx=train_sfx, dev_sfx=dev_sfx,
                            test_sfx=test_sfx)
         subtok2weight = None
-        if config.use_sca_tokenizer and \
-                config.sca_sibling_weighting == 'relative':
-            dm.prepare_data()
-            # Don't reload and re-prepare the input data when the classifier
-            # is trained/evaluated (especially since this could result in a
-            # new train--dev split):
-            dm.config.prepare_input_traindev = False
-            dm.config.prepare_input_test = False
-            dm.setup("fit")
-            subtok2weight = dm.train.get_subtoken_sibling_distribs(
-                dm.tokenizer, orig_tokenizer)
 
         if config.name_dev:
             val_data_names = config.name_dev.split(",")
@@ -82,7 +67,7 @@ def main(config_path, gpus=[0], dryrun=False,
 
         model = Classifier(config.bert_name, config.plm_type, pos2idx,
                            config.classifier_dropout,
-                           config.learning_rate, config.use_sca_tokenizer,
+                           config.learning_rate,
                            subtok2weight, val_data_names)
 
         if dryrun:
