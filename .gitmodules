@@ -43,15 +43,12 @@
 [submodule "datasets/UD_Italian-ISDT"]
 	path = datasets/UD_Italian-ISDT
 	url = git@github.com:UniversalDependencies/UD_Italian-ISDT.git
-[submodule "datasets/UD_Old_French-SRCMF"]
-	path = datasets/UD_Old_French-SRCMF
-	url = git@github.com:UniversalDependencies/UD_Old_French-SRCMF.git
 [submodule "datasets/qcri_dialectal-arabic-resources_UPOS"]
-	path = datasets/qcri_dialectal-arabic-resources_UPOS
-	url = git@github.com:mainlp/qcri_dialectal-arabic-resources_UPOS.git
+	path = datasets/convert-qcri-4dialects
+	url = git@github.com:mainlp/convert-qcri-4dialects.git
 [submodule "datasets/Lauseopin-arkiston-murrekorpus_UPOS"]
-	path = datasets/Lauseopin-arkiston-murrekorpus_UPOS
-	url = git@github.com:mainlp/Lauseopin-arkiston-murrekorpus_UPOS.git
+	path = datasets/convert-la-murrekorpus
+	url = git@github.com:mainlp/convert-la-murrekorpus.git
 [submodule "datasets/convert-restaure-occitan"]
 	path = datasets/convert-restaure-occitan
 	url = git@github.com:mainlp/convert-restaure-occitan.git

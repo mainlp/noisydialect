@@ -219,29 +219,21 @@ python3 clean_up_results.py
 # Data prep
 python3 B_data-matrix_prep.py ../configs/B_padt-full_padt-egy_mbert_orig.cfg
 python3 B_data-matrix_prep.py ../configs/B_tdt-full_tdt-sav_mbert_orig.cfg
-python3 B_data-matrix_prep.py ../configs/B_tdt-full_tdt-sav_estbert_orig.cfg
 python3 B_data-matrix_prep.py ../configs/B_tdt-full_tdt-sav_bert_orig.cfg
 python3 B_data-matrix_prep.py ../configs/B_hdt-full_hdt-noah_mbert_orig.cfg
-python3 B_data-matrix_prep.py ../configs/B_hdt-full_hdt-noah_bertje_orig.cfg
 python3 B_data-matrix_prep.py ../configs/B_gsd-full_gsd-rpic_camembert_orig.cfg
-python3 B_data-matrix_prep.py ../configs/B_gsd-full_gsd-rpic_beto_orig.cfg
 python3 B_data-matrix_prep.py ../configs/B_gsd-full_gsd-rpic_mbert_orig.cfg
 python3 B_data-matrix_prep.py ../configs/B_gsd-full_gsd-rpic_xlmr_orig.cfg
 python3 B_data-matrix_prep.py ../configs/B_ancoraspa-full_ancoraspa-rpic_beto_orig.cfg
-python3 B_data-matrix_prep.py ../configs/B_ancoraspa-full_ancoraspa-rpic_camembert_orig.cfg
 python3 B_data-matrix_prep.py ../configs/B_ancoraspa-full_ancoraspa-rpic_mbert_orig.cfg
 python3 B_data-matrix_prep.py ../configs/B_ancoraspa-full_ancoraspa-rpic_xlmr_orig.cfg
 python3 B_data-matrix_prep.py ../configs/B_nob-full_nob-west_norbert_orig.cfg
 python3 B_data-matrix_prep.py ../configs/B_nob-full_nob-west_mbert_orig.cfg
 python3 B_data-matrix_prep.py ../configs/B_nob-full_nob-west_xlmr_orig.cfg
 python3 B_data-matrix_prep.py ../configs/B_nno-full_nno-west_norbert_orig.cfg
-python3 B_data-matrix_prep.py ../configs/B_nno-full_nno-west_bert_orig.cfg
-python3 B_data-matrix_prep.py ../configs/B_nno-full_nno-west_finbert_orig.cfg
-python3 B_data-matrix_prep.py ../configs/B_nno-full_nno-west_arabert_orig.cfg
 python3 B_data-matrix_prep.py ../configs/B_nno-full_nno-west_mbert_orig.cfg
 python3 B_data-matrix_prep.py ../configs/B_nno-full_nno-west_xlmr_orig.cfg
 python3 B_data-matrix_prep.py ../configs/B_alpino-full_alpino-noah_bertje_orig.cfg
-python3 B_data-matrix_prep.py ../configs/B_alpino-full_alpino-noah_gbert_orig.cfg
 python3 B_data-matrix_prep.py ../configs/B_alpino-full_alpino-noah_mbert_orig.cfg
 python3 B_data-matrix_prep.py ../configs/B_alpino-full_alpino-noah_xlmr_orig.cfg
 
@@ -251,22 +243,18 @@ python3 B_create_configs.py --noiseonly
 for noise in "orig" "rand15" "rand35" "rand55" "rand75" "rand95"
 do
   python3 C_run.py -c ../configs/C_hdt-full_hdt-noah_gbert_${noise}.cfg --test_per_epoch --save_model
-  python3 C_run.py -c ../configs/C_hdt-full_hdt-noah_bertje_${noise}.cfg --test_per_epoch --save_model
   python3 C_run.py -c ../configs/C_hdt-full_hdt-noah_mbert_${noise}.cfg --tes_per_epoch --save_model
   python3 C_run.py -c ../configs/C_hdt-full_hdt-noah_xlmr_${noise}.cfg --test_per_epoch --save_model
 
   python3 C_run.py -c ../configs/C_alpino-full_alpino-noah_bertje_${noise}.cfg --test_per_epoch --save_model
-  python3 C_run.py -c ../configs/C_alpino-full_alpino-noah_gbert_${noise}.cfg --test_per_epoch --save_model
   python3 C_run.py -c ../configs/C_alpino-full_alpino-noah_mbert_${noise}.cfg --test_per_epoch --save_model
   python3 C_run.py -c ../configs/C_alpino-full_alpino-noah_xlmr_${noise}.cfg --test_per_epoch --save_model
   
   python3 C_run.py -c ../configs/C_gsd-full_gsd-rpic_camembert_${noise}.cfg --test_per_epoch --save_model
-  python3 C_run.py -c ../configs/C_gsd-full_gsd-rpic_beto_${noise}.cfg --test_per_epoch --save_model
   python3 C_run.py -c ../configs/C_gsd-full_gsd-rpic_mbert_${noise}.cfg --test_per_epoch --save_model
   python3 C_run.py -c ../configs/C_gsd-full_gsd-rpic_xlmr_${noise}.cfg --test_per_epoch --save_model
   
   python3 C_run.py -c ../configs/C_ancoraspa-full_ancoraspa-rpic_beto_${noise}.cfg --test_per_epoch --save_model
-  python3 C_run.py -c ../configs/C_ancoraspa-full_ancoraspa-rpic_camembert_${noise}.cfg --test_per_epoch --save_model
   python3 C_run.py -c ../configs/C_ancoraspa-full_ancoraspa-rpic_mbert_${noise}.cfg --test_per_epoch --save_model
   python3 C_run.py -c ../configs/C_ancoraspa-full_ancoraspa-rpic_xlmr_${noise}.cfg --test_per_epoch --save_model
 
@@ -275,9 +263,6 @@ do
   python3 C_run.py -c ../configs/C_nob-full_nob-west_xlmr_${noise}.cfg --test_per_epoch --save_model
 
   python3 C_run.py -c ../configs/C_nno-full_nno-west_norbert_${noise}.cfg --test_per_epoch --save_model
-  python3 C_run.py -c ../configs/C_nno-full_nno-west_bert_${noise}.cfg --test_per_epoch --save_model
-  python3 C_run.py -c ../configs/C_nno-full_nno-west_arabert_${noise}.cfg --test_per_epoch --save_model
-  python3 C_run.py -c ../configs/C_nno-full_nno-west_finbert_${noise}.cfg --test_per_epoch --save_model
   python3 C_run.py -c ../configs/C_nno-full_nno-west_mbert_${noise}.cfg --test_per_epoch --save_model
   python3 C_run.py -c ../configs/C_nno-full_nno-west_xlmr_${noise}.cfg --test_per_epoch --save_model
 
@@ -286,8 +271,6 @@ do
   python3 C_run.py -c ../configs/C_padt-full_padt-egy_xlmr_${noise}.cfg --test_per_epoch --save_model
 
   python3 C_run.py -c ../configs/C_tdt-full_tdt-sav_finbert_${noise}.cfg --test_per_epoch --save_model
-  python3 C_run.py -c ../configs/C_tdt-full_tdt-sav_estbert_${noise}.cfg --test_per_epoch --save_model
-  python3 C_run.py -c ../configs/C_tdt-full_tdt-sav_bert_${noise}.cfg --test_per_epoch --save_model
   python3 C_run.py -c ../configs/C_tdt-full_tdt-sav_mbert_${noise}.cfg --test_per_epoch --save_model
   python3 C_run.py -c ../configs/C_tdt-full_tdt-sav_xlmr_${noise}.cfg --test_per_epoch --save_model
 done
@@ -312,18 +295,14 @@ python3 dataset_graphs.py
 python3 B_generate_configs.py --modelonly
 
 python3 B_data-matrix_prep.py ../configs/D_hdt_gbert_test.cfg
-python3 B_data-matrix_prep.py ../configs/D_hdt_bertje_test.cfg
 python3 B_data-matrix_prep.py ../configs/D_hdt_mbert_test.cfg
 python3 B_data-matrix_prep.py ../configs/D_hdt_xlmr_test.cfg
 
 python3 B_data-matrix_prep.py ../configs/D_alpino_bertje_test.cfg
-python3 B_data-matrix_prep.py ../configs/D_alpino_gbert_test.cfg
 python3 B_data-matrix_prep.py ../configs/D_alpino_mbert_test.cfg
 python3 B_data-matrix_prep.py ../configs/D_alpino_xlmr_test.cfg
 
 python3 B_data-matrix_prep.py ../configs/D_nno_norbert_test.cfg
-python3 B_data-matrix_prep.py ../configs/D_nno_arabert_test.cfg
-python3 B_data-matrix_prep.py ../configs/D_nno_finbert_test.cfg
 python3 B_data-matrix_prep.py ../configs/D_nno_mbert_test.cfg
 python3 B_data-matrix_prep.py ../configs/D_nno_xlmr_test.cfg
 
@@ -336,17 +315,14 @@ python3 B_data-matrix_prep.py ../configs/D_padt_mbert_test.cfg
 python3 B_data-matrix_prep.py ../configs/D_padt_xlmr_test.cfg
 
 python3 B_data-matrix_prep.py ../configs/D_gsd_camembert_test.cfg
-python3 B_data-matrix_prep.py ../configs/D_gsd_beto_test.cfg
 python3 B_data-matrix_prep.py ../configs/D_gsd_mbert_test.cfg
 python3 B_data-matrix_prep.py ../configs/D_gsd_xlmr_test.cfg
 
 python3 B_data-matrix_prep.py ../configs/D_ancoraspa_beto_test.cfg
-python3 B_data-matrix_prep.py ../configs/D_ancoraspa_camembert_test.cfg
 python3 B_data-matrix_prep.py ../configs/D_ancoraspa_mbert_test.cfg
 python3 B_data-matrix_prep.py ../configs/D_ancoraspa_xlmr_test.cfg
 
 python3 B_data-matrix_prep.py ../configs/D_tdt_finbert_test.cfg
-python3 B_data-matrix_prep.py ../configs/D_tdt_bert_test.cfg
 python3 B_data-matrix_prep.py ../configs/D_tdt_mbert_test.cfg
 python3 B_data-matrix_prep.py ../configs/D_tdt_xlmr_test.cfg
 
@@ -358,18 +334,14 @@ python3 B_data-matrix_prep.py ../configs/D_tdt_xlmr_test.cfg
 for noise in "orig" "rand15" "rand35" "rand55" "rand75" "rand95"
 do
   python3 C_test_model.py C_hdt-full_hdt-noah_gbert_${noise} D_hdt_gbert_test
-  python3 C_test_model.py C_hdt-full_hdt-noah_bertje_${noise} D_hdt_bertje_test
   python3 C_test_model.py C_hdt-full_hdt-noah_mbert_${noise} D_hdt_mbert_test
   python3 C_test_model.py C_hdt-full_hdt-noah_xlmr_${noise} D_hdt_xlmr_test
 
   python3 C_test_model.py C_alpino-full_alpino-noah_bertje_${noise} D_alpino_bertje_test
-  python3 C_test_model.py C_alpino-full_alpino-noah_gbert_${noise} D_alpino_gbert_test
   python3 C_test_model.py C_alpino-full_alpino-noah_mbert_${noise} D_alpino_mbert_test
   python3 C_test_model.py C_alpino-full_alpino-noah_xlmr_${noise} D_alpino_xlmr_test
 
   python3 C_test_model.py C_nno-full_nno-west_norbert_${noise} D_nno_norbert_test
-  python3 C_test_model.py C_nno-full_nno-west_arabert_${noise} D_nno_arabert_test
-  python3 C_test_model.py C_nno-full_nno-west_finbert_${noise} D_nno_finbert_test
   python3 C_test_model.py C_nno-full_nno-west_mbert_${noise} D_nno_mbert_test
   python3 C_test_model.py C_nno-full_nno-west_xlmr_${noise} D_nno_xlmr_test
 
@@ -382,17 +354,14 @@ do
   python3 C_test_model.py C_padt-full_padt-egy_xlmr_${noise} D_padt_xlmr_test
 
   python3 C_test_model.py C_gsd-full_gsd-rpic_camembert_${noise} D_gsd_camembert_test
-  python3 C_test_model.py C_gsd-full_gsd-rpic_beto_${noise} D_gsd_beto_test
   python3 C_test_model.py C_gsd-full_gsd-rpic_mbert_${noise} D_gsd_mbert_test
   python3 C_test_model.py C_gsd-full_gsd-rpic_xlmr_${noise} D_gsd_xlmr_test
 
   python3 C_test_model.py C_ancoraspa-full_ancoraspa-rpic_beto_${noise} D_ancoraspa_beto_test
-  python3 C_test_model.py C_ancoraspa-full_ancoraspa-rpic_camembert_${noise} D_ancoraspa_camembert_test
   python3 C_test_model.py C_ancoraspa-full_ancoraspa-rpic_mbert_${noise} D_ancoraspa_mbert_test
   python3 C_test_model.py C_ancoraspa-full_ancoraspa-rpic_xlmr_${noise} D_ancoraspa_xlmr_test
 
   python3 C_test_model.py C_tdt-full_tdt-sav_finbert_${noise} D_tdt_finbert_test
-  python3 C_test_model.py C_tdt-full_tdt-sav_bert_${noise} D_tdt_bert_test
   python3 C_test_model.py C_tdt-full_tdt-sav_mbert_${noise} D_tdt_mbert_test
   python3 C_test_model.py C_tdt-full_tdt-sav_xlmr_${noise} D_tdt_xlmr_test
 done
