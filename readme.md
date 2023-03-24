@@ -284,10 +284,10 @@ python3 clean_up_results.py
 for train_data in "hdt" "gsd" "ancoraspa" "nob" "nno" "padt" "tdt"
 do
   echo "Calculating data stats for transfer from ${train_data}"
-  python3 data_stats.py "../results/C_${train_data}*" ../results/stats-${train_data}.tsv
+  python3 D_data_stats.py "../results/C_${train_data}*" ../results/stats-${train_data}.tsv
 done
 
-python3 dataset_graphs.py
+python3 D_dataset_graphs.py
 ```
 
 7. Prepare test data:
@@ -376,3 +376,8 @@ done
 
 python3 D_dataset_graphs.py
 ```
+
+*Note:* We improved the names of some of the features for the paper, but the code/filenames use the old names:
+- `split_token_ratio` = split word ratio difference
+- `target_subtoks_in_train` = seen subword ratio
+- `target_word_tokens_in_train` = seen word ratio
