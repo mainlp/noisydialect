@@ -1,7 +1,24 @@
 # Does manipulating tokenization aid cross-lingual transfer? A study on POS tagging for non-standardized languages
 
-[Add text here, also links to submodule repos]
+## Abstract
+One of the challenges with finetuning pretrained language models (PLMs) is that their tokenizer is optimized for the language(s) it was pretrained on, but brittle when it comes to previously unseen variations in the data. 
+This can for instance be observed when finetuning PLMs on one language and evaluating them on data in a closely related language variety with no standardized orthography. 
+Despite the high linguistic similarity, tokenization no longer corresponds to meaningful representations of the target data, leading to low performance in, e.g., part-of-speech tagging. 
 
+In this work, we finetune PLMs on seven languages from three different families and analyze their zero-shot performance on closely related, non-standardized varieties. 
+We consider different measures for the divergence in the tokenization of the source and target data, and the way they can be adjusted by manipulating the tokenization during the finetuning step. 
+Overall, we find that the similarity between the percentage of words that get split into subwords in the source and target data (the _split word ratio difference_) is the strongest predictor for model performance on target data.
+
+## Dataset conversion
+Please visit the following code repositories (here included as submodules within `datasets`) for the dataset conversion scripts and additional information on the original datasets and the conversion considerations:
+- [UD_Norwegian-NynorskLIA_dialect](https://github.com/mainlp/UD_Norwegian-NynorskLIA_dialect): adds phonetic transcriptions to [UD_Norwegian-NynorskLIA](https://github.com/UniversalDependencies/UD_Norwegian-NynorskLIA)
+- [convert-la-murrekorpus](https://github.com/mainlp/convert-la-murrekorpus): adds UPOS tags to [LA murrekorpus](https://www.kielipankki.fi/aineistot/la-murre/)
+- [convert-qcri-4dialects](https://github.com/mainlp/convert-qcri-4dialects): adds UPOS tags to the [Four Arabic Dialects POS tagged Dataset](https://alt.qcri.org/resources/da_resources/)
+- [convert-restaure-occitan](https://github.com/mainlp/convert-restaure-occitan): converts the [Annotated Corpus for Occitan](https://zenodo.org/record/1182949) from modified UPOS to "pure" UPOS
+
+## Article and citation
+
+Link TBD
 ```
 citation TBD
 ```
