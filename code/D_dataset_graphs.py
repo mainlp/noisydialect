@@ -496,6 +496,17 @@ def reverse_palette(palette_name):
     return palette_name + "_r"
 
 
+def load_df(filename, target_str, model_str):
+    df, _ = process_data_stats(filename)
+    df["wrong_target"] = df.apply(
+        lambda x: target_str not in x.TARGET_SET, axis=1)
+    df.drop(df[df.wrong_target].index, inplace=True)
+    df["wrong_model"] = df.apply(
+        lambda x: model_str not in x.SETUP_NAME, axis=1)
+    df.drop(df[df.wrong_model].index, inplace=True)
+    return df
+
+
 if __name__ == "__main__":
     sns.set_theme(style="whitegrid")
 
@@ -610,3 +621,59 @@ if __name__ == "__main__":
          custom_score_ticklabels=("", "", 0.5, "", 0.6, "", 0.7),
          custom_tok_ticklabels=("", 0.3, "", 0.5, "", 0.7),
          )
+
+    # Figures for presentation
+    df_nor = load_df("../results/stats-nno.tsv", "north", "norbert")
+    df_nds = load_df("../results/stats-hdt.tsv", "lsdc", "gbert")
+    df_fin = load_df("../results/stats-tdt.tsv", "SAV", "finbert")
+
+    df = pd.concat([df_nds, df_nor, df_fin])
+
+    g = sns.catplot(
+        data=df, x="noise", y="ACCURACY", hue="TARGET_SET",
+        capsize=.2, palette="YlGnBu_d", errorbar="sd",
+        kind="point",
+        height=4, aspect=0.9,
+    )
+    g.set(xlabel='Noise', ylabel='Accuracy')
+    # g.fig.text(0.65, 0.07, "Noise")
+    g.fig.text(0.65, 0.65, "German → Low Saxon", color="#2e939f")
+    g.fig.text(0.65, 0.7, "Nynorsk → North Norwegian", color="#1982ac")
+    g.fig.text(0.65, 0.81, "Finnish → Savonian Finnish", color="#125672")
+    g.fig.text(0.65, 0.4, "(Monolingual PLMs)")
+    _min = df.ACCURACY.min() - 0.05
+    _max = df.ACCURACY.max() + 0.05
+    g.set(ylim=(_min, _max))
+    g.despine(left=True)
+    g._legend.remove()
+    g.savefig("../figures/nds-nor-fin.png", pad_inches=0,
+              transparent=True, dpi=300)
+
+    g2 = sns.catplot(
+        data=df_nor, x="noise", y="ACCURACY", hue="TARGET_SET",
+        capsize=.2, palette="YlGnBu_d", errorbar="sd",
+        kind="point", height=4, aspect=0.9,
+    )
+    g2.set(xlabel='Noise', ylabel='Accuracy')
+    g2.fig.text(0.65, 0.7, "Nynorsk → North Norwegian", color="#1982ac")
+    g2.fig.text(0.65, 0.4, "(Monolingual PLMs)")
+    g2.despine(left=True)
+    g2._legend.remove()
+    g2.set(ylim=(_min, _max))
+    g2.savefig("../figures/nor.png", pad_inches=0, transparent=True, dpi=300)
+
+    g3 = sns.catplot(
+        data=pd.concat([df_nds, df_nor]), x="noise", y="ACCURACY",
+        hue="TARGET_SET",
+        capsize=.2, palette="YlGnBu_d", errorbar="sd",
+        kind="point", height=4, aspect=0.9,
+    )
+    g3.set(xlabel='Noise', ylabel='Accuracy')
+    g3.fig.text(0.65, 0.7, "Nynorsk → North Norwegian", color="#1982ac")
+    g3.fig.text(0.65, 0.65, "German → Low Saxon", color="#2e939f")
+    g3.fig.text(0.65, 0.4, "(Monolingual PLMs)")
+    g3.despine(left=True)
+    g3._legend.remove()
+    g3.set(ylim=(_min, _max))
+    g3.savefig("../figures/nds-nor.png", pad_inches=0,
+               transparent=True, dpi=300)
