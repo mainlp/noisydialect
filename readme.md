@@ -18,9 +18,14 @@ Please visit the following code repositories (here included as submodules within
 
 ## Article and citation
 
-Link TBD
+*Link to come*
 ```
-citation TBD
+@inproceedings{blaschke-etal-2023-manipulating,
+  author={Blaschke, Verena and Sch{\"u}tze, Hinrich and Plank, Barbara},
+  title={Does Manipulating Tokenization Aid Cross-Lingual Transfer? A Study on {POS} Tagging for Non-Standardized Languages},
+  year={2023},
+  booktitle={Proceedings of the Tenth Workshop on NLP for Similar Languages, Varieties and Dialects}
+}
 ```
 
 ## Usage for replication
