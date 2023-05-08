@@ -18,13 +18,18 @@ Please visit the following code repositories (here included as submodules within
 
 ## Article and citation
 
-*Link to come*
+[Link to article](https://aclanthology.org/2023.vardial-1.5/)
 ```
 @inproceedings{blaschke-etal-2023-manipulating,
-  author={Blaschke, Verena and Sch{\"u}tze, Hinrich and Plank, Barbara},
-  title={Does Manipulating Tokenization Aid Cross-Lingual Transfer? A Study on {POS} Tagging for Non-Standardized Languages},
-  year={2023},
-  booktitle={Proceedings of the Tenth Workshop on NLP for Similar Languages, Varieties and Dialects}
+  title = {Does Manipulating Tokenization Aid Cross-Lingual Transfer? A Study on {POS} Tagging for Non-Standardized Languages},
+  author = {Blaschke, Verena and Sch{\"u}tze, Hinrich and Plank, Barbara},
+  booktitle = {Proceedings of the Tenth Workshop on NLP for Similar Languages, Varieties and Dialects},
+  year = {2023},
+  month = may,
+  address = {Dubrovnik, Croatia},
+  publisher = {Association for Computational Linguistics},
+  url = {https://aclanthology.org/2023.vardial-1.5},
+  pages = {40--54},
 }
 ```
 
